@@ -1,0 +1,45 @@
+# Python environments and build outputs
+.venv/
+.wheel-test/
+wheel-check/
+build/
+dist/
+*.egg-info/
+*.whl
+*.tar.gz
+*.zip
+NeuroTabular-*/
+
+# Python caches and test artifacts
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+.ipynb_checkpoints/
+*.log
+benchmark-results*.json
+ablation-results*.json
+
+# Editors and operating systems
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+
+# Local configuration and secrets
+.env
+.env.*
+!.env.example
+*.key
+*.pem
+*.p12
+credentials*
+secrets*
+token*
+
+# Local agent and maintainer-only working files
+.agents/
+.codex/
+local-notes/

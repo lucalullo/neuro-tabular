@@ -1,0 +1,27 @@
+name: Feature request
+description: Propose a focused user or research improvement.
+title: "[Feature]: "
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem or use case
+      description: Explain the user need before proposing implementation.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed change
+    validations:
+      required: true
+  - type: textarea
+    id: compatibility
+    attributes:
+      label: API and compatibility considerations
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Test and benchmark plan
+      description: Performance or architecture proposals require reproducible evidence.
