@@ -214,3 +214,7 @@ It is licensed under the [MIT License](LICENSE). Dependency notices are in
 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md). Naming review is preliminary
 engineering due diligence, not professional legal advice or trademark
 clearance; see [LEGAL.md](LEGAL.md).
+
+## Author
+
+Created by [Luca Lullo](https://github.com/lucalullo).
