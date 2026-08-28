@@ -40,25 +40,49 @@ def test_auto_incompatible_cuda_warns_and_falls_back(monkeypatch):
 
 
 def test_auto_incompatible_cuda_fit_continues_on_cpu(monkeypatch):
-    _mock_cuda(
-        monkeypatch,
-        capability=(8, 0),
-        probe_error="no kernel image is available for execution",
+    # Device-resolution behavior is tested separately with mocked torch.cuda.
+    # Do not keep torch.cuda.is_available() mocked to True while running a real
+    # CPU optimizer step: CUDA-enabled PyTorch wheels may consult that function
+    # internally through torch.accelerator and try to initialize a real NVIDIA
+    # driver on GPU-less CI runners.
+    fallback_info = {
+        "requested_device": "auto",
+        "resolved_device": "cpu",
+        "fallback_used": True,
+        "fallback_reason": "the CUDA compatibility probe failed",
+        "torch_version": torch.__version__,
+        "torch_cuda_version": torch.version.cuda,
+        "probe_succeeded": False,
+        "amp_enabled": False,
+        "cuda_available": True,
+        "cuda_device_count": 1,
+        "device_index": 0,
+        "gpu_name": "Tesla P100",
+        "compute_capability": (6, 0),
+        "supported_architectures": ["sm_70", "sm_75"],
+        "probe_error": "no kernel image is available for execution",
+    }
+    monkeypatch.setattr(
+        "neurotabular.classifier.resolve_device",
+        lambda requested: (torch.device("cpu"), dict(fallback_info)),
     )
+
     X = pd.DataFrame({"x": np.linspace(-2.0, 2.0, 40)})
     y = np.resize([0, 1], len(X))
 
-    with pytest.warns(RuntimeWarning, match="falling back to CPU"):
-        model = NeuroTabularClassifier(
-            hidden_dim=8,
-            n_blocks=1,
-            max_epochs=1,
-            patience=1,
-            device="auto",
-        ).fit(X, y)
+    model = NeuroTabularClassifier(
+        hidden_dim=8,
+        n_blocks=1,
+        max_epochs=1,
+        patience=1,
+        device="auto",
+    ).fit(X, y)
 
     assert model.device_ == "cpu"
     assert model.device_info_["fallback_used"] is True
+    assert model.device_info_["fallback_reason"] == (
+        "the CUDA compatibility probe failed"
+    )
     assert model.device_info_["amp_enabled"] is False
     assert model.profile_["training"]["amp_enabled"] is False
     assert np.isfinite(model.predict_proba(X.iloc[:3])).all()
