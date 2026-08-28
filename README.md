@@ -47,15 +47,14 @@ selection safer and explicit CUDA failures clearer.
 ## Installation
 
 The official repository is
-[lucalullo/neuro-tabular](https://github.com/lucalullo/neuro-tabular). After
-the 0.1.1 candidate is reviewed and tag `v0.1.1` exists, the reproducible Git
-installation is:
+[lucalullo/neuro-tabular](https://github.com/lucalullo/neuro-tabular). The
+reproducible Git installation for version 0.1.1 is:
 
 ```bash
 pip install git+https://github.com/lucalullo/neuro-tabular.git@v0.1.1
 ```
 
-For local candidate review, from the repository root:
+For local installation, from the repository root:
 
 ```bash
 python -m pip install .
@@ -211,8 +210,9 @@ dependencies.
   may need domain-specific handling.
 - The standard numerical representation does not include learned numerical
   embeddings.
-- GPU behavior is implemented and conditionally tested, but the 0.1.1 candidate
-  environment had a CPU-only PyTorch build; no CUDA speed or VRAM claim is made.
+- GPU behavior is implemented and conditionally tested, but the 0.1.1 release
+  validation environment had a CPU-only PyTorch build; no CUDA speed or VRAM claim
+  is made.
 - Exact CUDA reproducibility can depend on GPU, driver, CUDA, PyTorch, and
   kernel selection.
 
