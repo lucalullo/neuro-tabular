@@ -25,6 +25,10 @@ Verified devices with compute capability 7.0 or newer use float16 AMP; CPU and
 older or metadata-unknown CUDA devices use FP32. NeuroTabular never changes or
 installs PyTorch/CUDA on the user's behalf.
 
+CPU/FP32 execution does not construct an autocast context. This keeps the
+declared PyTorch 2.0 minimum compatible with warnings-as-errors environments,
+where disabled CPU float16 autocast still emits a warning.
+
 ## Performance-engine maintenance
 
 AdamW no longer forces the newer fused implementation; PyTorch chooses its
@@ -52,7 +56,7 @@ folds) was supplied by the maintainer and was not reproduced locally.
 
 ## Verification
 
-- 77 tests passed and one real-CUDA integration test was skipped on the
+- 78 tests passed and one real-CUDA integration test was skipped on the
   CPU-only host, compared with 67 passed and one skipped for the immutable
   0.1.0 baseline in the same environment.
 - Device tests simulate unavailable CUDA, incompatible visible CUDA,

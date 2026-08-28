@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import math
+from contextlib import nullcontext
 from dataclasses import dataclass
 from time import perf_counter
 from typing import Literal
@@ -187,11 +188,7 @@ def train_binary_model(
         ):
             optimizer.zero_grad(set_to_none=True)
             forward_started = perf_counter()
-            with torch.autocast(
-                device_type=device.type,
-                dtype=torch.float16,
-                enabled=use_amp,
-            ):
+            with _autocast_context(use_amp):
                 logits = model(
                     numerical.to(device, non_blocking=True),
                     categorical.to(device, non_blocking=True),
@@ -475,6 +472,20 @@ def _make_scheduler(
 
         return torch.optim.lr_scheduler.LambdaLR(optimizer, factor)
     raise ValueError("Unknown learning-rate strategy.")
+
+
+def _autocast_context(enabled: bool):
+    """Return CUDA autocast only when AMP is actually enabled.
+
+    PyTorch 2.0 validates the requested dtype even when ``enabled=False``.
+    Constructing a disabled CPU float16 autocast context therefore emits a
+    warning, which is both unnecessary and incompatible with warnings-as-errors
+    test suites. CPU/FP32 execution should not enter autocast at all.
+    """
+
+    if not enabled:
+        return nullcontext()
+    return torch.autocast(device_type="cuda", dtype=torch.float16)
 
 
 def _make_grad_scaler(enabled: bool):

@@ -17,6 +17,8 @@ applicable. Published releases and tags are immutable.
 - Validate indexed CUDA requests against the visible device count.
 - Seed CUDA generators only after the selected CUDA path is verified usable;
   CPU-only and fallback fits no longer touch CUDA seeding.
+- Avoid constructing disabled float16 autocast contexts on CPU, preserving
+  warnings-as-errors compatibility with the declared PyTorch 2.0 minimum.
 
 ### Changed
 

@@ -3,6 +3,7 @@ import math
 import numpy as np
 import pandas as pd
 import pytest
+import torch
 
 from neurotabular import NeuroTabularClassifier
 
@@ -104,3 +105,15 @@ def test_cpu_reproducibility(mixed_binary_data, fast_model_kwargs):
     assert np.allclose(
         first.predict_proba(X), second.predict_proba(X), rtol=0.0, atol=1e-7
     )
+
+
+def test_cpu_training_never_constructs_autocast(monkeypatch, mixed_binary_data, fast_model_kwargs):
+    X, y = mixed_binary_data
+
+    def fail_autocast(*args, **kwargs):
+        raise AssertionError("CPU/FP32 training must not construct torch.autocast")
+
+    monkeypatch.setattr(torch, "autocast", fail_autocast)
+    model = NeuroTabularClassifier(**fast_model_kwargs).fit(X, y)
+    assert model.device_ == "cpu"
+    assert model.profile_["training"]["amp_enabled"] is False
