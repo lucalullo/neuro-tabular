@@ -249,7 +249,7 @@ reorders them to the fitted schema. Missing or extra columns raise an error:
 
 ```python
 model.predict_proba(X_test[model.feature_names_in_[::-1]])  # accepted
-model.predict_proba(X_test.drop(columns=["income"]))       # rejected
+model.predict_proba(X_test.drop(columns=["income"]))  # rejected
 ```
 
 This strictness prevents silent feature misalignment.
