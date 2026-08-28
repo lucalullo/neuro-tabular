@@ -1,4 +1,4 @@
-# NeuroTabular 0.1.0 research and design notes
+# NeuroTabular 0.1.x research and design notes
 
 ## Scope and originality
 
@@ -27,6 +27,16 @@ LightGBM, CatBoost, RealMLP, and TabM are not runtime dependencies.
   Guide](https://docs.pytorch.org/tutorials/recipes/recipes/tuning_guide.html)
   and [Automatic Mixed Precision
   documentation](https://docs.pytorch.org/docs/stable/accelerator/amp.html).
+- PyTorch CUDA API documentation for
+  [`is_available`](https://docs.pytorch.org/docs/stable/generated/torch.cuda.is_available),
+  [`get_arch_list`](https://docs.pytorch.org/docs/stable/generated/torch.cuda.get_arch_list.html),
+  [`get_device_capability`](https://docs.pytorch.org/docs/stable/generated/torch.cuda.get_device_capability.html),
+  and [`synchronize`](https://docs.pytorch.org/docs/stable/generated/torch.cuda.synchronize).
+- PyTorch,
+  [`AdamW`](https://docs.pytorch.org/docs/stable/generated/torch.optim.AdamW)
+  documentation.
+- NVIDIA CUDA Programming Guide,
+  [CUDA platform and binary/PTX compatibility](https://docs.nvidia.com/cuda/cuda-programming-guide/01-introduction/cuda-platform.html).
 
 ## Lessons applied
 
@@ -77,6 +87,30 @@ uses `torch.inference_mode()`, `zero_grad(set_to_none=True)`, direct indexing fo
 materialized tensors, optional pinned staging, non-blocking CUDA transfers,
 autocast, and a fused-AdamW attempt. It does not globally change thread counts,
 TF32, or deterministic settings.
+
+### CUDA compatibility in 0.1.1
+
+`torch.cuda.is_available()` answers whether CUDA is available at runtime, but
+the externally reproduced P100 failure demonstrates that this alone is not a
+sufficient application-level guarantee that the installed PyTorch binary can
+execute a kernel on the visible device. `get_arch_list()` reports architectures
+compiled into the library and is valuable diagnostic evidence.
+
+NeuroTabular does not treat exact `sm_XY` membership as the final compatibility
+test. NVIDIA documents that cubins have same-major compatibility constraints
+while PTX can be JIT-compiled for later compute capabilities. Newer CUDA targets
+also include family- and architecture-specific variants. A string-membership
+rule would therefore reject valid forward-compatible cases or oversimplify
+future targets. Version 0.1.1 instead launches a one-element PyTorch CUDA kernel
+and calls `torch.cuda.synchronize()` so asynchronous launch failures surface
+before model setup. Architecture metadata remains in diagnostics.
+
+AMP is restricted to a verified CUDA path with compute capability 7.0 or newer,
+where Tensor Core acceleration makes float16 autocast an appropriate default.
+CPU never enables AMP. The optimizer no longer forces `fused=True`: current
+PyTorch documentation describes fused as newer and lets the default prefer a
+supported CUDA foreach implementation. This also avoids a class of failures
+where fused construction and first-step support differ across versions.
 
 ## Decisions not adopted
 

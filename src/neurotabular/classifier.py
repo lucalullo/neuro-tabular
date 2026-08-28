@@ -17,6 +17,7 @@ from sklearn.base import BaseEstimator, ClassifierMixin
 from sklearn.model_selection import train_test_split
 from sklearn.utils.validation import check_is_fitted
 
+from .device import resolve_device
 from .network import TabularNetwork
 from .preprocessing import TabularPreprocessor
 from .training import (
@@ -66,7 +67,9 @@ class NeuroTabularClassifier(ClassifierMixin, BaseEstimator):
     min_category_count : int, default=2
         Training frequency below which a category uses the rare bucket.
     device : str, default="auto"
-        ``"auto"``, ``"cpu"``, ``"cuda"``, or a CUDA device string.
+        ``"auto"``, ``"cpu"``, ``"cuda"``, or a CUDA device string. Automatic
+        CUDA requires a successful synchronized compatibility probe; explicit
+        CUDA requests raise a diagnostic error instead of falling back.
     random_state : int, default=42
         Seed for Python, NumPy, PyTorch, splitting, and batch shuffling.
     verbose : {0, 1}, default=0
@@ -132,7 +135,9 @@ class NeuroTabularClassifier(ClassifierMixin, BaseEstimator):
         X = self._validate_X(X)
         y_array = self._validate_target(y, len(X))
         all_sample_weight = self._validate_sample_weight(sample_weight, len(X))
-        self._set_random_state()
+        device = self._resolve_device()
+        self.device_ = str(device)
+        self._set_random_state(device)
 
         if eval_set is None:
             indices = np.arange(len(X))
@@ -198,6 +203,7 @@ class NeuroTabularClassifier(ClassifierMixin, BaseEstimator):
         self.numeric_features_ = list(self._preprocessor_.numeric_features_)
         self.categorical_features_ = list(self._preprocessor_.categorical_features_)
 
+        target_started = perf_counter()
         y_train_encoded = self._encode_target(y_train)
         y_validation_encoded = self._encode_target(y_validation)
         if self.eval_metric == "roc_auc" and any(
@@ -211,8 +217,7 @@ class NeuroTabularClassifier(ClassifierMixin, BaseEstimator):
         train_weight = self._combined_training_weight(
             y_train_encoded, train_sample_weight
         )
-        device = self._resolve_device()
-        self.device_ = str(device)
+        target_preparation_time = perf_counter() - target_started
         self._model_ = TabularNetwork(
             n_numeric_features=self._preprocessor_.n_numeric_outputs_,
             categorical_cardinalities=(self._preprocessor_.categorical_cardinalities_),
@@ -256,6 +261,7 @@ class NeuroTabularClassifier(ClassifierMixin, BaseEstimator):
             weight_decay=float(self.weight_decay),
             random_state=self.random_state,
             verbose=self.verbose,
+            use_amp=bool(self.device_info_["amp_enabled"]),
         )
         self.best_epoch_ = training_result.best_epoch
         self.best_score_ = training_result.best_score
@@ -272,6 +278,8 @@ class NeuroTabularClassifier(ClassifierMixin, BaseEstimator):
                 "total_seconds": self.preprocessing_time_,
             },
             "training": training_result.profile,
+            "target_preparation_seconds": target_preparation_time,
+            "device": dict(self.device_info_),
         }
         self.fit_time_ = perf_counter() - fit_started
         return self
@@ -448,25 +456,16 @@ class NeuroTabularClassifier(ClassifierMixin, BaseEstimator):
             raise ValueError("device must be 'auto', 'cpu', or a CUDA device string.")
 
     def _resolve_device(self) -> torch.device:
-        if self.device == "auto":
-            return torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        try:
-            device = torch.device(self.device)
-        except RuntimeError as exc:
-            raise ValueError(f"Invalid device {self.device!r}.") from exc
-        if device.type == "cuda" and not torch.cuda.is_available():
-            raise ValueError("CUDA was requested but is not available.")
-        if device.type == "cuda" and device.index is not None:
-            if device.index >= torch.cuda.device_count():
-                raise ValueError(f"CUDA device index {device.index} is unavailable.")
+        device, info = resolve_device(self.device)
+        self.device_info_ = info
         return device
 
-    def _set_random_state(self) -> None:
+    def _set_random_state(self, device: torch.device) -> None:
         seed = int(self.random_state)
         random.seed(seed)
         np.random.seed(seed)
-        torch.manual_seed(seed)
-        if torch.cuda.is_available():
+        torch.random.default_generator.manual_seed(seed)
+        if device.type == "cuda":
             torch.cuda.manual_seed_all(seed)
 
     @staticmethod

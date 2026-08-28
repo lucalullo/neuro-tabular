@@ -11,7 +11,7 @@ on:
           - testpypi
           - pypi
       confirmation:
-        description: Type the exact version tag, for example v0.1.0
+        description: Type the exact tag matching the package version
         required: true
         type: string
 

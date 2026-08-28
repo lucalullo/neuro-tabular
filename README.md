@@ -18,10 +18,11 @@ proba = model.predict_proba(X_test)
 
 ## Project status
 
-NeuroTabular 0.1.0 is experimental and pre-1.0. It is a focused binary
-classification foundation, not a claim of state-of-the-art performance. The
-public API, architecture, and defaults may evolve through measured pre-1.0
-minor releases.
+NeuroTabular 0.1.1 is the recommended 0.1.x release. It is a maintenance and
+robustness patch for the experimental, pre-1.0 binary-classification
+foundation—not a claim of state-of-the-art performance. It keeps the 0.1.0
+architecture, public constructor, and defaults while making automatic CUDA
+selection safer and explicit CUDA failures clearer.
 
 ## Features
 
@@ -39,13 +40,22 @@ minor releases.
   weight restoration.
 - Automatic full/large-batch training through direct tensor indexing.
 - Sample weights and balanced binary class weights.
-- CPU and CUDA paths, local training, and bounded-memory inference.
+- CPU and verified CUDA paths, safe automatic CPU fallback, local training,
+  and bounded-memory inference.
 - Profiling attributes for fit, preprocessing, training, and validation.
 
 ## Installation
 
-NeuroTabular 0.1.0 is an experimental pre-1.0 source release. It has not yet
-been published to PyPI. From the repository root:
+The official repository is
+[lucalullo/neuro-tabular](https://github.com/lucalullo/neuro-tabular). After
+the 0.1.1 candidate is reviewed and tag `v0.1.1` exists, the reproducible Git
+installation is:
+
+```bash
+pip install git+https://github.com/lucalullo/neuro-tabular.git@v0.1.1
+```
+
+For local candidate review, from the repository root:
 
 ```bash
 python -m pip install .
@@ -113,18 +123,24 @@ Class and sample weights are multiplicative and can be combined.
 
 ## Devices and performance
 
-`device="auto"` selects CUDA when PyTorch reports it available and otherwise
-uses CPU. `device="cpu"`, `"cuda"`, and indexed CUDA device strings are also
-accepted.
+`device="auto"` selects CUDA only after PyTorch reports it available, the
+device exists, metadata is collected, and a tiny synchronized CUDA kernel
+probe succeeds. A visible GPU that is incompatible with the installed PyTorch
+build produces a clear warning and falls back to CPU. `device="cuda"` and
+indexed CUDA requests never fall back silently: they fail before model or
+training tensor creation with the available GPU, compute-capability, PyTorch,
+compiled-architecture, and probe diagnostics. `device="cpu"` performs no CUDA
+probe.
 
 For small and medium in-memory datasets, arrays are converted to tensors once.
 Training uses direct tensor indexing, full batches for very small datasets, and
 large deterministic batches otherwise. DataLoader worker processes are not
 used for already-materialized arrays. CUDA attempts one-time device residency
-when memory permits and otherwise uses pinned CPU staging. CUDA training uses
-automatic mixed precision with a safe fallback and attempts fused AdamW when
-supported. `torch.compile` is disabled in 0.1.0 because compile cold start was
-not justified for the target workloads.
+when memory permits and otherwise uses pinned CPU staging. Verified CUDA
+training uses float16 automatic mixed precision on compute capability 7.0 or
+newer. AdamW keeps PyTorch's supported implementation selection instead of
+forcing the newer fused path. `torch.compile` remains disabled because compile
+cold start was not justified for the target workloads.
 
 After fitting, inspect:
 
@@ -135,6 +151,8 @@ print(model.training_time_)
 print(model.validation_time_)
 print(model.batch_size_)
 print(model.n_parameters_)
+print(model.device_)
+print(model.device_info_)
 ```
 
 ## scikit-learn compatibility
@@ -166,7 +184,9 @@ several tasks. See
 [BENCHMARK_REPORT.md](BENCHMARK_REPORT.md),
 [PERFORMANCE_PROFILE.md](PERFORMANCE_PROFILE.md), and
 [ABLATION_REPORT.md](ABLATION_REPORT.md) for methods, hardware, raw summaries,
-and limitations.
+and limitations. The 0.1.1 maintenance comparison preserves identical local
+ROC-AUC and epoch counts across all 14 dataset/seed pairs. Timing was noisy and
+did not justify a speedup claim, so attempted hot-path changes were discarded.
 
 These synthetic measurements are engineering diagnostics, not evidence of
 universal superiority. External benchmark libraries are not runtime
@@ -191,8 +211,8 @@ dependencies.
   may need domain-specific handling.
 - The standard numerical representation does not include learned numerical
   embeddings.
-- GPU behavior is implemented and conditionally tested, but the 0.1.0 release
-  benchmark hardware was CPU-only.
+- GPU behavior is implemented and conditionally tested, but the 0.1.1 candidate
+  environment had a CPU-only PyTorch build; no CUDA speed or VRAM claim is made.
 - Exact CUDA reproducibility can depend on GPU, driver, CUDA, PyTorch, and
   kernel selection.
 

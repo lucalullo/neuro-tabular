@@ -1,4 +1,4 @@
-# NeuroTabular 0.1.0 performance profile
+# NeuroTabular 0.1.x performance profile
 
 ## Objective
 
@@ -123,3 +123,35 @@ approximate to avoid a synchronization after every operation.
 - Profile categorical encoding on million-row and extreme-cardinality frames.
 - Add public-dataset continuous performance regression thresholds after stable
   CI hardware is available.
+
+## 0.1.1 maintenance profile
+
+Version 0.1.1 adds explicit `target_preparation_seconds`, `scheduler_seconds`,
+`best_state_restoration_seconds`, AMP state, optimizer-path labeling, and device
+diagnostics to the existing profile. CUDA fine-grained timings remain
+asynchronous/approximate; the compatibility probe synchronizes exactly once
+during device resolution, not inside the training hot path.
+
+The maintenance audit evaluated and then discarded:
+
+- preallocated prediction output, because the measured small-batch path was not
+  faster than list collection plus one concatenation;
+- Python-side guards around `.to(device)`, because the added dispatch did not
+  improve the measured aggregate;
+- validation slicing and loss-only probability suppression, because the noisy
+  end-to-end matrix did not establish an overall gain;
+- automatic CUDA OOM batch retries, because no compatible GPU was available to
+  validate cleanup/retry semantics safely; and
+- forced fused AdamW fallback after a failed real-model first step, because a
+  partially executed optimizer step is not a safe recovery boundary.
+
+The final candidate instead stops forcing `fused=True` and lets PyTorch select
+its supported AdamW implementation. This follows the official AdamW guidance
+and avoids treating arbitrary CUDA, numerical, or OOM failures as evidence that
+only the fused implementation failed.
+
+The final warm/interleaved comparison preserved exactly the same ROC-AUC and
+epoch count for every one of 14 dataset/seed pairs. Median paired fit ratio was
+0.9702 and median paired prediction ratio was 1.0106, while arithmetic means
+were distorted by large scheduling outliers. See `BENCHMARK_REPORT.md` for all
+rows. No 0.1.1 speedup is claimed.

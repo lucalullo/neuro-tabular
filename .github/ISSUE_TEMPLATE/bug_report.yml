@@ -12,14 +12,16 @@ body:
     id: version
     attributes:
       label: NeuroTabular version
-      placeholder: 0.1.0
+      placeholder: 0.1.1
     validations:
       required: true
   - type: textarea
     id: environment
     attributes:
       label: Environment
-      description: Python, OS, device, and relevant dependency versions.
+      description: >-
+        Python, OS, requested/resolved device, PyTorch version, GPU name,
+        compute capability, and torch.cuda.get_arch_list() when relevant.
     validations:
       required: true
   - type: textarea

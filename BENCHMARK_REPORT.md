@@ -130,3 +130,52 @@ distributed with NeuroTabular.
 Results can vary with CPU, BLAS/OpenMP runtime, thread scheduling, PyTorch,
 dependency versions, and synthetic split. A broader public-dataset benchmark is
 required before making stronger comparative claims.
+
+## 0.1.1 candidate maintenance comparison
+
+This comparison was run on 2026-08-28 against the immutable local 0.1.0 source
+with Python 3.12.13, NumPy 2.2.6, pandas 3.0.5, PyTorch 2.13.0+cpu, and
+scikit-learn 1.6.1. CUDA was unavailable. Both versions were loaded into the
+same warm process. Version order alternated, every dataset/seed fit was repeated
+three times, and each prediction timing is the median of five calls after one
+untimed warm call. The table reports the median fit and prediction time across
+the three repetitions.
+
+| Dataset | Seed | ROC-AUC 0.1.0 / 0.1.1 | Fit s 0.1.0 | Fit s 0.1.1 | Predict s 0.1.0 | Predict s 0.1.1 | Epochs 0.1.0 / 0.1.1 |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| Small numeric | 17 | 0.931911 / 0.931911 | 0.3687 | 0.3948 | 0.00954 | 0.00918 | 13 / 13 |
+| Small numeric | 23 | 0.892425 / 0.892425 | 0.9001 | 0.8356 | 0.00943 | 0.00900 | 30 / 30 |
+| Small mixed | 17 | 0.826100 / 0.826100 | 0.3185 | 0.2851 | 0.01219 | 0.01349 | 7 / 7 |
+| Small mixed | 23 | 0.873500 / 0.873500 | 0.7327 | 0.4652 | 0.01281 | 0.01126 | 12 / 12 |
+| Mixed with NaNs | 17 | 0.836444 / 0.836444 | 0.3741 | 0.4517 | 0.01262 | 0.01248 | 7 / 7 |
+| Mixed with NaNs | 23 | 0.774267 / 0.774267 | 0.8837 | 0.7718 | 0.02372 | 0.02545 | 6 / 6 |
+| Categorical-heavy | 17 | 0.771156 / 0.771156 | 0.6236 | 0.5473 | 0.01884 | 0.02717 | 11 / 11 |
+| Categorical-heavy | 23 | 0.815422 / 0.815422 | 0.6310 | 1.1971 | 0.01989 | 0.04672 | 7 / 7 |
+| Moderate high cardinality | 17 | 0.857867 / 0.857867 | 0.9387 | 0.8875 | 0.01827 | 0.01654 | 12 / 12 |
+| Moderate high cardinality | 23 | 0.818622 / 0.818622 | 0.5721 | 0.5602 | 0.02143 | 0.01841 | 7 / 7 |
+| Imbalanced binary | 17 | 0.945197 / 0.945197 | 1.2637 | 1.2203 | 0.01874 | 0.01935 | 17 / 17 |
+| Imbalanced binary | 23 | 0.941600 / 0.941600 | 0.6506 | 0.6646 | 0.01879 | 0.02038 | 9 / 9 |
+| Medium synthetic | 17 | 0.974080 / 0.974080 | 7.1596 | 6.9780 | 0.04020 | 0.03530 | 30 / 30 |
+| Medium synthetic | 23 | 0.985236 / 0.985236 | 7.0153 | 8.5971 | 0.02695 | 0.02958 | 30 / 30 |
+| **Arithmetic mean** | — | **0.874559 / 0.874559** | **1.6023** | **1.7040** | **0.01882** | **0.02102** | **14.14 / 14.14** |
+
+Every paired ROC-AUC and epoch count is identical: delta mean ROC-AUC is
+`0.000000`. The candidate won 9 of 14 fit comparisons; the median paired fit
+ratio was `0.9702` (2.98% lower). It won 7 of 14 prediction comparisons; the
+median paired prediction ratio was `1.0106` (1.06% higher). Two conspicuous
+candidate timing outliers make the arithmetic means 6.35% higher for fit and
+11.73% higher for prediction. These conflicting, scheduling-sensitive results
+do not support a speedup or regression claim. Attempted hot-path changes were
+discarded, and the final 0.1.1 training/prediction data path remains the 0.1.0
+path except for device safety and low-overhead diagnostics.
+
+The separately supplied Kaggle Playground S6E8 observation—0.940020 mean
+ROC-AUC and about 536.98 seconds for six CPU folds on 0.1.0—was not reproduced
+locally because the dataset was unavailable. No dataset is distributed.
+
+Reproduce the local maintenance comparison from the 0.1.1 directory with:
+
+```bash
+python benchmarks/compare_0_1_x.py --seeds 17 23 --repeats 3 \
+  --prediction-repeats 5
+```

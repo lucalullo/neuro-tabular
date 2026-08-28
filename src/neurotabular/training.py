@@ -115,6 +115,7 @@ def train_binary_model(
     random_state: int,
     verbose: int,
     lr_strategy: str = "cosine",
+    use_amp: bool | None = None,
 ) -> TrainingResult:
     """Train ``model`` with direct tensor indexing and restore best weights."""
 
@@ -129,6 +130,8 @@ def train_binary_model(
         "validation_inference_seconds": 0.0,
         "metric_seconds": 0.0,
         "checkpoint_seconds": 0.0,
+        "scheduler_seconds": 0.0,
+        "best_state_restoration_seconds": 0.0,
         "timing_reliable": device.type == "cpu",
         "data_residency": "cpu",
     }
@@ -153,8 +156,10 @@ def train_binary_model(
     optimizer = _make_optimizer(model, lr, weight_decay, device)
     scheduler = _make_scheduler(optimizer, max_epochs, lr_strategy)
     criterion = nn.BCEWithLogitsLoss(reduction="none")
-    use_amp = device.type == "cuda"
+    use_amp = device.type == "cuda" if use_amp is None else use_amp
     scaler = _make_grad_scaler(use_amp)
+    profile["amp_enabled"] = use_amp
+    profile["optimizer"] = "AdamW (PyTorch-selected implementation)"
     generator = torch.Generator(device="cpu")
     generator.manual_seed(random_state)
     profile["engine_setup_seconds"] = perf_counter() - engine_started
@@ -212,7 +217,11 @@ def train_binary_model(
             ) + (perf_counter() - step_started)
             loss_numerator += (elementwise_loss.detach() * weight).sum()
             weight_denominator += batch_weight.detach()
+        scheduler_started = perf_counter()
         scheduler.step()
+        profile["scheduler_seconds"] = float(profile["scheduler_seconds"]) + (
+            perf_counter() - scheduler_started
+        )
         epoch_loss = loss_numerator / weight_denominator.clamp_min(1e-12)
         train_loss = float(epoch_loss.detach().cpu())
         if not math.isfinite(train_loss):
@@ -269,9 +278,11 @@ def train_binary_model(
 
     if best_state is None:
         raise RuntimeError("Training did not produce a finite validation score.")
+    restoration_started = perf_counter()
     model.load_state_dict(best_state)
     model.to(device)
     model.eval()
+    profile["best_state_restoration_seconds"] = perf_counter() - restoration_started
     profile["training_compute_seconds"] = training_compute_seconds
     profile["validation_seconds"] = validation_seconds
     profile["engine_total_seconds"] = perf_counter() - engine_started
@@ -441,11 +452,6 @@ def _make_optimizer(
     model: nn.Module, lr: float, weight_decay: float, device: torch.device
 ) -> torch.optim.Optimizer:
     kwargs: dict[str, object] = {"lr": lr, "weight_decay": weight_decay}
-    if device.type == "cuda":
-        try:
-            return torch.optim.AdamW(model.parameters(), fused=True, **kwargs)
-        except (RuntimeError, TypeError):
-            pass
     return torch.optim.AdamW(model.parameters(), **kwargs)
 
 

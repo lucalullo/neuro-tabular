@@ -50,9 +50,28 @@ jobs:
       - run: python -m pip install -e ".[dev]"
       - run: python -m pytest -W error
 
+  torch-minimum:
+    name: PyTorch 2.0 compatibility
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.10"
+          cache: pip
+          cache-dependency-path: pyproject.toml
+      - run: python -m pip install "numpy<2"
+      - run: >-
+          python -m pip install "torch==2.0.1"
+          --index-url https://download.pytorch.org/whl/cpu
+      - run: python -m pip install -e ".[dev]"
+      - run: python -m pytest -W error
+
   package:
     name: Build distributions
-    needs: [lint, test]
+    needs: [lint, test, torch-minimum]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7

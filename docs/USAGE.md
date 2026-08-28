@@ -1,4 +1,4 @@
-# NeuroTabular 0.1.0 usage guide
+# NeuroTabular 0.1.1 usage guide
 
 This guide shows common binary-classification workflows. See
 [API.md](API.md) for exact parameter validation and fitted attributes.
@@ -163,8 +163,43 @@ Request CUDA:
 model = NeuroTabularClassifier(device="cuda")
 ```
 
-An unavailable requested CUDA device raises an error. Check the resolved path
-after fitting with `model.device_`.
+`"auto"` uses CUDA only after a minimal synchronized kernel probe succeeds. If
+a GPU is visible but incompatible with the installed PyTorch build, NeuroTabular
+emits a warning and continues on CPU. Explicit `"cuda"` or `"cuda:N"` requests
+never fall back and raise a diagnostic error before training when unusable.
+
+Check the resolved path and decision details after fitting:
+
+```python
+print(model.device_)
+print(model.device_info_)
+```
+
+## CUDA compatibility
+
+A physically present GPU does not guarantee that the installed PyTorch build
+contains a compatible cubin or forward-compatible PTX kernel. For example, a
+Pascal `sm_60` GPU cannot execute a build containing only newer incompatible
+kernels. Inspect the local combination with:
+
+```python
+import torch
+
+print(torch.__version__)
+print(torch.cuda.get_device_name(0))
+print(torch.cuda.get_device_capability(0))
+print(torch.cuda.get_arch_list())
+```
+
+`get_arch_list()` is useful diagnostic evidence, but NeuroTabular does not use
+exact string membership as its sole decision because CUDA binary and PTX
+forward-compatibility rules are more nuanced. The synchronized kernel probe is
+the final runtime check.
+
+NeuroTabular does not install, replace, or download PyTorch or CUDA. Resolve an
+incompatible explicit CUDA request by selecting CPU or installing a PyTorch
+build appropriate for the GPU through the environment's normal administration
+process.
 
 ## Automatic and explicit batches
 

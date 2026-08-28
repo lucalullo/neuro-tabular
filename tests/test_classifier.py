@@ -27,7 +27,14 @@ def test_fit_predict_and_fitted_attributes(mixed_binary_data, fast_model):
     assert fast_model.fit_time_ >= fast_model.preprocessing_time_ > 0.0
     assert fast_model.training_time_ > 0.0
     assert fast_model.validation_time_ > 0.0
-    assert set(fast_model.profile_) == {"preprocessing", "training"}
+    assert set(fast_model.profile_) == {
+        "preprocessing",
+        "target_preparation_seconds",
+        "device",
+        "training",
+    }
+    assert fast_model.device_info_["requested_device"] == "cpu"
+    assert fast_model.device_info_["resolved_device"] == "cpu"
 
 
 @pytest.mark.parametrize("labels", [("no", "yes"), (-3, 8)])
@@ -166,17 +173,26 @@ def test_auto_device_and_unavailable_cuda(mixed_binary_data, fast_model_kwargs):
     X, y = mixed_binary_data
     parameters = {**fast_model_kwargs, "device": "auto"}
     model = NeuroTabularClassifier(**parameters).fit(X, y)
-    expected = "cuda" if torch.cuda.is_available() else "cpu"
-    assert model.device_ == expected
+    if torch.cuda.is_available():
+        assert model.device_ == "cpu" or model.device_.startswith("cuda")
+    else:
+        assert model.device_ == "cpu"
     if not torch.cuda.is_available():
         parameters["device"] = "cuda"
-        with pytest.raises(ValueError, match="CUDA was requested"):
+        with pytest.raises(RuntimeError, match="CUDA is not available"):
             NeuroTabularClassifier(**parameters).fit(X, y)
 
 
 @pytest.mark.skipif(not torch.cuda.is_available(), reason="CUDA is unavailable")
 def test_cuda_training_smoke(mixed_binary_data, fast_model_kwargs):
     X, y = mixed_binary_data
-    model = NeuroTabularClassifier(**{**fast_model_kwargs, "device": "cuda"}).fit(X, y)
+    try:
+        model = NeuroTabularClassifier(**{**fast_model_kwargs, "device": "cuda"}).fit(
+            X, y
+        )
+    except RuntimeError as exc:
+        if "compatibility probe failed" in str(exc):
+            pytest.skip(f"CUDA is visible but unusable: {exc}")
+        raise
     assert model.device_.startswith("cuda")
     assert np.isfinite(model.predict_proba(X.iloc[:5])).all()

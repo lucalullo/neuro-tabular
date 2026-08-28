@@ -1,6 +1,6 @@
-# NeuroTabular 0.1.0 API reference
+# NeuroTabular 0.1.1 API reference
 
-NeuroTabular 0.1.0 exposes one public estimator:
+NeuroTabular 0.1.1 exposes one public estimator:
 
 ```python
 from neurotabular import NeuroTabularClassifier
@@ -155,14 +155,31 @@ dtypes. Other columns are treated as numerical.
 - Type: string.
 - Accepted forms: `"auto"`, `"cpu"`, `"cuda"`, or an indexed CUDA string such
   as `"cuda:0"`.
-- `"auto"` selects CUDA when available and otherwise CPU.
-- An unavailable or out-of-range requested CUDA device raises `ValueError`.
-- The resolved device is exposed as `device_`.
+- `"auto"` uses CPU when CUDA is unavailable. When CUDA is visible, it checks
+  the device index, collects available GPU/build metadata, launches a minimal
+  CUDA kernel, and synchronizes it. CUDA is selected only if that probe succeeds.
+- If `"auto"` sees a GPU but the installed PyTorch build cannot execute the
+  probe, fitting emits `RuntimeWarning`, records the reason, and continues on CPU.
+- `"cpu"` selects CPU directly and performs no CUDA query or probe.
+- `"cuda"` requests the current CUDA device; `"cuda:N"` requests index `N`.
+  Explicit CUDA never falls back. Unavailable, nonexistent, or probe-failing
+  devices raise `RuntimeError` before network creation, CUDA training tensor
+  creation, AMP/GradScaler setup, or optimizer setup.
+- Explicit errors include the requested device and, when available, GPU name,
+  `sm_XY` capability, PyTorch/CUDA versions, compiled architectures, device
+  count, and original probe error.
+- The resolved device is exposed as `device_`; successful CUDA resolution is
+  indexed, such as `"cuda:0"`.
+- Verified CUDA devices with compute capability 7.0 or newer use float16
+  autocast plus gradient scaling. Older or metadata-unknown verified devices
+  use FP32. CPU never enables AMP by default.
 
 ### `random_state=42`
 
 - Type: integer; booleans are rejected.
-- Seeds Python, NumPy, PyTorch, the validation split, and batch shuffling.
+- Seeds Python, NumPy, the PyTorch CPU generator, the validation split, and
+  batch shuffling. CUDA generators are seeded only after a CUDA device passes
+  the compatibility probe.
 - CPU execution is reproducible for the same inputs and software environment in
   the tested path. Exact CUDA results can depend on the GPU stack and kernels.
 
@@ -204,7 +221,7 @@ Values must be finite, non-negative, and include at least one positive value.
 
 With internal validation, weights are split with the corresponding rows and
 used for training and validation metrics. With explicit validation,
-`sample_weight` applies to training rows only because 0.1.0 does not expose an
+`sample_weight` applies to training rows only because 0.1.1 does not expose an
 explicit validation-weight argument. ROC-AUC additionally requires positive
 validation weight for both classes.
 
@@ -250,6 +267,10 @@ Returns a finite float array with shape `(n_samples, 2)`. Columns follow
 - `categorical_features_`: automatically detected plus explicit categoricals.
 - `class_weight_`: resolved balanced mapping or `None`.
 - `device_`: resolved device string.
+- `device_info_`: device decision diagnostics with `requested_device`,
+  `resolved_device`, `fallback_used`, PyTorch/CUDA build information, and GPU
+  metadata when available. `fallback_reason` and `probe_error` appear when
+  relevant.
 - `batch_size_`: resolved training batch size.
 - `inference_batch_size_`: prediction batch bound.
 - `n_parameters_`: trainable neural parameter count.
@@ -266,6 +287,7 @@ Returns a finite float array with shape `(n_samples, 2)`. Columns follow
 - `profile_`: nested preprocessing and training phase timings. Fine-grained
   operation timings are reliable on the measured CPU path; CUDA operation
   timings are marked as approximate to avoid synchronization in every batch.
+  It also includes target-preparation timing and device diagnostics.
 - `last_prediction_time_`: wall-clock time of the most recent `predict` or
   `predict_proba` preprocessing-plus-inference call; available after prediction.
 
@@ -291,5 +313,7 @@ per-feature categorical embeddings
 ```
 
 Training uses `BCEWithLogitsLoss`, AdamW, and cosine learning-rate decay.
+AdamW leaves implementation selection to the supported PyTorch default instead
+of forcing the newer fused implementation.
 Validation and prediction use `torch.inference_mode()`. `torch.compile` is not
-enabled in 0.1.0.
+enabled in 0.1.1.
