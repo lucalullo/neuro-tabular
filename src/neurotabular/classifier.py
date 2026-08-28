@@ -22,6 +22,7 @@ from .network import TabularNetwork
 from .preprocessing import TabularPreprocessor
 from .training import (
     predict_probabilities,
+    refit_binary_model,
     resolve_batch_size,
     train_binary_model,
 )
@@ -66,6 +67,17 @@ class NeuroTabularClassifier(ClassifierMixin, BaseEstimator):
         Columns forced to categorical in addition to automatic detection.
     min_category_count : int, default=2
         Training frequency below which a category uses the rare bucket.
+    numerical_embedding : {"scalar", "affine", "periodic", "piecewise"}, \
+            default="scalar"
+        Leakage-safe representation used for numerical features.
+    use_category_frequency : bool, default=True
+        Add a training-only log-frequency side feature for each categorical column.
+    feature_gating : bool, default=False
+        Apply a lightweight gate to the initial cross-feature projection.
+    full_data_refit : bool, default=False
+        After internal early stopping, optionally retrain a fresh model on all
+        rows for ``best_epoch_`` epochs. External validation already trains on
+        all supplied training rows, so refit is skipped in that case.
     device : str, default="auto"
         ``"auto"``, ``"cpu"``, ``"cuda"``, or a CUDA device string. Automatic
         CUDA requires a successful synchronized compatibility probe; explicit
@@ -93,6 +105,10 @@ class NeuroTabularClassifier(ClassifierMixin, BaseEstimator):
         class_weight: str | None = None,
         categorical_features: Sequence[Hashable] | None = None,
         min_category_count: int = 2,
+        numerical_embedding: str = "scalar",
+        use_category_frequency: bool = True,
+        feature_gating: bool = False,
+        full_data_refit: bool = False,
         device: str = "auto",
         random_state: int = 42,
         verbose: int = 0,
@@ -112,6 +128,10 @@ class NeuroTabularClassifier(ClassifierMixin, BaseEstimator):
         self.class_weight = class_weight
         self.categorical_features = categorical_features
         self.min_category_count = min_category_count
+        self.numerical_embedding = numerical_embedding
+        self.use_category_frequency = use_category_frequency
+        self.feature_gating = feature_gating
+        self.full_data_refit = full_data_refit
         self.device = device
         self.random_state = random_state
         self.verbose = verbose
@@ -186,6 +206,9 @@ class NeuroTabularClassifier(ClassifierMixin, BaseEstimator):
         self._preprocessor_ = TabularPreprocessor(
             categorical_features=self.categorical_features,
             min_category_count=self.min_category_count,
+            use_category_frequency=self.use_category_frequency,
+            max_categories=getattr(self, "_experimental_max_categories", None),
+            hash_buckets=int(getattr(self, "_experimental_hash_buckets", 0)),
         )
         self._preprocessor_.fit(X_train)
         fit_preprocessing_profile = dict(self._preprocessor_.fit_profile_)
@@ -218,23 +241,14 @@ class NeuroTabularClassifier(ClassifierMixin, BaseEstimator):
             y_train_encoded, train_sample_weight
         )
         target_preparation_time = perf_counter() - target_started
-        self._model_ = TabularNetwork(
-            n_numeric_features=self._preprocessor_.n_numeric_outputs_,
-            categorical_cardinalities=(self._preprocessor_.categorical_cardinalities_),
-            hidden_dim=self.hidden_dim,
-            n_blocks=self.n_blocks,
-            dropout=self.dropout,
-        )
-        positive_weight = float(train_weight[y_train_encoded == 1.0].sum())
-        negative_weight = float(train_weight[y_train_encoded == 0.0].sum())
-        if positive_weight > 0.0 and negative_weight > 0.0:
-            prior_logit = math.log(positive_weight / negative_weight)
-            self._model_.set_output_bias(prior_logit)
+        self._model_ = self._new_model(self._preprocessor_)
+        self._set_prior_bias(self._model_, y_train_encoded, train_weight)
         self.n_parameters_ = self._model_.parameter_count
+        self.embedding_dimensions_ = list(self._model_.embedding_dimensions)
         self.batch_size_ = resolve_batch_size(
             self.batch_size,
             n_samples=len(X_train),
-            n_numeric_inputs=self._preprocessor_.n_numeric_outputs_,
+            n_numeric_inputs=self._model_.input_width,
             categorical_cardinalities=(self._preprocessor_.categorical_cardinalities_),
             hidden_dim=self.hidden_dim,
             n_blocks=self.n_blocks,
@@ -270,6 +284,63 @@ class NeuroTabularClassifier(ClassifierMixin, BaseEstimator):
         self.history_ = training_result.history
         self.training_time_ = float(training_result.profile["training_compute_seconds"])
         self.validation_time_ = float(training_result.profile["validation_seconds"])
+        refit_profile = None
+        self.full_data_refit_ = False
+        if self.full_data_refit and eval_set is None:
+            refit_started = perf_counter()
+            refit_preprocessor = TabularPreprocessor(
+                categorical_features=self.categorical_features,
+                min_category_count=self.min_category_count,
+                use_category_frequency=self.use_category_frequency,
+                max_categories=getattr(self, "_experimental_max_categories", None),
+                hash_buckets=int(getattr(self, "_experimental_hash_buckets", 0)),
+            ).fit(X)
+            refit_fit_profile = dict(refit_preprocessor.fit_profile_)
+            refit_data = refit_preprocessor.transform(X)
+            refit_transform_profile = dict(refit_preprocessor.last_transform_profile_)
+            full_target = self._encode_target(y_array)
+            full_weight = self._combined_training_weight(full_target, all_sample_weight)
+            self._set_random_state(device)
+            refit_model = self._new_model(refit_preprocessor)
+            self._set_prior_bias(refit_model, full_target, full_weight)
+            refit_batch_size = resolve_batch_size(
+                self.batch_size,
+                n_samples=len(X),
+                n_numeric_inputs=refit_model.input_width,
+                categorical_cardinalities=(
+                    refit_preprocessor.categorical_cardinalities_
+                ),
+                hidden_dim=self.hidden_dim,
+                n_blocks=self.n_blocks,
+                device=device,
+            )
+            refit_training_profile = refit_binary_model(
+                refit_model,
+                refit_data,
+                full_target,
+                full_weight,
+                device=device,
+                batch_size=refit_batch_size,
+                epochs=self.best_epoch_,
+                lr=float(self.lr),
+                weight_decay=float(self.weight_decay),
+                random_state=self.random_state,
+                use_amp=bool(self.device_info_["amp_enabled"]),
+            )
+            self._preprocessor_ = refit_preprocessor
+            self._model_ = refit_model
+            self.batch_size_ = refit_batch_size
+            self.inference_batch_size_ = max(1_024, refit_batch_size)
+            self.n_parameters_ = refit_model.parameter_count
+            self.embedding_dimensions_ = list(refit_model.embedding_dimensions)
+            self.full_data_refit_ = True
+            self.training_time_ += float(refit_training_profile["engine_total_seconds"])
+            refit_profile = {
+                "preprocessing_fit": refit_fit_profile,
+                "transform": refit_transform_profile,
+                "training": refit_training_profile,
+                "total_seconds": perf_counter() - refit_started,
+            }
         self.profile_ = {
             "preprocessing": {
                 "fit": fit_preprocessing_profile,
@@ -281,6 +352,8 @@ class NeuroTabularClassifier(ClassifierMixin, BaseEstimator):
             "target_preparation_seconds": target_preparation_time,
             "device": dict(self.device_info_),
         }
+        if refit_profile is not None:
+            self.profile_["full_data_refit"] = refit_profile
         self.fit_time_ = perf_counter() - fit_started
         return self
 
@@ -309,6 +382,35 @@ class NeuroTabularClassifier(ClassifierMixin, BaseEstimator):
         )
         self.last_prediction_time_ = perf_counter() - prediction_started
         return probabilities
+
+    def _new_model(self, preprocessor: TabularPreprocessor) -> TabularNetwork:
+        return TabularNetwork(
+            n_numeric_features=preprocessor.n_numeric_outputs_,
+            categorical_cardinalities=preprocessor.categorical_cardinalities_,
+            hidden_dim=self.hidden_dim,
+            n_blocks=self.n_blocks,
+            dropout=self.dropout,
+            n_continuous_features=preprocessor.n_continuous_features_,
+            numerical_knots=torch.from_numpy(preprocessor.numeric_knots_),
+            numerical_embedding=self.numerical_embedding,
+            dataset_size=preprocessor.fit_sample_count_,
+            feature_gating=self.feature_gating,
+            categorical_dropout=float(
+                getattr(self, "_experimental_categorical_dropout", 0.0)
+            ),
+            embedding_dropout=float(
+                getattr(self, "_experimental_embedding_dropout", 0.0)
+            ),
+        )
+
+    @staticmethod
+    def _set_prior_bias(
+        model: TabularNetwork, target: np.ndarray, weight: np.ndarray
+    ) -> None:
+        positive_weight = float(weight[target == 1.0].sum())
+        negative_weight = float(weight[target == 0.0].sum())
+        if positive_weight > 0.0 and negative_weight > 0.0:
+            model.set_output_bias(math.log(positive_weight / negative_weight))
 
     def _validate_target(self, y: object, n_samples: int) -> np.ndarray:
         y_array = self._target_array(y, n_samples)
@@ -438,6 +540,22 @@ class NeuroTabularClassifier(ClassifierMixin, BaseEstimator):
         self._non_negative_real(self.min_delta, "min_delta")
         self._positive_integer(self.eval_frequency, "eval_frequency")
         self._positive_integer(self.min_category_count, "min_category_count")
+        if self.numerical_embedding not in {
+            "scalar",
+            "affine",
+            "periodic",
+            "piecewise",
+        }:
+            raise ValueError(
+                "numerical_embedding must be 'scalar', 'affine', 'periodic', "
+                "or 'piecewise'."
+            )
+        if not isinstance(self.use_category_frequency, bool):
+            raise TypeError("use_category_frequency must be a boolean.")
+        if not isinstance(self.feature_gating, bool):
+            raise TypeError("feature_gating must be a boolean.")
+        if not isinstance(self.full_data_refit, bool):
+            raise TypeError("full_data_refit must be a boolean.")
         if self.eval_metric not in {"loss", "roc_auc", "accuracy"}:
             raise ValueError("eval_metric must be 'loss', 'roc_auc', or 'accuracy'.")
         if self.class_weight not in (None, "balanced"):

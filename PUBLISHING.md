@@ -1,8 +1,8 @@
 # Publishing NeuroTabular
 
-NeuroTabular 0.1.1 is a local release candidate. The official repository is
+NeuroTabular 0.2.0 is a local release candidate. The official repository is
 `https://github.com/lucalullo/neuro-tabular`, its default branch is `main`, and
-the immutable 0.1.0 release is tagged `v0.1.0`. Preparing this candidate does
+the final 0.1.1 baseline is the predecessor. Preparing this candidate does
 not authorize a push, tag, GitHub release, or package-index publication.
 
 ## Maintainer decisions required first
@@ -48,7 +48,10 @@ No release may proceed without reviewing and updating, when applicable:
 - `docs/API.md`;
 - `docs/USAGE.md`;
 - `CHANGELOG.md`; and
-- release notes.
+- `RELEASE_NOTES.md`;
+- `BENCHMARK_REPORT.md`;
+- `PERFORMANCE_PROFILE_0_2.md`; and
+- `ABLATION_REPORT.md`.
 
 Every tag freezes the code and documentation for that version. Public behavior
 requires matching tests. Performance or architecture changes require
@@ -94,3 +97,7 @@ checks, secret scanning, and a recursive review for local paths, credentials,
 temporary files, caches, environments, distributions, and generated archives.
 Confirm that source, documentation, tag, release notes, and artifacts all match
 the intended version.
+
+For this candidate the intended local version, future tag, and release title
+are `0.2.0`, `v0.2.0`, and `NeuroTabular 0.2.0`. Do not create any of the remote
+objects without separate maintainer authorization.

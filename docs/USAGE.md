@@ -1,155 +1,177 @@
-# NeuroTabular 0.1.1 usage guide
+# NeuroTabular 0.2.0 usage guide
 
-This guide shows common binary-classification workflows. See
-[API.md](API.md) for exact parameter validation and fitted attributes.
-
-## Minimal usage
+## Minimal classification
 
 ```python
 from neurotabular import NeuroTabularClassifier
 
-model = NeuroTabularClassifier()
+model = NeuroTabularClassifier(random_state=42)
 model.fit(X_train, y_train)
-
-pred = model.predict(X_test)
-proba = model.predict_proba(X_test)
+probability = model.predict_proba(X_test)[:, 1]
+prediction = model.predict(X_test)
 ```
 
-`X_train` and `X_test` must be pandas DataFrames.
+`X_train` and `X_test` must be pandas DataFrames. Targets may be NumPy arrays,
+pandas Series, or other one-dimensional array-like objects with exactly two
+classes.
 
-## Evaluate ROC-AUC
+## Recommended evaluation
 
-```python
-from sklearn.metrics import roc_auc_score
-from neurotabular import NeuroTabularClassifier
-
-model = NeuroTabularClassifier(eval_metric="roc_auc")
-model.fit(X_train, y_train)
-
-score = roc_auc_score(y_test, model.predict_proba(X_test)[:, 1])
-print(score)
-```
-
-## Cross-validation
+Use a holdout that is never supplied to `fit` for final metrics:
 
 ```python
-from sklearn.model_selection import StratifiedKFold, cross_val_score
-from neurotabular import NeuroTabularClassifier
+from sklearn.metrics import log_loss, roc_auc_score
+from sklearn.model_selection import train_test_split
 
-cv = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
-scores = cross_val_score(
-    NeuroTabularClassifier(random_state=42),
+X_train, X_test, y_train, y_test = train_test_split(
     X,
     y,
-    cv=cv,
-    scoring="roc_auc",
+    test_size=0.2,
+    stratify=y,
+    random_state=42,
 )
+
+model = NeuroTabularClassifier(eval_metric="roc_auc", random_state=42)
+model.fit(X_train, y_train)
+probability = model.predict_proba(X_test)[:, 1]
+
+print(roc_auc_score(y_test, probability))
+print(log_loss(y_test, probability))
 ```
 
-Each fold fits a separate neural network and creates its own internal
-validation split. For fast experiments, reduce `max_epochs` explicitly.
+The estimator still creates an internal split from `X_train` for early
+stopping. The held-out test frame remains untouched.
 
 ## Explicit validation
 
 ```python
-model = NeuroTabularClassifier(
-    eval_metric="roc_auc",
-    patience=4,
-    min_delta=1e-4,
-)
+model = NeuroTabularClassifier(eval_metric="roc_auc")
 model.fit(X_train, y_train, eval_set=(X_valid, y_valid))
 ```
 
-No additional split is created. Statistics and vocabularies remain fitted on
-`X_train` only.
+With external validation, preprocessing is fitted on all `X_train` rows and
+never on `X_valid`. Both target classes must be present in validation when
+`eval_metric="roc_auc"`.
 
-## Numerical NaNs
+## Missing numerical values
 
-```python
-import numpy as np
-import pandas as pd
-
-X = pd.DataFrame(
-    {
-        "age": [25.0, 41.0, np.nan, 33.0],
-        "income": [32_000.0, np.nan, 51_000.0, 44_000.0],
-    }
-)
-```
-
-Manual imputation and scaling are unnecessary. Training medians fill missing
-values, standard scaling is fitted on training rows, and a missing indicator is
-added for every numerical column.
-
-## Categorical features and missing values
+No external imputer is required:
 
 ```python
-X = pd.DataFrame(
-    {
-        "age": [25, 41, 33, 29],
-        "city": ["Rome", "Milan", None, "Rome"],
-        "member": [True, False, True, False],
-    }
-)
-
-model = NeuroTabularClassifier()
+X = X.copy()
+X.loc[5, "income"] = float("nan")
 model.fit(X, y)
 ```
 
-Strings and booleans are detected automatically. No one-hot encoder is needed.
+The training partition supplies a median, center, scale, and quantile knots for
+each numerical feature. The transformed matrix contains scaled values plus a
+separate missing indicator. All-missing and constant training columns are
+stabilized. Positive and negative infinity are rejected.
 
-## Integer categorical IDs
+## Categorical values
 
-Integer columns are numerical by default. Mark IDs explicitly:
-
-```python
-model = NeuroTabularClassifier(categorical_features=["store_id", "postal_code"])
-```
-
-Explicit columns are added to automatic string/category/boolean detection.
-
-## Unknown and rare categories
-
-An inference category absent during fitting maps to the unknown embedding ID.
-It does not cause an error. A training category seen fewer than
-`min_category_count` times maps to the rare ID.
+Object, pandas string, pandas categorical, and boolean columns are detected
+automatically:
 
 ```python
-model = NeuroTabularClassifier(min_category_count=3)
+X = X.assign(
+    city=X["city"].astype("string"),
+    subscribed=X["subscribed"].astype(bool),
+)
+model.fit(X, y)
 ```
 
-Set `min_category_count=1` to give every observed training category its own ID.
-Extremely high-cardinality identifiers can still require domain-specific
-feature design.
+Integer-coded categories require an explicit declaration:
 
-## Sample weights
+```python
+model = NeuroTabularClassifier(
+    categorical_features=["postal_code", "store_id"],
+)
+```
+
+Missing, unseen, and rare values use separate IDs. Values with fewer than
+`min_category_count` training occurrences use the aggregate rare bucket.
+Category frequency side features are enabled by default and are calculated
+from training counts only. Unknown values receive frequency zero.
+
+Disable the frequency side channel for an ablation or strict 0.1.x-style input:
+
+```python
+model = NeuroTabularClassifier(use_category_frequency=False)
+```
+
+## Numerical representation experiments
+
+Scalar input was selected by the release ablation. Other tested modes remain
+available when a dataset-specific validation protocol supports them:
+
+```python
+for mode in ["scalar", "affine", "periodic", "piecewise"]:
+    model = NeuroTabularClassifier(
+        numerical_embedding=mode,
+        random_state=42,
+    )
+```
+
+`piecewise` uses training-only quantile knots. `periodic` uses learned
+sinusoidal projections. These modes can increase parameters and compute; do not
+assume they improve a particular dataset without repeated validation.
+
+The optional input gate is independent:
+
+```python
+model = NeuroTabularClassifier(feature_gating=True)
+```
+
+It is disabled by default because it did not improve the release ablation mean.
+
+## Sample and class weights
 
 ```python
 model.fit(X_train, y_train, sample_weight=row_weights)
 ```
 
-Weights must be finite, non-negative, and include at least one positive value.
+Weights must be finite, one-dimensional, non-negative, and aligned to rows.
+At least one weight must be positive.
 
-## Balanced classes
+For inverse-frequency binary class weights:
 
 ```python
 model = NeuroTabularClassifier(class_weight="balanced")
-model.fit(X_train, y_train)
-```
-
-Balanced class weights and row weights can be combined:
-
-```python
 model.fit(X_train, y_train, sample_weight=row_weights)
 ```
 
-## CPU and CUDA
+When both mechanisms are used, per-class and per-row weights multiply.
 
-Automatic selection:
+## Cross-validation and pipelines
 
 ```python
-model = NeuroTabularClassifier(device="auto")
+from sklearn.model_selection import StratifiedKFold, cross_val_score
+
+cv = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
+model = NeuroTabularClassifier(max_epochs=20, random_state=42)
+scores = cross_val_score(model, X, y, cv=cv, scoring="roc_auc")
 ```
+
+The classifier performs its own DataFrame preprocessing, so a separate encoder
+is usually unnecessary. Any upstream transformer in a scikit-learn pipeline
+must preserve or reconstruct a DataFrame because NumPy matrix input is rejected.
+
+## Optional full-data refit
+
+```python
+model = NeuroTabularClassifier(full_data_refit=True)
+model.fit(X_train, y_train)
+print(model.full_data_refit_)
+```
+
+After internal epoch selection, a fresh preprocessor and network are fitted on
+all rows for `best_epoch_` epochs. The release default is `False`: the measured
+ablation increased median fit time by roughly 68% and reduced mean ROC-AUC on
+the screening workloads. When `eval_set` is explicit, refit is skipped and
+`full_data_refit_` remains false.
+
+## CPU and CUDA
 
 Force CPU:
 
@@ -157,117 +179,77 @@ Force CPU:
 model = NeuroTabularClassifier(device="cpu")
 ```
 
-Request CUDA:
+Try CUDA with a safe fallback:
 
 ```python
-model = NeuroTabularClassifier(device="cuda")
-```
-
-`"auto"` uses CUDA only after a minimal synchronized kernel probe succeeds. If
-a GPU is visible but incompatible with the installed PyTorch build, NeuroTabular
-emits a warning and continues on CPU. Explicit `"cuda"` or `"cuda:N"` requests
-never fall back and raise a diagnostic error before training when unusable.
-
-Check the resolved path and decision details after fitting:
-
-```python
+model = NeuroTabularClassifier(device="auto")
+model.fit(X_train, y_train)
 print(model.device_)
 print(model.device_info_)
 ```
 
-## CUDA compatibility
-
-A physically present GPU does not guarantee that the installed PyTorch build
-contains a compatible cubin or forward-compatible PTX kernel. For example, a
-Pascal `sm_60` GPU cannot execute a build containing only newer incompatible
-kernels. Inspect the local combination with:
+Require CUDA and fail if incompatible:
 
 ```python
-import torch
-
-print(torch.__version__)
-print(torch.cuda.get_device_name(0))
-print(torch.cuda.get_device_capability(0))
-print(torch.cuda.get_arch_list())
+model = NeuroTabularClassifier(device="cuda:0")
 ```
 
-`get_arch_list()` is useful diagnostic evidence, but NeuroTabular does not use
-exact string membership as its sole decision because CUDA binary and PTX
-forward-compatibility rules are more nuanced. The synchronized kernel probe is
-the final runtime check.
+Automatic selection launches and synchronizes a small kernel. A failed probe
+warns and falls back to CPU. Explicit selection raises a detailed error. AMP is
+enabled only on a successfully probed CUDA device of sufficient capability.
+CPU training never constructs an autocast context when AMP is disabled.
 
-NeuroTabular does not install, replace, or download PyTorch or CUDA. Resolve an
-incompatible explicit CUDA request by selecting CPU or installing a PyTorch
-build appropriate for the GPU through the environment's normal administration
-process.
+## Batch sizing and fast experiments
 
-## Automatic and explicit batches
-
-The default chooses full or large batches from dataset width, row count, device,
-and CUDA memory:
-
-```python
-model = NeuroTabularClassifier(batch_size="auto")
-```
-
-Override it when a controlled memory bound is needed:
-
-```python
-model = NeuroTabularClassifier(batch_size=512)
-```
-
-The resolved training value is `model.batch_size_`.
-
-## Fast experiments
+`batch_size="auto"` is deterministic for a given processed schema, model, and
+device. To compare architectures under a fixed batch:
 
 ```python
 model = NeuroTabularClassifier(
-    hidden_dim=32,
-    n_blocks=1,
-    max_epochs=8,
+    batch_size=256,
+    max_epochs=10,
     patience=2,
-    random_state=42,
+    eval_frequency=1,
 )
 ```
 
-These settings reduce capacity and training budget; they are not universal
-accuracy defaults.
+For a quick smoke test, lower `max_epochs`; for a fair model comparison, keep
+the split, seeds, metric, epoch budget, and preprocessing protocol fixed.
 
 ## Reproducibility
 
 ```python
-model = NeuroTabularClassifier(random_state=42, device="cpu")
+first = NeuroTabularClassifier(random_state=19).fit(X, y)
+second = NeuroTabularClassifier(random_state=19).fit(X, y)
 ```
 
-Use the same seed for train/test or cross-validation splitters. Record Python,
-NumPy, pandas, PyTorch, scikit-learn, and hardware versions for reproducible
-experiments. CUDA results may vary across GPU stacks even with the same seed.
+The seed controls the internal split, Python, NumPy, PyTorch initialization, and
+batch shuffling. Exact cross-hardware floating-point identity is not promised,
+especially across CUDA architectures or library versions.
 
-## Inspect training and profiling
+## Diagnostics
 
 ```python
-print(model.best_epoch_)
-print(model.best_score_)
-print(model.n_iter_)
-print(model.n_parameters_)
-print(model.fit_time_)
-print(model.preprocessing_time_)
-print(model.training_time_)
-print(model.validation_time_)
-print(model.history_)
+print(model.best_epoch_, model.n_iter_, model.best_score_)
+print(model.n_parameters_, model.embedding_dimensions_)
+print(model.fit_time_, model.last_prediction_time_)
+print(model.profile_["preprocessing"])
+print(model.profile_["training"])
 ```
 
-Fine-grained measured phases are in `model.profile_`. CPU operation timings are
-the reliable release path. CUDA fine-grained timings intentionally avoid a
-synchronization after every operation and are therefore approximate.
+`history_` contains only validation checkpoints. `profile_` separates
+preprocessing, tensor conversion, transfer, batch construction, forward,
+backward, optimizer, validation, metric, checkpoint, restoration, and setup
+where applicable.
 
 ## Prediction schema
 
-Prediction columns may be reordered:
+The prediction frame may present fitted columns in another order. NeuroTabular
+reorders them to the fitted schema. Missing or extra columns raise an error:
 
 ```python
-proba = model.predict_proba(X_test[model.feature_names_in_[::-1]])
+model.predict_proba(X_test[model.feature_names_in_[::-1]])  # accepted
+model.predict_proba(X_test.drop(columns=["income"]))       # rejected
 ```
 
-Columns must otherwise match training exactly. Missing, extra, and duplicate
-columns raise errors.
+This strictness prevents silent feature misalignment.

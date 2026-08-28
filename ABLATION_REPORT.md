@@ -1,87 +1,139 @@
-# NeuroTabular 0.1.0 ablation report
+# NeuroTabular 0.2.0 ablation report
 
-## Method
+## Protocol
 
-`benchmarks/run_ablations.py` evaluates two 1,200-row synthetic tasks (numeric
-and mixed) with seeds 19 and 31. Every variant uses the same external test split,
-internal validation split, hidden width 64, two blocks/layers, dropout 0.1,
-12-epoch ceiling, patience 3, AdamW, and CPU. One factor changes at a time from
-the residual reference configuration.
+Architecture screening used six deterministic dataset families and seeds 19
+and 31, a stratified 75/25 split, at most 20 epochs, and the same optimizer,
+validation, and model budget. The families cover numeric, missing, categorical,
+high-cardinality, imbalanced, and medium synthetic data. Every transform was
+fitted only on the training partition.
 
-The first residual run includes a roughly three-second PyTorch optimizer cold
-start. Median fit time is therefore more representative for architecture
-comparisons than mean fit time.
+Focused follow-ups reused the same seeds and workloads where the component was
+relevant. Results are means across runs unless labelled median. Small deltas are
+treated conservatively because twelve screening outcomes are not a substitute
+for a large benchmark suite.
 
-## Results
+## Numerical representations
 
-| Variant | Mean ROC-AUC | Median fit s | Mean epochs |
-| --- | ---: | ---: | ---: |
-| Residual reference | 0.87219 | 0.4881 | 10.50 |
-| Plain MLP | 0.86800 | 0.2271 | 12.00 |
-| GELU instead of SiLU | 0.87042 | 0.3974 | 10.00 |
-| No normalization | 0.87058 | 0.4876 | 12.00 |
-| Standard numerical preprocessing | 0.87262 | 0.4258 | 10.50 |
-| Rare handling disabled | 0.87219 | 0.4341 | 10.50 |
-| Validation every epoch | 0.87228 | 0.3693 | 8.25 |
-| Validation every 3 epochs | 0.87430 | 0.4859 | 12.00 |
-| `min_delta=1e-12` | 0.87219 | 0.4347 | 10.50 |
-| Constant learning rate | 0.87140 | 0.4964 | 10.50 |
-| Short warmup + cosine | 0.87050 | 0.4744 | 10.50 |
+| Variant | Mean ROC-AUC | Mean log loss | Median fit s | Median predict s |
+|---|---:|---:|---:|---:|
+| scalar | 0.904508 | 0.342421 | 0.7470 | 0.0176 |
+| affine | 0.904000 | 0.347604 | 0.9697 | 0.0205 |
+| periodic | 0.792801 | 0.496602 | 0.7317 | 0.0175 |
+| piecewise | 0.882937 | 0.398508 | 1.0519 | 0.0193 |
+| piecewise + frequency | 0.883459 | not selected | not selected | not selected |
+| piecewise + frequency + gate | 0.886431 | not selected | not selected | not selected |
 
-## Decisions
+Decision: retain all four representations as tested opt-in modes, but keep
+`scalar` as the release default. Affine added cost without a mean gain;
+piecewise and periodic were materially worse on this protocol. Quantile knots
+remain useful infrastructure for explicit dataset-level experimentation.
 
-- **Residual MLP retained.** It improved mean ROC-AUC by 0.00419 over the plain
-  MLP. The plain model was about twice as fast and used far fewer parameters,
-  but the release prioritizes the measured accuracy gain while remaining under
-  roughly 37k parameters on benchmark schemas.
-- **SiLU retained.** GELU was 0.00177 lower in mean ROC-AUC.
-- **LayerNorm retained.** Removing normalization was 0.00161 lower on average,
-  although individual seeds differed.
-- **Standard preprocessing selected.** Median imputation, standard scaling, and
-  missing indicators slightly exceeded robust scaling plus smooth clipping by
-  0.00043 mean ROC-AUC and had lower median fit time. The robust path remains in
-  the ablation harness, not the public classifier default.
-- **Rare bucket retained.** This particular matrix contained too few genuinely
-  rare values to separate the variants. The bucket has low complexity, avoids
-  one-embedding-per-singleton growth, and is covered by focused tests. Its
-  quality effect remains unproven.
-- **Validation every epoch selected.** Direct-tensor validation was cheap and
-  earlier stopping reduced mean epochs from 10.5 to 8.25 without a material
-  ROC-AUC change. Validation every three epochs produced the highest mean score
-  but always consumed the 12-epoch budget.
-- **`min_delta=1e-4` retained.** This short matrix did not distinguish it from
-  `1e-12`, but the behavioral test demonstrates that only significant changes
-  reset patience. It prevents the known failure mode of chasing microscopic
-  metric movement.
-- **Cosine selected without warmup.** It exceeded constant by 0.00079 and
-  warmup+cosine by 0.00169 mean ROC-AUC. Warmup added no measured benefit.
+## Category frequency and input gating
 
-## Training-engine ablation
+The focused comparison found:
 
-A 5,000-row, 20-numerical-plus-4-categorical tensor traversal compared a
-standard DataLoader (`batch_size=256`, shuffled) with direct shuffled tensor
-indexing:
+| Variant | Mean ROC-AUC | Mean log loss | Median fit s | Median predict s |
+|---|---:|---:|---:|---:|
+| scalar | 0.904508 | 0.342421 | 0.7470 | 0.0176 |
+| scalar + frequency | 0.906508 | 0.339034 | 0.6535 | 0.0164 |
+| scalar + gate | 0.902472 | not selected | not selected | not selected |
+| scalar + frequency + gate | 0.905628 | not selected | not selected | not selected |
+| affine + frequency | 0.908474 | higher cost | higher cost | higher cost |
 
-| Engine | Traversal time |
-| --- | ---: |
-| DataLoader traversal | 0.18012 s |
-| Direct tensor indexing | 0.00208 s |
-| Speedup | 86.49× |
+An early frequency implementation assigned individual rare values their own
+frequency. The final release instead aggregates counts at the actual rare ID
+and uses a NumPy lookup by encoded ID. The definitive paired 0.1.1/0.2.0 release
+matrix measured +0.003849 mean ROC-AUC, with improvements concentrated in all
+four categorical workloads and exact parity on numeric workloads.
 
-This microbenchmark isolates batch materialization and iteration, not forward
-or backward compute. It directly supports the 0.1.0 in-memory engine choice.
+Decision: enable scalar + aggregate category frequency by default. Keep the
+feature gate off. Affine + frequency was not selected because its small
+screening mean advantage was not broad, it regressed one pure-numeric case by
+0.0024, and it increased parameters and prediction work.
 
-## Deferred or rejected components
+## Categorical regularization
 
-- Transformers and attention were not evaluated as a release default because
-  they conflict with the small, fast first-release scope.
-- Learned numerical embeddings were deferred: the standard representation won
-  the scoped preprocessing ablation and the release should not become a
-  numerical-embedding laboratory.
-- Parameter-efficient internal ensembling was deferred so the release measures
-  one neural network.
-- `torch.compile` was not enabled because cold compilation is unlikely to repay
-  its cost on the target small workloads without stronger evidence.
-- DataLoader workers, pinned staging, and non-blocking transfers remain relevant
-  for large CUDA datasets, but CPU arrays already materialized in memory did not
-  justify worker overhead.
+Categorical-heavy and moderately high-cardinality datasets were evaluated with
+two seeds:
+
+| Variant | Mean ROC-AUC | Mean log loss | Median fit s |
+|---|---:|---:|---:|
+| scalar + frequency | 0.860722 | 0.469896 | 0.6033 |
+| 5% categorical ID dropout | 0.860600 | 0.469496 | 0.6333 |
+| 5% embedding dropout | 0.860533 | 0.469691 | 0.6070 |
+
+Decision: do not enable either regularizer. Log loss moved slightly in the
+desired direction, but mean ROC-AUC declined and there was no robust efficiency
+benefit. The implementation remains internal research support, not public API.
+
+## Full-data refit
+
+| Variant | Mean ROC-AUC | Median fit s |
+|---|---:|---:|
+| scalar + frequency | 0.906508 | 0.5942 |
+| scalar + frequency + refit | 0.901626 | 0.9989 |
+
+Decision: retain `full_data_refit` as an explicit public option, default false.
+It is useful when a user has independent validation evidence for the protocol,
+but it added roughly 68% median fit time and reduced mean AUC here.
+
+## High-cardinality overflow
+
+A frequency-ranked vocabulary cap and optional stable hash buckets were tested
+on moderate and extreme high-cardinality synthetic tables, two seeds each:
+
+| Variant | Mean ROC-AUC | Mean log loss | Median fit s | Median predict s |
+|---|---:|---:|---:|---:|
+| uncapped scalar + frequency | 0.867874 | 0.458545 | 0.7314 | 0.0152 |
+| top 64 + one rare bucket | 0.868496 | 0.457902 | 0.4650 | 0.0136 |
+| top 64 + 16 hash buckets | 0.869386 | 0.458899 | 0.4691 | 0.0165 |
+
+The first uncapped fit paid a large cold-start cost, so its median fit advantage
+must not be interpreted as a reliable 36% speedup. Capping reduced parameters
+by roughly 3-9% on these schemas. AUC changes were +0.0006/+0.0015 overall but
+changed sign across seeds; hashing slowed median prediction.
+
+Decision: do not expose or enable the controls in 0.2.0. They remain isolated
+research controls for future large-dataset validation and have no effect on
+normal estimator construction.
+
+## Execution-engine experiments
+
+### `torch.compile`
+
+| Mode | Cold workload result |
+|---|---|
+| eager | 8.23 s, completed |
+| `reduce-overhead` | 17.14 s before `InvalidCxxCompiler`; `cl` unavailable |
+
+Decision: no compile default and no advertised compile speedup. The experiment
+is retained only in the benchmark script so a properly provisioned host can
+repeat it.
+
+### AdamW strategy
+
+Independent cold runs measured optimizer-step time of about 0.064 s for
+`foreach` and 0.026 s for `fused`, versus 0.096 s in an earlier automatic run.
+The processes were contended, and fused CPU behavior is not a safe guarantee
+across the declared PyTorch 2.0+ range.
+
+Decision: use AdamW automatic selection. Explicit foreach/fused settings remain
+training-engine research controls, not public classifier parameters.
+
+## Final release configuration
+
+```text
+numerical_embedding = "scalar"
+use_category_frequency = True
+feature_gating = False
+full_data_refit = False
+categorical dropout = 0
+embedding dropout = 0
+category cap/hash = disabled
+torch.compile = disabled
+AdamW strategy = automatic
+```
+
+This configuration is a measured incremental change over 0.1.1. It avoids
+stacking components whose individual evidence was weak or negative.

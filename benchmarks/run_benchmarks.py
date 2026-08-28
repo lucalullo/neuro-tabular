@@ -15,7 +15,7 @@ import pandas as pd
 import psutil
 import torch
 from sklearn.compose import ColumnTransformer
-from sklearn.datasets import make_classification
+from sklearn.datasets import load_breast_cancer, load_wine, make_classification
 from sklearn.ensemble import HistGradientBoostingClassifier
 from sklearn.metrics import log_loss, roc_auc_score
 from sklearn.model_selection import train_test_split
@@ -64,6 +64,13 @@ def _numeric(seed: int, n: int, features: int) -> tuple[pd.DataFrame, np.ndarray
 def make_dataset(name: str, seed: int) -> tuple[pd.DataFrame, np.ndarray]:
     """Create one deterministic benchmark dataset."""
 
+    if name == "breast_cancer":
+        dataset = load_breast_cancer(as_frame=True)
+        return dataset.data, dataset.target.to_numpy(dtype=np.int64)
+    if name == "wine_binary":
+        dataset = load_wine(as_frame=True)
+        target = (dataset.target.to_numpy() == 0).astype(np.int64)
+        return dataset.data, target
     if name == "small_numeric":
         return _numeric(seed, 600, 12)
     if name == "medium_synthetic":
@@ -78,6 +85,18 @@ def make_dataset(name: str, seed: int) -> tuple[pd.DataFrame, np.ndarray]:
             random_state=seed,
         )
         return pd.DataFrame(values, columns=[f"x{i}" for i in range(14)]), target
+
+    if name == "extreme_high_cardinality":
+        rng = np.random.default_rng(seed)
+        n = 2_200
+        numeric = rng.normal(size=(n, 6))
+        customer = rng.integers(0, 1_100, n)
+        frame = pd.DataFrame(numeric, columns=[f"x{i}" for i in range(6)])
+        frame["customer"] = pd.Series(customer).map(lambda value: f"id_{value}")
+        frame["region"] = rng.choice([f"r{i}" for i in range(60)], n)
+        signal = numeric[:, 0] + (customer % 17 == 0) * 0.9
+        signal += rng.normal(0.0, 0.8, n)
+        return frame, (signal > np.median(signal)).astype(np.int64)
 
     rng = np.random.default_rng(seed)
     n = 800 if name == "small_mixed" else 1_200
@@ -278,6 +297,8 @@ def main() -> None:
         "moderate_high_cardinality",
         "imbalanced_binary",
         "medium_synthetic",
+        "breast_cancer",
+        "wine_binary",
     ]
     legacy_class = load_legacy(args)
     results: list[dict[str, object]] = []

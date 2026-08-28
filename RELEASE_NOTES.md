@@ -1,79 +1,120 @@
-# NeuroTabular 0.1.1 release notes
+# NeuroTabular 0.2.0 release notes
 
-NeuroTabular 0.1.1 is a maintenance and robustness release for the 0.1.x line
-and is the recommended 0.1.x release. It preserves the public constructor,
-standard preprocessing, residual MLP architecture, loss, defaults, and binary
-classification scope of 0.1.0.
+NeuroTabular 0.2.0 is a measured architecture and efficiency update to the
+final 0.1.1 baseline. It keeps the compact residual MLP and scikit-learn binary
+classifier interface while improving the categorical representation and
+making alternative numerical representations explicitly testable.
 
-## CUDA compatibility fix
+This file prepares release content. It does not assert that tag `v0.2.0`, a
+GitHub release, or a package-index publication already exists.
 
-PyTorch can report CUDA available even when its installed binaries cannot run a
-kernel on the visible GPU. This was reproduced externally with a Tesla P100
-(`sm_60`) and a PyTorch build compiled only for newer architectures. In 0.1.0,
-`device="auto"` selected CUDA and training later failed with `no kernel image is
-available for execution on the device`.
+## Release default
 
-0.1.1 checks availability and device count, gathers GPU/build metadata, then
-launches and synchronizes a minimal CUDA kernel before creating the network,
-training tensors, GradScaler, or optimizer. Automatic selection warns and falls
-back to CPU when the probe fails. Explicit `"cuda"` and `"cuda:N"` requests do
-not fall back; they raise a focused diagnostic containing all available device,
-compute-capability, PyTorch, compiled-architecture, and probe information.
+The 0.2.0 default adds one training-only aggregate log-frequency feature for
+each categorical column. Missing, unknown, rare, and frequent values retain
+separate encoding semantics; rare values use their aggregate bucket count and
+unknown values receive zero. Categorical embedding widths now adapt to dataset
+size, cardinality, feature count, and a compact bounded memory budget.
 
-CUDA random seeding now occurs only after a verified CUDA path is selected.
-Verified devices with compute capability 7.0 or newer use float16 AMP; CPU and
-older or metadata-unknown CUDA devices use FP32. NeuroTabular never changes or
-installs PyTorch/CUDA on the user's behalf.
+Scalar numerical input remains the default. Affine, periodic, and
+piecewise-linear quantile representations are available through
+`numerical_embedding`, and a lightweight gate is available through
+`feature_gating`, but release ablations did not justify enabling them by
+default.
 
-CPU/FP32 execution does not construct an autocast context. This keeps the
-declared PyTorch 2.0 minimum compatible with warnings-as-errors environments,
-where disabled CPU float16 autocast still emits a warning.
+The selected configuration is:
 
-## Performance-engine maintenance
+```text
+numerical_embedding="scalar"
+use_category_frequency=True
+feature_gating=False
+full_data_refit=False
+```
 
-AdamW no longer forces the newer fused implementation; PyTorch chooses its
-supported default implementation. Profiling now records target preparation,
-scheduler time, best-state restoration, AMP/optimizer path, and device
-diagnostics.
+## Training and execution
 
-The new warm, interleaved same-process comparison ran the immutable 0.1.0 and
-the 0.1.1 candidate on seven synthetic datasets, two seeds, and three timing
-repetitions. All 14 paired dataset/seed results had identical ROC-AUC and epoch
-counts; mean ROC-AUC was `0.874559` for both. The candidate won 9/14 fit pairs
-(median paired ratio `0.9702`) and 7/14 prediction pairs (median paired ratio
-`1.0106`). Large scheduling outliers made the arithmetic means unfavorable:
-`1.6023 s` versus `1.7040 s` fit and `0.01882 s` versus `0.02102 s` prediction.
-Therefore no speedup is claimed and the attempted hot-path changes were
-removed. The final candidate retains the 0.1.0 hot path apart from low-overhead
-profiling and device setup. Run `benchmarks/compare_0_1_x.py` on stable hardware
-for release performance qualification.
+Preprocessing state is fitted only on training rows. Numerical quantile knots,
+category counts, adaptive widths, and vocabularies cannot observe validation or
+test rows. The categorical frequency transform reuses encoded IDs and a NumPy
+lookup rather than mapping the pandas column twice.
 
-The historical published 0.1.0 synthetic report remains `0.8735` mean ROC-AUC,
-with its separate matched-legacy `+0.0064` ROC-AUC, `1.49x` fit, and `1.56x`
-prediction results. Those are 0.1.0 results, not new 0.1.1 claims. The external
-Kaggle S6E8 result (`0.940020` mean ROC-AUC and about `536.98 s` for six CPU
-folds) was supplied by the maintainer and was not reproduced locally.
+Loss-only validation avoids collecting probabilities and targets or computing a
+sigmoid when those arrays are not needed. Processed tables remain device
+resident, and batching continues to use index tensors.
+
+The final 0.1.1 compatibility behavior is preserved in full:
+
+- automatic CUDA requires a successful synchronized kernel probe;
+- incompatible automatic CUDA warns and falls back to CPU;
+- explicit CUDA requests raise detailed errors instead of falling back;
+- AMP is enabled only on a verified compatible CUDA device;
+- CPU/FP32 execution with AMP disabled uses `nullcontext` and never constructs
+  `torch.autocast`;
+- AdamW does not force an optimizer implementation unsupported by PyTorch 2.0.
+
+## Measured results
+
+The principal paired, warm, interleaved comparison covered seven synthetic
+dataset families, two seeds, and three timing repeats:
+
+- mean ROC-AUC: 0.874559 (0.1.1) to 0.878408 (0.2.0), +0.003849;
+- median paired fit-time ratio: 0.950, about 4.96% lower;
+- median paired prediction-time ratio: 0.986, about 1.41% lower;
+- mean selected/run epochs: 14.143 to 13.714.
+
+Two scikit-learn public numerical datasets provided a no-regression holdout:
+both versions achieved mean ROC-AUC 0.998113 with identical predictions and
+selected epochs. The release host had no CUDA-capable PyTorch build, so VRAM,
+GPU throughput, AMP speed, pinned memory, and non-blocking transfer performance
+are explicitly unmeasured.
+
+The project brief also contained an external Kaggle reference favoring
+LightGBM. Its data and environment were unavailable, so NeuroTabular 0.2.0 does
+not claim the referenced 0.945 target or a reproduced tree comparison.
+
+## Ablation decisions
+
+- Category frequency: selected and enabled.
+- Adaptive embedding widths: selected and enabled.
+- Affine, periodic, and piecewise numerical modes: retained opt-in, not default.
+- Input gating: retained opt-in, not default.
+- Full-data refit: retained opt-in; about 68% slower median fit and lower mean
+  AUC in screening.
+- Categorical and embedding dropout: not enabled after tiny AUC regressions.
+- Vocabulary cap/hash: research-only; reduced parameters but produced only
+  small inconsistent AUC changes.
+- `torch.compile`: not enabled; the host lacked a supported C++ compiler and
+  the attempt failed after additional cold time.
+- Forced foreach/fused AdamW: not enabled because evidence was noisy and not
+  portable across the PyTorch 2.0+ range.
+- Parameter-efficient neural ensembling: researched but not implemented in
+  this release because its cost and API surface lacked supporting ablation.
 
 ## Verification
 
-- 78 tests passed and one real-CUDA integration test was skipped on the
-  CPU-only host, compared with 67 passed and one skipped for the immutable
-  0.1.0 baseline in the same environment.
-- Device tests simulate unavailable CUDA, incompatible visible CUDA,
-  compatible CUDA, invalid indices, automatic fallback, explicit failure, and
-  CUDA seeding without requiring a GPU in CI.
-- The candidate is checked with Ruff, warnings-as-errors pytest, build, Twine,
-  and a clean-wheel import plus synthetic fit/predict smoke test.
+The release candidate gate includes:
 
-## Limitations
+- warnings-as-errors pytest for the final 0.1.1 baseline;
+- warnings-as-errors pytest for the 0.2.0 candidate;
+- Ruff lint and format check;
+- Python bytecode compilation;
+- source distribution and wheel build;
+- Twine metadata/README validation;
+- clean-wheel import and fit/predict smoke test;
+- source and archive scans for caches, environments, build output, secrets, and
+  local benchmark data;
+- a final content fingerprint confirming the 0.1.1 baseline was not modified.
 
-The release remains binary-classification-only and pandas-DataFrame-only. It
-does not add serialization, multiclass, regression, advanced numerical
-embeddings, target encoding, attention, Transformers, neural ensembles, or
-AutoML. No compatible GPU was available on the candidate host, so CUDA speed,
-VRAM, AMP throughput, and fused-optimizer behavior were not benchmarked. The
-included `benchmarks/kaggle_cuda_smoke.py` script is provided for later
-measurement on a compatible GPU without distributing a dataset.
+Exact final counts and artifact SHA-256 are recorded in the external GitHub
+update report produced with the release archive.
 
-This file prepares release content only. It does not assert that tag `v0.1.1`,
-a GitHub release, or a PyPI package already exists.
+## Compatibility and limitations
+
+NeuroTabular requires Python 3.10+, PyTorch 2.0+, pandas 2.0+, NumPy 1.24+, and
+scikit-learn 1.3+. It remains binary-classification-only and
+pandas-DataFrame-only. Multiclass, regression, calibration, model persistence,
+attention, and automated hyperparameter optimization are not part of 0.2.0.
+
+This is a pre-1.0 minor release, so the new constructor parameters intentionally
+evolve the experimental API. Existing 0.1.1 parameter names and core estimator
+methods remain available.

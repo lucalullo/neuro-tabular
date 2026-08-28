@@ -1,131 +1,139 @@
-# NeuroTabular 0.1.x research and design notes
+# NeuroTabular 0.2.0 research and design notes
 
 ## Scope and originality
 
-These notes record concepts studied for independent implementation. No external
-model source was copied, vendored, or imported as NeuroTabular's internal model.
-LightGBM, CatBoost, RealMLP, and TabM are not runtime dependencies.
+The 0.2.0 work reviewed primary papers and official implementation or framework
+documentation to identify testable ideas. NeuroTabular's code was written for
+this project; no third-party source code, trained weights, or dataset is copied
+into the package. The cited systems are research context, not dependencies or
+claims of equivalent implementation.
 
-## Primary sources reviewed
+## Sources reviewed
 
-- Ke et al., [LightGBM: A Highly Efficient Gradient Boosting Decision
-  Tree](https://papers.neurips.cc/paper_files/paper/2017/hash/6449f44a102fde848669bdd9eb6b76fa-Abstract.html),
-  NeurIPS 2017.
-- Prokhorenkova et al., [CatBoost: Unbiased Boosting with Categorical
-  Features](https://proceedings.neurips.cc/paper/2018/hash/14491b756b3a51daac41c24863285549-Abstract.html),
-  NeurIPS 2018.
-- Holzmüller, Grinsztajn, and Steinwart, [Better by Default: Strong Pre-Tuned
-  MLPs and Boosted Trees on Tabular Data](https://openreview.net/pdf?id=3BNPUDvqMt),
-  NeurIPS 2024.
-- Gorishniy, Kotelnikov, and Babenko, [TabM: Advancing Tabular Deep Learning
-  with Parameter-Efficient Ensembling](https://openreview.net/pdf?id=Sd4wYYOhmY),
-  ICLR 2025.
-- Gorishniy, Rubachev, and Babenko, [On Embeddings for Numerical Features in
-  Tabular Deep Learning](https://proceedings.neurips.cc/paper_files/paper/2022/hash/9e9f0ffc3d836836ca96cbf8fe14b105-Abstract-Conference.html),
-  NeurIPS 2022.
-- PyTorch, [Performance Tuning
+### RealMLP
+
+- Paper: [Better by Default: Strong Pre-Tuned MLPs and Boosted Trees on Tabular
+  Data](https://openreview.net/forum?id=fwajDrDy89)
+
+Relevant idea: a carefully designed and pre-tuned MLP pipeline can be a strong
+tabular baseline; preprocessing, initialization, regularization, and training
+details matter at least as much as adding a large architecture.
+
+NeuroTabular application: test inexpensive numerical representations,
+frequency-aware categorical input, prior output bias, stable preprocessing, and
+execution-path improvements while keeping a small residual MLP. NeuroTabular is
+not a RealMLP reproduction and does not copy its training recipe.
+
+Outcome: scalar numerical input remained stronger than the tested periodic and
+piecewise expansions. Aggregate categorical frequency improved the release
+matrix and became the only new default representation component.
+
+### TabM
+
+- Paper: [TabM: Advancing Tabular Deep Learning with Parameter-Efficient
+  Ensembling](https://openreview.net/forum?id=Sd4wYYOhmY)
+- Official repository: [yandex-research/tabm](https://github.com/yandex-research/tabm)
+
+Relevant idea: parameter-efficient ensembling can improve tabular neural
+networks without simply replicating complete models.
+
+NeuroTabular application: the concept was evaluated at the design level, but a
+multi-branch ensemble would expand training and inference cost, serialization,
+and public hyperparameters beyond the evidence available for this release.
+
+Outcome: not implemented in 0.2.0. The release instead uses one compact model
+and adaptive embedding widths. A future ensemble would require an isolated
+quality-per-parameter and latency ablation.
+
+### Numerical feature embeddings
+
+- Paper: [On Embeddings for Numerical Features in Tabular Deep
+  Learning](https://proceedings.neurips.cc/paper_files/paper/2022/hash/9e9f0ffc3d836836ca96cbf8fe14b105-Abstract-Conference.html)
+
+Relevant idea: piecewise-linear and periodic representations can make numerical
+features easier for tabular neural networks to use.
+
+NeuroTabular application: implement compact affine, periodic, and
+piecewise-linear modes behind one tested numerical embedding module. Piecewise
+knots are quantiles fitted on training rows only; missingness remains explicit.
+The dimensions and projections are project-specific compact choices rather than
+a reproduction of the paper's models.
+
+Outcome: all modes pass forward/backward tests, but scalar won the release
+screening. Optional modes remain available for dataset-specific experiments and
+are not advertised as universally better.
+
+### PyTorch execution guidance
+
+- Official documentation: [`torch.compile`](https://docs.pytorch.org/docs/stable/generated/torch.compile.html)
+- Official tutorial: [Performance Tuning
   Guide](https://docs.pytorch.org/tutorials/recipes/recipes/tuning_guide.html)
-  and [Automatic Mixed Precision
-  documentation](https://docs.pytorch.org/docs/stable/accelerator/amp.html).
-- PyTorch CUDA API documentation for
-  [`is_available`](https://docs.pytorch.org/docs/stable/generated/torch.cuda.is_available),
-  [`get_arch_list`](https://docs.pytorch.org/docs/stable/generated/torch.cuda.get_arch_list.html),
-  [`get_device_capability`](https://docs.pytorch.org/docs/stable/generated/torch.cuda.get_device_capability.html),
-  and [`synchronize`](https://docs.pytorch.org/docs/stable/generated/torch.cuda.synchronize).
-- PyTorch,
-  [`AdamW`](https://docs.pytorch.org/docs/stable/generated/torch.optim.AdamW)
-  documentation.
-- NVIDIA CUDA Programming Guide,
-  [CUDA platform and binary/PTX compatibility](https://docs.nvidia.com/cuda/cuda-programming-guide/01-introduction/cuda-platform.html).
+- Official API: [`torch.optim.AdamW`](https://docs.pytorch.org/docs/stable/generated/torch.optim.AdamW.html)
 
-## Lessons applied
+Relevant ideas: reduce Python/framework overhead where workloads justify it,
+choose transfer and precision features according to the actual device, and
+measure optimizer backends rather than assuming equivalence.
 
-### Efficiency before architectural scale
+NeuroTabular application: tables remain device-resident, batches use index
+tensors, validation avoids unnecessary probability collection for loss-only
+evaluation, device auto-selection performs a synchronized kernel probe, and
+AMP is restricted to compatible CUDA hardware. Compile and optimizer modes are
+benchmark-script experiments rather than defaults.
 
-LightGBM's implementation is tree-based and was not reproduced. Its engineering
-lesson—compact representations, one-time preprocessing, minimal scans, and
-dataset-size-aware work—motivated profiling the data path before enlarging the
-network. The measured DataLoader overhead justified direct in-memory indexing.
+Outcome: compile was unavailable on the Windows host because no supported C++
+compiler was installed and its attempted run was slower before failure.
+Explicit optimizer modes produced suggestive but non-portable/noisy results.
+Eager execution and automatic AdamW are therefore retained.
 
-### Leakage prevention
+### Gradient-boosted tree context
 
-CatBoost's paper emphasizes leakage risks in categorical target statistics.
-NeuroTabular 0.1.0 therefore uses no target encoding. Vocabularies and numerical
-statistics are fitted on training rows only; validation and unseen categories
-cannot alter them.
+- Official LightGBM documentation: [Features](https://lightgbm.readthedocs.io/en/latest/Features.html)
+- CatBoost paper: [CatBoost: unbiased boosting with categorical
+  features](https://arxiv.org/abs/1706.09516)
+- Official CatBoost documentation: [Categorical features](https://catboost.ai/en/docs/features/categorical-features)
 
-### Strong small MLPs and preprocessing
+Relevant idea: modern boosted trees are strong tabular references, particularly
+for categorical handling, speed, and small/medium structured datasets.
 
-RealMLP demonstrates that preprocessing, defaults, schedules, and engineering
-can matter as much as exotic backbones. NeuroTabular evaluated standard versus
-robust/smooth-clipped numerical preprocessing, residual versus plain MLPs,
-activation, normalization, and learning-rate schedules. Standard preprocessing,
-residual blocks, SiLU, LayerNorm, and cosine decay were selected from the scoped
-ablation rather than copied from an implementation.
+NeuroTabular application: the benchmark runner includes leakage-safe ordinal
+encoding for the bundled sklearn histogram baseline and optional LightGBM and
+CatBoost comparisons when installed. Neither library is imported by normal
+NeuroTabular execution.
 
-### Parameter-efficient ensembling
+Outcome: the release makes no superiority claim. The project brief's external
+Kaggle reference favored LightGBM in both AUC and runtime and could not be
+reproduced locally because its data/environment were unavailable.
 
-TabM provides evidence that parameter-efficient neural ensembles can improve
-tabular MLPs. NeuroTabular 0.1.0 deliberately exposes one network so its
-strength, cost, and failure modes remain measurable. The module boundaries do
-not prevent a future shared-backbone/adapters design, but no unused ensemble
-abstraction is included.
+## Leakage rules applied
 
-### Numerical embeddings
+- validation and test rows never fit medians, centers, scales, quantiles,
+  vocabularies, rare buckets, or category frequencies;
+- category frequency is indexed by the encoded training-derived ID;
+- optional full-data refit occurs only after epoch selection and builds fresh
+  preprocessing from primary data, never from an external validation set;
+- tree baselines use a scikit-learn pipeline so encoders are fitted only on the
+  training partition;
+- synthetic target construction precedes train/test splitting and does not use
+  model predictions or test statistics.
 
-The numerical-embedding paper shows that piecewise-linear and periodic
-representations can improve multiple backbones. This is a credible future
-direction. It was deferred because the release ablation slightly favored the
-simple standard representation and the first release needs a small, auditable
-baseline.
+## Components tested and rejected as defaults
 
-### PyTorch execution
-
-The PyTorch guide supports inference without gradients, gradients set to `None`,
-pinned CUDA staging, and workload-specific data-loading decisions. The release
-uses `torch.inference_mode()`, `zero_grad(set_to_none=True)`, direct indexing for
-materialized tensors, optional pinned staging, non-blocking CUDA transfers,
-autocast, and a fused-AdamW attempt. It does not globally change thread counts,
-TF32, or deterministic settings.
-
-### CUDA compatibility in 0.1.1
-
-`torch.cuda.is_available()` answers whether CUDA is available at runtime, but
-the externally reproduced P100 failure demonstrates that this alone is not a
-sufficient application-level guarantee that the installed PyTorch binary can
-execute a kernel on the visible device. `get_arch_list()` reports architectures
-compiled into the library and is valuable diagnostic evidence.
-
-NeuroTabular does not treat exact `sm_XY` membership as the final compatibility
-test. NVIDIA documents that cubins have same-major compatibility constraints
-while PTX can be JIT-compiled for later compute capabilities. Newer CUDA targets
-also include family- and architecture-specific variants. A string-membership
-rule would therefore reject valid forward-compatible cases or oversimplify
-future targets. Version 0.1.1 instead launches a one-element PyTorch CUDA kernel
-and calls `torch.cuda.synchronize()` so asynchronous launch failures surface
-before model setup. Architecture metadata remains in diagnostics.
-
-AMP is restricted to a verified CUDA path with compute capability 7.0 or newer,
-where Tensor Core acceleration makes float16 autocast an appropriate default.
-CPU never enables AMP. The optimizer no longer forces `fused=True`: current
-PyTorch documentation describes fused as newer and lets the default prefer a
-supported CUDA foreach implementation. This also avoids a class of failures
-where fused construction and first-step support differ across versions.
-
-## Decisions not adopted
-
-- No tree, boosting, target encoding, or external model inside the estimator.
-- No Transformer or attention default in 0.1.0.
-- No internal ensemble in 0.1.0.
-- No advanced numerical embedding in 0.1.0.
-- No automatic `torch.compile`; measured target jobs are too short to assume
-  compile cost is recovered.
-- No DataLoader workers for already-materialized small/medium tensors.
-- No global PyTorch configuration mutation for application-wide performance.
+- periodic and piecewise numerical embeddings: lower mean ROC-AUC;
+- affine numerical embedding: no aggregate gain and higher cost;
+- feature gate: no robust gain;
+- categorical/embedding dropout: tiny mean ROC-AUC regressions;
+- full-data refit: lower mean AUC and about 68% higher median fit time;
+- category cap/hash: small inconsistent quality changes, insufficient evidence;
+- `torch.compile`: compiler unavailable and failed after additional cold time;
+- forced AdamW fused/foreach: insufficient portability evidence;
+- parameter-efficient multi-branch ensembling: deferred before implementation
+  because the release lacked evidence to justify its cost surface.
 
 ## Evidence limits
 
-The release benchmark is synthetic, CPU-only, and small. It is sufficient for
-engineering choices and regression baselines, not for broad scientific claims.
-Future architecture changes should use more seeds, public datasets, separate
-meta-train/meta-test reasoning for defaults, and real CUDA profiling.
+The screening suite is intentionally compact and uses only two seeds. Public
+no-regression data is numerical and therefore does not independently validate
+the categorical gain. The release host has no compatible CUDA runtime, so GPU,
+AMP, pinned-memory throughput, and VRAM remain unmeasured. These limitations are
+reported in the benchmark and performance documents rather than filled with
+estimates.

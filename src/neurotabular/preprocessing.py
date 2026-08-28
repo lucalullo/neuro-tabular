@@ -5,6 +5,7 @@ from __future__ import annotations
 import warnings
 from collections.abc import Iterable
 from dataclasses import dataclass
+from hashlib import blake2b
 from numbers import Integral
 from time import perf_counter
 from typing import Hashable
@@ -45,6 +46,10 @@ class TabularPreprocessor:
     indicators. The optional robust strategy adds robust scaling and smooth
     clipping. Categorical IDs reserve ``0`` for missing values, ``1`` for
     unseen values, and ``2`` for rare values seen during fitting.
+
+    ``max_categories`` and ``hash_buckets`` are research-only controls used
+    by the release ablations. They are intentionally not exposed by the
+    estimator's public constructor.
     """
 
     def __init__(
@@ -54,11 +59,19 @@ class TabularPreprocessor:
         *,
         numeric_strategy: str = "standard",
         smooth_clip_limit: float = 5.0,
+        n_numeric_bins: int = 8,
+        use_category_frequency: bool = False,
+        max_categories: int | None = None,
+        hash_buckets: int = 0,
     ) -> None:
         self.categorical_features = categorical_features
         self.min_category_count = min_category_count
         self.numeric_strategy = numeric_strategy
         self.smooth_clip_limit = smooth_clip_limit
+        self.n_numeric_bins = n_numeric_bins
+        self.use_category_frequency = use_category_frequency
+        self.max_categories = max_categories
+        self.hash_buckets = hash_buckets
 
     def fit(self, X: pd.DataFrame) -> TabularPreprocessor:
         """Fit all preprocessing state from training rows only."""
@@ -85,12 +98,14 @@ class TabularPreprocessor:
 
         self.category_vocabs_: dict[Hashable, dict[object, int]] = {}
         self.rare_categories_: dict[Hashable, set[object]] = {}
+        self.rare_category_ids_: dict[Hashable, dict[object, int]] = {}
+        self.category_id_frequencies_: dict[Hashable, np.ndarray] = {}
         self.categorical_cardinalities_: list[int] = []
         for column in self.categorical_features_:
             series = X[column]
             try:
                 counts = series.value_counts(dropna=True, sort=False)
-                frequent = [
+                eligible = [
                     value
                     for value, count in counts.items()
                     if int(count) >= self.min_category_count
@@ -100,17 +115,67 @@ class TabularPreprocessor:
                     for value, count in counts.items()
                     if int(count) < self.min_category_count
                 }
-                vocabulary = {value: index + 3 for index, value in enumerate(frequent)}
+                if (
+                    self.max_categories is not None
+                    and len(eligible) > self.max_categories
+                ):
+                    ranked = sorted(
+                        eligible,
+                        key=lambda value: (-int(counts[value]), repr(value)),
+                    )
+                    retained = set(ranked[: self.max_categories])
+                    rare.update(value for value in eligible if value not in retained)
+                    eligible = [value for value in eligible if value in retained]
+                frequent_offset = 3 if self.hash_buckets == 0 else 2 + self.hash_buckets
+                vocabulary = {
+                    value: index + frequent_offset
+                    for index, value in enumerate(eligible)
+                }
             except TypeError as exc:
                 raise ValueError(
                     f"Categorical column {column!r} contains unhashable values."
                 ) from exc
             self.category_vocabs_[column] = vocabulary
             self.rare_categories_[column] = rare
-            self.categorical_cardinalities_.append(len(vocabulary) + 3)
+            self.rare_category_ids_[column] = {
+                value: RARE_CATEGORY_ID + self._stable_bucket(value, self.hash_buckets)
+                for value in rare
+            }
+            frequency_scale = np.log1p(max(1, len(series)))
+            cardinality = len(vocabulary) + frequent_offset
+            id_frequencies = np.zeros(cardinality, dtype=np.float32)
+            id_frequencies[MISSING_CATEGORY_ID] = float(
+                np.log1p(int(series.isna().sum())) / frequency_scale
+            )
+            if self.hash_buckets:
+                bucket_counts = np.zeros(self.hash_buckets, dtype=np.int64)
+                for value in rare:
+                    bucket = self.rare_category_ids_[column][value]
+                    bucket_counts[bucket - RARE_CATEGORY_ID] += int(counts[value])
+                id_frequencies[
+                    RARE_CATEGORY_ID : RARE_CATEGORY_ID + self.hash_buckets
+                ] = np.log1p(bucket_counts) / frequency_scale
+            else:
+                rare_count = sum(int(counts[value]) for value in rare)
+                id_frequencies[RARE_CATEGORY_ID] = float(
+                    np.log1p(rare_count) / frequency_scale
+                )
+            for value, category_id in vocabulary.items():
+                id_frequencies[category_id] = float(
+                    np.log1p(int(counts[value])) / frequency_scale
+                )
+            self.category_id_frequencies_[column] = id_frequencies
+            self.categorical_cardinalities_.append(cardinality)
         categorical_finished = perf_counter()
 
-        self.n_numeric_outputs_ = 2 * len(self.numeric_features_)
+        self.n_continuous_features_ = len(self.numeric_features_)
+        self.n_frequency_features_ = (
+            len(self.categorical_features_) if self.use_category_frequency else 0
+        )
+        self.n_numeric_outputs_ = (
+            2 * self.n_continuous_features_ + self.n_frequency_features_
+        )
+        self.fit_sample_count_ = len(X)
         self.is_fitted_ = True
         self.fit_profile_ = {
             "schema_seconds": schema_finished - started,
@@ -133,8 +198,10 @@ class TabularPreprocessor:
 
         numerical = self._transform_numeric(X)
         numeric_finished = perf_counter()
-        categorical = self._transform_categorical(X)
+        categorical, category_frequency = self._transform_categorical(X)
         categorical_finished = perf_counter()
+        if self.use_category_frequency:
+            numerical = np.concatenate((numerical, category_frequency), axis=1)
         result = ProcessedTable(
             numerical=np.ascontiguousarray(numerical, dtype=np.float32),
             categorical=np.ascontiguousarray(categorical, dtype=np.int64),
@@ -159,6 +226,9 @@ class TabularPreprocessor:
             self.numeric_medians_ = np.empty(0, dtype=np.float64)
             self.numeric_centers_ = np.empty(0, dtype=np.float64)
             self.numeric_scales_ = np.empty(0, dtype=np.float64)
+            self.numeric_knots_ = np.empty(
+                (0, self.n_numeric_bins + 1), dtype=np.float32
+            )
             return
         values = self._numeric_matrix(X)
         with warnings.catch_warnings():
@@ -182,6 +252,13 @@ class TabularPreprocessor:
         self.numeric_medians_ = medians.astype(np.float64, copy=False)
         self.numeric_centers_ = centers.astype(np.float64, copy=False)
         self.numeric_scales_ = scales.astype(np.float64, copy=False)
+        scaled = (imputed - centers) / scales
+        if self.numeric_strategy == "robust":
+            limit = self.smooth_clip_limit
+            scaled = limit * np.tanh(scaled / limit)
+        quantiles = np.linspace(0.0, 1.0, self.n_numeric_bins + 1)
+        knots = np.quantile(scaled, quantiles, axis=0).T
+        self.numeric_knots_ = self._stabilize_knots(knots)
 
     def _transform_numeric(self, X: pd.DataFrame) -> np.ndarray:
         n_samples = len(X)
@@ -201,12 +278,20 @@ class TabularPreprocessor:
             (scaled.astype(np.float32), missing.astype(np.float32)), axis=1
         )
 
-    def _transform_categorical(self, X: pd.DataFrame) -> np.ndarray:
+    def _transform_categorical(self, X: pd.DataFrame) -> tuple[np.ndarray, np.ndarray]:
         n_samples = len(X)
         if not self.categorical_features_:
-            return np.empty((n_samples, 0), dtype=np.int64)
+            return (
+                np.empty((n_samples, 0), dtype=np.int64),
+                np.empty((n_samples, 0), dtype=np.float32),
+            )
         categorical = np.empty(
             (n_samples, len(self.categorical_features_)), dtype=np.int64
+        )
+        frequencies = (
+            np.empty_like(categorical, dtype=np.float32)
+            if self.use_category_frequency
+            else np.empty((n_samples, 0), dtype=np.float32)
         )
         for index, column in enumerate(self.categorical_features_):
             series = X[column]
@@ -217,14 +302,58 @@ class TabularPreprocessor:
                 encoded = np.where(np.isnan(encoded), UNKNOWN_CATEGORY_ID, encoded)
                 rare = self.rare_categories_[column]
                 if rare:
-                    encoded[series.isin(rare).to_numpy(dtype=bool)] = RARE_CATEGORY_ID
+                    if self.hash_buckets:
+                        mapped_rare = series.map(self.rare_category_ids_[column])
+                        rare_ids = mapped_rare.to_numpy(
+                            dtype=np.float64, na_value=np.nan
+                        )
+                        rare_mask = np.isfinite(rare_ids)
+                        encoded[rare_mask] = rare_ids[rare_mask]
+                    else:
+                        encoded[series.isin(rare).to_numpy(dtype=bool)] = (
+                            RARE_CATEGORY_ID
+                        )
             except TypeError as exc:
                 raise ValueError(
                     f"Categorical column {column!r} contains unhashable values."
                 ) from exc
             encoded[missing] = MISSING_CATEGORY_ID
-            categorical[:, index] = encoded.astype(np.int64, copy=False)
-        return categorical
+            encoded_ids = encoded.astype(np.int64, copy=False)
+            categorical[:, index] = encoded_ids
+            if self.use_category_frequency:
+                frequencies[:, index] = self.category_id_frequencies_[column][
+                    encoded_ids
+                ]
+        return categorical, frequencies
+
+    @staticmethod
+    def _stabilize_knots(knots: np.ndarray) -> np.ndarray:
+        """Return finite, strictly increasing per-feature quantile knots."""
+
+        stable = np.asarray(knots, dtype=np.float64).copy()
+        for feature in range(stable.shape[0]):
+            row = stable[feature]
+            if not np.isfinite(row).all():
+                raise ValueError("Numerical quantiles produced non-finite knots.")
+            scale = max(1.0, float(np.max(np.abs(row))))
+            epsilon = 1e-6 * scale
+            if row[-1] - row[0] < epsilon:
+                center = float(row[0])
+                row[:] = np.linspace(center - 0.5, center + 0.5, len(row))
+                continue
+            for index in range(1, len(row)):
+                row[index] = max(row[index], row[index - 1] + epsilon)
+        return stable.astype(np.float32)
+
+    @staticmethod
+    def _stable_bucket(value: object, bucket_count: int) -> int:
+        if bucket_count < 1:
+            return 0
+        payload = f"{type(value).__qualname__}:{value!r}".encode(
+            "utf-8", errors="backslashreplace"
+        )
+        digest = blake2b(payload, digest_size=8).digest()
+        return int.from_bytes(digest, byteorder="little") % bucket_count
 
     def _numeric_matrix(self, X: pd.DataFrame) -> np.ndarray:
         try:
@@ -295,6 +424,26 @@ class TabularPreprocessor:
             raise ValueError("numeric_strategy must be 'standard' or 'robust'.")
         if self.smooth_clip_limit <= 0.0:
             raise ValueError("smooth_clip_limit must be positive.")
+        if (
+            not isinstance(self.n_numeric_bins, Integral)
+            or isinstance(self.n_numeric_bins, bool)
+            or self.n_numeric_bins < 2
+        ):
+            raise ValueError("n_numeric_bins must be an integer of at least 2.")
+        if not isinstance(self.use_category_frequency, bool):
+            raise TypeError("use_category_frequency must be a boolean.")
+        if self.max_categories is not None and (
+            not isinstance(self.max_categories, Integral)
+            or isinstance(self.max_categories, bool)
+            or self.max_categories < 1
+        ):
+            raise ValueError("max_categories must be None or a positive integer.")
+        if (
+            not isinstance(self.hash_buckets, Integral)
+            or isinstance(self.hash_buckets, bool)
+            or self.hash_buckets < 0
+        ):
+            raise ValueError("hash_buckets must be a non-negative integer.")
 
     @staticmethod
     def _is_categorical_dtype(dtype: object) -> bool:

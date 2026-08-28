@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "neurotabular"
-version = "0.1.1"
+version = "0.2.0"
 description = "Compact neural classification for heterogeneous pandas DataFrames"
 readme = "README.md"
 requires-python = ">=3.10"

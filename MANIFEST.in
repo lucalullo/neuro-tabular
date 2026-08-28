@@ -6,6 +6,7 @@ include CONTRIBUTING.md
 include LEGAL.md
 include LICENSE
 include PERFORMANCE_PROFILE.md
+include PERFORMANCE_PROFILE_0_2.md
 include PUBLISHING.md
 include README.md
 include RELEASE_NOTES.md

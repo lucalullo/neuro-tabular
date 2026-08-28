@@ -92,6 +92,101 @@ def test_all_missing_categorical_column_is_safe():
     assert preprocessor.categorical_cardinalities_ == [3]
 
 
+def test_category_frequency_is_training_only_and_handles_unknown_values():
+    train = pd.DataFrame({"city": ["Rome", "Rome", "Milan", None]})
+    preprocessor = TabularPreprocessor(use_category_frequency=True).fit(train)
+    transformed = preprocessor.transform(
+        pd.DataFrame({"city": ["Rome", "Milan", "Turin", None]})
+    )
+    frequency = transformed.numerical[:, 0]
+    assert preprocessor.n_frequency_features_ == 1
+    assert frequency[0] > frequency[1] > frequency[2]
+    assert frequency[2] == 0.0
+    assert frequency[3] == pytest.approx(frequency[1])
+
+
+def test_research_category_cap_is_frequency_ranked_and_deterministic():
+    train = pd.DataFrame(
+        {
+            "code": [
+                "common",
+                "common",
+                "common",
+                "second",
+                "second",
+                "third",
+                "third",
+                "rare",
+            ]
+        }
+    )
+    first = TabularPreprocessor(
+        min_category_count=1,
+        max_categories=2,
+        use_category_frequency=True,
+    ).fit(train)
+    second = TabularPreprocessor(
+        min_category_count=1,
+        max_categories=2,
+        use_category_frequency=True,
+    ).fit(train)
+
+    assert set(first.category_vocabs_["code"]) == {"common", "second"}
+    assert first.rare_categories_["code"] == {"third", "rare"}
+    assert first.categorical_cardinalities_ == [5]
+    assert np.array_equal(
+        first.transform(train).categorical,
+        second.transform(train).categorical,
+    )
+
+
+def test_research_hash_buckets_bound_cardinality_and_keep_special_ids_distinct():
+    train = pd.DataFrame({"code": ["a", "a", "b", "b", "c", "c", "d", "d", None]})
+    preprocessor = TabularPreprocessor(
+        min_category_count=1,
+        max_categories=1,
+        hash_buckets=3,
+        use_category_frequency=True,
+    ).fit(train)
+    test = pd.DataFrame({"code": [None, "unseen", "b", "c", "d", "a"]})
+    transformed = preprocessor.transform(test)
+    encoded = transformed.categorical[:, 0]
+
+    assert preprocessor.categorical_cardinalities_ == [6]
+    assert encoded[0] == MISSING_CATEGORY_ID
+    assert encoded[1] == UNKNOWN_CATEGORY_ID
+    assert np.all((encoded[2:5] >= RARE_CATEGORY_ID) & (encoded[2:5] < 5))
+    assert encoded[5] == 5
+    assert np.isfinite(transformed.numerical).all()
+
+
+@pytest.mark.parametrize(
+    ("options", "message"),
+    [
+        ({"max_categories": 0}, "max_categories"),
+        ({"max_categories": True}, "max_categories"),
+        ({"hash_buckets": -1}, "hash_buckets"),
+        ({"hash_buckets": True}, "hash_buckets"),
+    ],
+)
+def test_research_category_overflow_options_are_validated(options, message):
+    with pytest.raises(ValueError, match=message):
+        TabularPreprocessor(**options).fit(pd.DataFrame({"code": ["a", "b"]}))
+
+
+def test_numeric_knots_are_training_only_finite_and_strictly_increasing():
+    train = pd.DataFrame({"varying": [0.0, 1.0, 2.0, 3.0], "constant": [2.0] * 4})
+    preprocessor = TabularPreprocessor(n_numeric_bins=6).fit(train)
+    before = preprocessor.numeric_knots_.copy()
+    preprocessor.transform(
+        pd.DataFrame({"varying": [-1000.0, 1000.0], "constant": [2.0, 2.0]})
+    )
+    assert before.shape == (2, 7)
+    assert np.isfinite(before).all()
+    assert np.all(np.diff(before, axis=1) > 0.0)
+    assert np.array_equal(before, preprocessor.numeric_knots_)
+
+
 def test_schema_is_reordered_and_changes_are_rejected():
     train = pd.DataFrame({"a": [1.0, 2.0], "b": [3.0, 4.0]})
     preprocessor = TabularPreprocessor().fit(train)

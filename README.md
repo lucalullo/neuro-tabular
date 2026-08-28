@@ -1,236 +1,206 @@
 # NeuroTabular
 
-NeuroTabular is an experimental neural-network library for binary
-classification on heterogeneous pandas DataFrames. It provides a compact
-scikit-learn-style estimator while handling numerical missing values,
-categorical vocabularies, learned embeddings, device selection, batching, and
-early stopping automatically.
+NeuroTabular is a compact PyTorch binary classifier for heterogeneous pandas
+DataFrames. Version 0.2.0 adds leakage-safe categorical frequency features,
+dataset-aware categorical embedding widths, optional numerical embeddings and
+feature gating, while preserving the scikit-learn estimator interface.
 
-```python
-from neurotabular import NeuroTabularClassifier
+This repository is an alpha release candidate. It is suitable for controlled
+experiments and reproducible evaluation; it is not a claim that a neural model
+will outperform gradient-boosted trees on every tabular dataset.
 
-model = NeuroTabularClassifier()
-model.fit(X_train, y_train)
+## Highlights in 0.2.0
 
-pred = model.predict(X_test)
-proba = model.predict_proba(X_test)
-```
+- one estimator API: `fit`, `predict`, and `predict_proba`;
+- automatic numerical, object, string, categorical, and boolean handling;
+- training-only median imputation, scaling, missing indicators, vocabularies,
+  rare buckets, quantile knots, and log-frequency side features;
+- adaptive categorical embedding widths bounded by dataset size, cardinality,
+  feature count, and a compact memory budget;
+- scalar numerical inputs by default, with affine, periodic, and piecewise
+  representations available for explicit ablation;
+- residual MLP with optional lightweight input gating;
+- stratified validation, early stopping, best-weight restoration, sample
+  weights, and balanced class weights;
+- deterministic automatic batching, CPU/CUDA device diagnostics, AMP only on
+  compatible CUDA hardware, and no `torch.autocast` construction on the CPU
+  path when AMP is disabled;
+- scikit-learn cloning, pipelines, and cross-validation compatibility;
+- Python 3.10-3.12 and PyTorch 2.0+ compatibility gates.
 
-## Project status
-
-NeuroTabular 0.1.1 is the recommended 0.1.x release. It is a maintenance and
-robustness patch for the experimental, pre-1.0 binary-classification
-foundation—not a claim of state-of-the-art performance. It keeps the 0.1.0
-architecture, public constructor, and defaults while making automatic CUDA
-selection safer and explicit CUDA failures clearer.
-
-## Features
-
-- One sklearn-compatible `NeuroTabularClassifier` estimator.
-- pandas `DataFrame` input with strict schema validation and automatic column
-  reordering at inference.
-- Automatic categorical detection for object, pandas string, category, and
-  boolean columns.
-- Explicit integer-ID categoricals through `categorical_features`.
-- Training-only median imputation, standard scaling, and missing indicators.
-- Per-column neural embeddings without default one-hot encoding.
-- Separate categorical IDs for missing, unseen, and rare values.
-- Internal stratified validation or one explicit validation set.
-- Early stopping with `min_delta`, configurable validation frequency, and best
-  weight restoration.
-- Automatic full/large-batch training through direct tensor indexing.
-- Sample weights and balanced binary class weights.
-- CPU and verified CUDA paths, safe automatic CPU fallback, local training,
-  and bounded-memory inference.
-- Profiling attributes for fit, preprocessing, training, and validation.
+The release default is deliberately conservative: scalar numerical inputs,
+categorical frequency features enabled, no feature gate, and no full-data
+refit. Those choices were selected by the release ablations rather than by
+architectural preference.
 
 ## Installation
 
-The official repository is
-[lucalullo/neuro-tabular](https://github.com/lucalullo/neuro-tabular). The
-reproducible Git installation for version 0.1.1 is:
-
-```bash
-pip install git+https://github.com/lucalullo/neuro-tabular.git@v0.1.1
-```
-
-For local installation, from the repository root:
-
-```bash
-python -m pip install .
-```
-
-For development:
+From a local checkout:
 
 ```bash
 python -m venv .venv
+python -m pip install --upgrade pip
+python -m pip install -e .
+```
+
+For tests, lint, profiling, and package verification:
+
+```bash
 python -m pip install -e ".[dev]"
+python -m ruff check .
+python -m ruff format --check .
 python -m pytest -W error
 ```
 
-The supported Python versions are 3.10, 3.11, and 3.12. Runtime dependencies
-are NumPy, pandas, PyTorch, and scikit-learn.
+Runtime requirements are NumPy 1.24+, pandas 2.0+, scikit-learn 1.3+, and
+PyTorch 2.0+. LightGBM and CatBoost are optional benchmark-only comparisons;
+they are not runtime dependencies.
 
-## Data handling
-
-`X` must be a non-empty pandas `DataFrame` with at least one feature and unique
-column names. Fitting stores the exact schema. Prediction accepts a different
-column order and restores training order automatically; missing, extra, or
-duplicate columns raise an error.
-
-Numerical NaNs require no manual preprocessing. NeuroTabular learns medians,
-means, and standard deviations from training rows only, appends one missing
-indicator per numerical feature, and safely handles constant or entirely
-missing columns. Positive and negative infinity are rejected.
-
-Object, string, category, and boolean features are categorical automatically.
-Integer IDs can be added without disabling automatic detection:
+## Quick start
 
 ```python
-model = NeuroTabularClassifier(categorical_features=["store_id", "postal_code"])
+import pandas as pd
+from neurotabular import NeuroTabularClassifier
+
+X = pd.DataFrame(
+    {
+        "age": [22, 45, 31, 54, 28, 61],
+        "income": [32_000, 78_000, None, 91_000, 46_000, 105_000],
+        "city": ["Rome", "Milan", "Rome", "Turin", None, "Milan"],
+    }
+)
+y = [0, 1, 0, 1, 0, 1]
+
+model = NeuroTabularClassifier(
+    max_epochs=30,
+    eval_metric="roc_auc",
+    random_state=42,
+)
+model.fit(X, y)
+
+labels = model.predict(X)
+probabilities = model.predict_proba(X)[:, 1]
 ```
 
-Each categorical column has a compact vocabulary and its own neural embedding.
-Missing values use ID 0, categories unseen during fitting use ID 1, and rare
-training categories use ID 2. The default `min_category_count=2` can be
-overridden.
+Integer-coded categorical columns must be named explicitly:
 
-## Validation and class imbalance
+```python
+model = NeuroTabularClassifier(categorical_features=["postal_code"])
+```
 
-Without `eval_set`, fitting creates a stratified internal validation subset
-using `random_state`. An explicit validation set does not change the fitted
-preprocessing state or vocabularies:
+For a user-controlled holdout:
 
 ```python
 model.fit(X_train, y_train, eval_set=(X_valid, y_valid))
 ```
 
-Early stopping supports validation `"loss"`, `"roc_auc"`, and `"accuracy"`.
-The default validates every epoch because optimized in-memory validation was
-measured to terminate earlier than reduced-frequency validation on the release
-ablation matrix. `min_delta=1e-4` prevents negligible changes from resetting
-patience.
+Preprocessing is fitted only on training rows. When an external validation set
+is supplied, its categories and numeric distribution never affect learned
+statistics or vocabularies.
 
-For imbalanced data:
+## Optional 0.2 representations
+
+The release default should be the starting point. Alternatives are explicit:
 
 ```python
-model = NeuroTabularClassifier(class_weight="balanced")
-model.fit(X_train, y_train, sample_weight=row_weights)
+affine = NeuroTabularClassifier(numerical_embedding="affine")
+piecewise = NeuroTabularClassifier(numerical_embedding="piecewise")
+gated = NeuroTabularClassifier(feature_gating=True)
 ```
 
-Class and sample weights are multiplicative and can be combined.
+`periodic` and `piecewise` numerical embeddings are implemented and tested but
+did not improve the release benchmark mean, so they are not defaults. Likewise,
+`full_data_refit=True` repeats training on every row for the selected number of
+epochs; the measured quality/cost trade-off did not justify enabling it by
+default.
+
+## Validation and imbalance
+
+Without `eval_set`, NeuroTabular creates a deterministic stratified validation
+split. `eval_metric` accepts `"loss"`, `"roc_auc"`, or `"accuracy"`. The best
+model state is restored after early stopping.
+
+Use `class_weight="balanced"` for inverse-frequency class weighting or pass
+non-negative per-row `sample_weight` values to `fit`. If both are supplied,
+their effects are multiplied. Binary targets may use any two mutually
+comparable labels; predictions return the original labels.
 
 ## Devices and performance
 
-`device="auto"` selects CUDA only after PyTorch reports it available, the
-device exists, metadata is collected, and a tiny synchronized CUDA kernel
-probe succeeds. A visible GPU that is incompatible with the installed PyTorch
-build produces a clear warning and falls back to CPU. `device="cuda"` and
-indexed CUDA requests never fall back silently: they fail before model or
-training tensor creation with the available GPU, compute-capability, PyTorch,
-compiled-architecture, and probe diagnostics. `device="cpu"` performs no CUDA
-probe.
+`device="auto"` performs a real synchronized CUDA kernel probe. It falls back
+to CPU with a diagnostic warning if CUDA is reported but unusable. An explicit
+CUDA request fails with device, PyTorch, CUDA, architecture, and probe details
+instead of silently changing devices.
 
-For small and medium in-memory datasets, arrays are converted to tensors once.
-Training uses direct tensor indexing, full batches for very small datasets, and
-large deterministic batches otherwise. DataLoader worker processes are not
-used for already-materialized arrays. CUDA attempts one-time device residency
-when memory permits and otherwise uses pinned CPU staging. Verified CUDA
-training uses float16 automatic mixed precision on compute capability 7.0 or
-newer. AdamW keeps PyTorch's supported implementation selection instead of
-forcing the newer fused path. `torch.compile` remains disabled because compile
-cold start was not justified for the target workloads.
+The training table is kept resident on the selected device, batches are formed
+with index tensors, and inference is batched. AMP is enabled only for a probed
+CUDA device with compute capability 7.0 or newer. CPU execution uses a plain
+null context when AMP is disabled, which preserves PyTorch 2.0 compatibility
+and avoids CPU autocast overhead.
 
-After fitting, inspect:
+The detailed 5,000-row CPU profile measured 2.772 s end-to-end fit and 0.024 s
+prediction in a cold candidate process. A separate paired, warm, interleaved
+comparison is the appropriate release comparison: over seven synthetic
+datasets and two seeds, 0.2.0 improved mean ROC-AUC from 0.87456 to 0.87841,
+with a median paired fit-time ratio of 0.950 and prediction-time ratio of 0.986.
+Absolute timings depend strongly on host load and are not universal throughput
+claims.
 
-```python
-print(model.fit_time_)
-print(model.preprocessing_time_)
-print(model.training_time_)
-print(model.validation_time_)
-print(model.batch_size_)
-print(model.n_parameters_)
-print(model.device_)
-print(model.device_info_)
-```
+Two bundled scikit-learn datasets provided an external no-regression check:
+both versions produced the same mean ROC-AUC, 0.99811. CUDA, AMP throughput,
+and VRAM were not measured on the release host because its PyTorch build was
+CPU-only.
 
-## scikit-learn compatibility
+See [BENCHMARK_REPORT.md](BENCHMARK_REPORT.md),
+[PERFORMANCE_PROFILE_0_2.md](PERFORMANCE_PROFILE_0_2.md), and
+[ABLATION_REPORT.md](ABLATION_REPORT.md) for methods, raw-result filenames,
+hardware, uncertainty, and rejected experiments.
 
-The constructor follows estimator conventions and has no training or device
-side effects. `clone`, `get_params`, `set_params`, and `cross_val_score` are
-supported.
+## scikit-learn use
+
+The constructor stores parameters without fitting side effects, so standard
+scikit-learn composition works:
 
 ```python
+from sklearn.base import clone
 from sklearn.model_selection import cross_val_score
 
-scores = cross_val_score(
-    NeuroTabularClassifier(max_epochs=10),
-    X,
-    y,
-    cv=3,
-    scoring="roc_auc",
-)
+base = NeuroTabularClassifier(max_epochs=10, random_state=7)
+copy = clone(base)
+scores = cross_val_score(copy, X, y, cv=3, scoring="roc_auc")
 ```
 
-## Benchmarks
-
-The release benchmark covers small numerical, mixed, missing-value,
-categorical-heavy, moderate-cardinality, imbalanced, and medium synthetic
-binary datasets. The measured CPU matrix records accuracy, log loss, fit time,
-prediction time, parameter count, preprocessing time, and memory observations.
-Results vary materially by dataset; tree baselines remained stronger on
-several tasks. See
-[BENCHMARK_REPORT.md](BENCHMARK_REPORT.md),
-[PERFORMANCE_PROFILE.md](PERFORMANCE_PROFILE.md), and
-[ABLATION_REPORT.md](ABLATION_REPORT.md) for methods, hardware, raw summaries,
-and limitations. The 0.1.1 maintenance comparison preserves identical local
-ROC-AUC and epoch counts across all 14 dataset/seed pairs. Timing was noisy and
-did not justify a speedup claim, so attempted hot-path changes were discarded.
-
-These synthetic measurements are engineering diagnostics, not evidence of
-universal superiority. External benchmark libraries are not runtime
-dependencies.
+Input to fitting and prediction must be a pandas DataFrame with the same unique
+column names. Prediction may reorder columns, but missing or unexpected columns
+are rejected rather than guessed.
 
 ## Documentation
 
-- [API reference](docs/API.md)
 - [Usage guide](docs/USAGE.md)
-- [Research and design notes](RESEARCH_NOTES.md)
-- [Versioning policy](VERSIONING.md)
-- [Publishing policy](PUBLISHING.md)
-- [Changelog](CHANGELOG.md)
+- [API reference](docs/API.md)
+- [Benchmark report](BENCHMARK_REPORT.md)
+- [Performance profile](PERFORMANCE_PROFILE_0_2.md)
+- [Ablation report](ABLATION_REPORT.md)
+- [Research notes](RESEARCH_NOTES.md)
+- [Release notes](RELEASE_NOTES.md)
+- [Publishing guide](PUBLISHING.md)
 
 ## Limitations
 
-- Binary classification and pandas `DataFrame` input only.
-- One explicit validation set and no validation sample-weight argument.
-- No public serialization, calibration, interpretability, or feature-importance
-  API.
-- Rare bucketing is deliberately simple; extremely high-cardinality columns
-  may need domain-specific handling.
-- The standard numerical representation does not include learned numerical
-  embeddings.
-- GPU behavior is implemented and conditionally tested, but the 0.1.1 release
-  validation environment had a CPU-only PyTorch build; no CUDA speed or VRAM claim
-  is made.
-- Exact CUDA reproducibility can depend on GPU, driver, CUDA, PyTorch, and
-  kernel selection.
+- binary classification only;
+- pandas DataFrame input only;
+- no calibrated-probability or multiclass interface;
+- no claim of state-of-the-art accuracy or tree-model superiority;
+- internal validation reduces the rows used for the selected model unless
+  optional full-data refit is enabled;
+- very high-cardinality categoricals can still increase model size;
+- performance and memory results are hardware- and workload-specific;
+- CUDA behavior is covered by fallback/probe regression tests, but this release
+  was not benchmarked on physical GPU hardware.
 
-## Roadmap
+## License and privacy
 
-Possible future work includes multiclass classification, a regressor,
-serialization, calibration, numerical embeddings, feature interactions,
-interpretability, and parameter-efficient neural ensembling. This roadmap has
-no promised order or dates; changes require tests, documentation, and
-reproducible benchmarks.
-
-## Privacy, license, and project information
-
-Training and inference are local. NeuroTabular performs no telemetry, upload,
-account access, model download, or dataset download.
-
-NeuroTabular is created by Luca Lullo and developed as an open-source project.
-It is licensed under the [MIT License](LICENSE). Dependency notices are in
-[THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md). Naming review is preliminary
-engineering due diligence, not professional legal advice or trademark
-clearance; see [LEGAL.md](LEGAL.md).
+NeuroTabular is released under the MIT License. Training data remains local to
+the process; the library has no telemetry, network calls, credential handling,
+or hidden dataset download. Public datasets are loaded only by explicit
+benchmark scripts.

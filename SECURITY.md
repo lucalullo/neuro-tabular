@@ -17,5 +17,5 @@ listed until the project has a real monitored security inbox.
 Privately include the affected version and environment, a minimal reproduction
 without private data, expected and observed impact, and possible mitigation.
 
-NeuroTabular 0.1.1 does not deserialize model files, access accounts, download
+NeuroTabular 0.2.0 does not deserialize model files, access accounts, download
 models or datasets, make fit-time network requests, or collect telemetry.

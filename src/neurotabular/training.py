@@ -117,6 +117,8 @@ def train_binary_model(
     verbose: int,
     lr_strategy: str = "cosine",
     use_amp: bool | None = None,
+    compile_mode: str | None = None,
+    optimizer_strategy: str = "auto",
 ) -> TrainingResult:
     """Train ``model`` with direct tensor indexing and restore best weights."""
 
@@ -135,6 +137,8 @@ def train_binary_model(
         "best_state_restoration_seconds": 0.0,
         "timing_reliable": device.type == "cpu",
         "data_residency": "cpu",
+        "compile_mode": compile_mode or "off",
+        "compile_setup_seconds": 0.0,
     }
     conversion_started = perf_counter()
     train_tensors = _to_tensors(train_data, train_target, train_weight)
@@ -154,13 +158,22 @@ def train_binary_model(
     profile["device_transfer_seconds"] = perf_counter() - transfer_started
 
     model.to(device)
-    optimizer = _make_optimizer(model, lr, weight_decay, device)
+    forward_model: nn.Module = model
+    if compile_mode is not None:
+        if compile_mode != "reduce-overhead":
+            raise ValueError("compile_mode must be None or 'reduce-overhead'.")
+        compile_started = perf_counter()
+        forward_model = torch.compile(model, mode=compile_mode)
+        profile["compile_setup_seconds"] = perf_counter() - compile_started
+    optimizer = _make_optimizer(
+        model, lr, weight_decay, device, strategy=optimizer_strategy
+    )
     scheduler = _make_scheduler(optimizer, max_epochs, lr_strategy)
     criterion = nn.BCEWithLogitsLoss(reduction="none")
     use_amp = device.type == "cuda" if use_amp is None else use_amp
     scaler = _make_grad_scaler(use_amp)
     profile["amp_enabled"] = use_amp
-    profile["optimizer"] = "AdamW (PyTorch-selected implementation)"
+    profile["optimizer"] = f"AdamW ({optimizer_strategy})"
     generator = torch.Generator(device="cpu")
     generator.manual_seed(random_state)
     profile["engine_setup_seconds"] = perf_counter() - engine_started
@@ -189,7 +202,7 @@ def train_binary_model(
             optimizer.zero_grad(set_to_none=True)
             forward_started = perf_counter()
             with _autocast_context(use_amp):
-                logits = model(
+                logits = forward_model(
                     numerical.to(device, non_blocking=True),
                     categorical.to(device, non_blocking=True),
                 )
@@ -232,7 +245,7 @@ def train_binary_model(
             continue
         validation_started = perf_counter()
         validation_loss, score = _validate(
-            model,
+            forward_model,
             validation_tensors,
             batch_size=max(batch_size, 4_096),
             criterion=criterion,
@@ -323,6 +336,105 @@ def predict_probabilities(
     return np.clip(probabilities, 0.0, 1.0)
 
 
+def refit_binary_model(
+    model: TabularNetwork,
+    data: ProcessedTable,
+    target: np.ndarray,
+    weight: np.ndarray,
+    *,
+    device: torch.device,
+    batch_size: int,
+    epochs: int,
+    lr: float,
+    weight_decay: float,
+    random_state: int,
+    use_amp: bool,
+) -> dict[str, float | bool | str | int]:
+    """Fit a fresh model for a fixed epoch count without validation work."""
+
+    started = perf_counter()
+    profile: dict[str, float | bool | str | int] = {
+        "epochs": epochs,
+        "tensor_conversion_seconds": 0.0,
+        "device_transfer_seconds": 0.0,
+        "batch_creation_seconds": 0.0,
+        "forward_seconds": 0.0,
+        "backward_seconds": 0.0,
+        "optimizer_step_seconds": 0.0,
+        "scheduler_seconds": 0.0,
+        "amp_enabled": use_amp,
+        "optimizer": "AdamW (PyTorch-selected implementation)",
+    }
+    conversion_started = perf_counter()
+    tensors = _to_tensors(data, target, weight)
+    profile["tensor_conversion_seconds"] = perf_counter() - conversion_started
+    transfer_started = perf_counter()
+    tensors, resident = _prepare_device_table(tensors, device)
+    profile["device_transfer_seconds"] = perf_counter() - transfer_started
+    profile["data_residency"] = str(device) if resident else "cpu-staged"
+    model.to(device)
+    optimizer = _make_optimizer(model, lr, weight_decay, device)
+    scheduler = _make_scheduler(optimizer, epochs, "cosine")
+    criterion = nn.BCEWithLogitsLoss(reduction="none")
+    scaler = _make_grad_scaler(use_amp)
+    generator = torch.Generator(device="cpu").manual_seed(random_state)
+    final_loss = math.inf
+    for _ in range(epochs):
+        loss_numerator = torch.zeros((), device=device)
+        weight_denominator = torch.zeros((), device=device)
+        for numerical, categorical, batch_target, batch_weight in _training_batches(
+            tensors,
+            batch_size,
+            generator,
+            device,
+            profile,
+        ):
+            optimizer.zero_grad(set_to_none=True)
+            forward_started = perf_counter()
+            with _autocast_context(use_amp):
+                logits = model(
+                    numerical.to(device, non_blocking=True),
+                    categorical.to(device, non_blocking=True),
+                )
+                batch_target = batch_target.to(device, non_blocking=True)
+                batch_weight = batch_weight.to(device, non_blocking=True)
+                elementwise_loss = criterion(logits, batch_target)
+                batch_weight_sum = batch_weight.sum()
+                loss = (
+                    elementwise_loss * batch_weight
+                ).sum() / batch_weight_sum.clamp_min(1e-12)
+            profile["forward_seconds"] = float(profile["forward_seconds"]) + (
+                perf_counter() - forward_started
+            )
+            backward_started = perf_counter()
+            scaler.scale(loss).backward()
+            profile["backward_seconds"] = float(profile["backward_seconds"]) + (
+                perf_counter() - backward_started
+            )
+            step_started = perf_counter()
+            scaler.step(optimizer)
+            scaler.update()
+            profile["optimizer_step_seconds"] = float(
+                profile["optimizer_step_seconds"]
+            ) + (perf_counter() - step_started)
+            loss_numerator += (elementwise_loss.detach() * batch_weight).sum()
+            weight_denominator += batch_weight_sum.detach()
+        scheduler_started = perf_counter()
+        scheduler.step()
+        profile["scheduler_seconds"] = float(profile["scheduler_seconds"]) + (
+            perf_counter() - scheduler_started
+        )
+        final_loss = float(
+            (loss_numerator / weight_denominator.clamp_min(1e-12)).detach().cpu()
+        )
+        if not math.isfinite(final_loss):
+            raise RuntimeError("Full-data refit produced a non-finite loss.")
+    model.eval()
+    profile["final_training_loss"] = final_loss
+    profile["engine_total_seconds"] = perf_counter() - started
+    return profile
+
+
 def _to_tensors(
     data: ProcessedTable,
     target: np.ndarray,
@@ -392,6 +504,7 @@ def _validate(
     model.eval()
     loss_numerator = torch.zeros((), device=device)
     weight_denominator = torch.zeros((), device=device)
+    collect_metric_arrays = metric != "loss"
     probabilities: list[torch.Tensor] = []
     targets: list[torch.Tensor] = []
     weights: list[torch.Tensor] = []
@@ -410,26 +523,28 @@ def _validate(
             losses = criterion(logits, target)
             loss_numerator += (losses * weight).sum()
             weight_denominator += weight.sum()
-            probabilities.append(torch.sigmoid(logits))
-            targets.append(target)
-            weights.append(weight)
+            if collect_metric_arrays:
+                probabilities.append(torch.sigmoid(logits))
+                targets.append(target)
+                weights.append(weight)
     validation_loss = float(
         (loss_numerator / weight_denominator.clamp_min(1e-12)).cpu()
     )
-    probability_array = torch.cat(probabilities).cpu().numpy()
-    target_array = torch.cat(targets).cpu().numpy()
-    weight_array = torch.cat(weights).cpu().numpy()
     profile["validation_inference_seconds"] = float(
         profile["validation_inference_seconds"]
     ) + (perf_counter() - inference_started)
     metric_started = perf_counter()
     if metric == "loss":
         score = validation_loss
-    elif metric == "roc_auc":
+    else:
+        probability_array = torch.cat(probabilities).cpu().numpy()
+        target_array = torch.cat(targets).cpu().numpy()
+        weight_array = torch.cat(weights).cpu().numpy()
+    if metric == "roc_auc":
         score = float(
             roc_auc_score(target_array, probability_array, sample_weight=weight_array)
         )
-    else:
+    elif metric == "accuracy":
         score = float(
             accuracy_score(
                 target_array,
@@ -446,9 +561,20 @@ def _validate(
 
 
 def _make_optimizer(
-    model: nn.Module, lr: float, weight_decay: float, device: torch.device
+    model: nn.Module,
+    lr: float,
+    weight_decay: float,
+    device: torch.device,
+    *,
+    strategy: str = "auto",
 ) -> torch.optim.Optimizer:
     kwargs: dict[str, object] = {"lr": lr, "weight_decay": weight_decay}
+    if strategy == "foreach":
+        kwargs["foreach"] = True
+    elif strategy == "fused":
+        kwargs["fused"] = True
+    elif strategy != "auto":
+        raise ValueError("optimizer_strategy must be 'auto', 'foreach', or 'fused'.")
     return torch.optim.AdamW(model.parameters(), **kwargs)
 
 

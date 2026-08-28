@@ -138,6 +138,29 @@ def test_explicit_eval_set_skips_internal_split_and_is_leakage_safe(
     assert np.array_equal(encoded, np.ones(len(X_valid), dtype=np.int64))
 
 
+def test_full_data_refit_uses_all_rows_after_epoch_selection(
+    mixed_binary_data, fast_model_kwargs
+):
+    X, y = mixed_binary_data
+    model = NeuroTabularClassifier(
+        **{**fast_model_kwargs, "full_data_refit": True}
+    ).fit(X, y)
+    assert model.full_data_refit_ is True
+    assert model._preprocessor_.fit_sample_count_ == len(X)
+    assert model.profile_["full_data_refit"]["training"]["epochs"] == 1
+
+
+def test_external_validation_does_not_repeat_full_data_training(
+    mixed_binary_data, fast_model_kwargs
+):
+    X, y = mixed_binary_data
+    model = NeuroTabularClassifier(
+        **{**fast_model_kwargs, "full_data_refit": True}
+    ).fit(X.iloc[:72], y[:72], eval_set=(X.iloc[72:], y[72:]))
+    assert model.full_data_refit_ is False
+    assert "full_data_refit" not in model.profile_
+
+
 @pytest.mark.parametrize("metric", ["loss", "roc_auc", "accuracy"])
 def test_supported_validation_metrics(metric, fast_model_kwargs):
     values = np.linspace(-3.0, 3.0, 60)

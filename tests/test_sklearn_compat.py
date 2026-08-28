@@ -33,17 +33,21 @@ def test_public_defaults_are_release_defaults():
         "dropout": 0.1,
         "eval_frequency": 1,
         "eval_metric": "loss",
+        "feature_gating": False,
+        "full_data_refit": False,
         "hidden_dim": 64,
         "lr": 0.003,
         "max_epochs": 30,
         "min_category_count": 2,
         "min_delta": 0.0001,
         "n_blocks": 2,
+        "numerical_embedding": "scalar",
         "patience": 4,
         "random_state": 42,
         "validation_fraction": 0.2,
         "verbose": 0,
         "weight_decay": 0.00001,
+        "use_category_frequency": True,
     }
 
 
