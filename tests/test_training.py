@@ -107,7 +107,9 @@ def test_cpu_reproducibility(mixed_binary_data, fast_model_kwargs):
     )
 
 
-def test_cpu_training_never_constructs_autocast(monkeypatch, mixed_binary_data, fast_model_kwargs):
+def test_cpu_training_never_constructs_autocast(
+    monkeypatch, mixed_binary_data, fast_model_kwargs
+):
     X, y = mixed_binary_data
 
     def fail_autocast(*args, **kwargs):
