@@ -5,9 +5,9 @@ DataFrames. Version 0.2.0 adds leakage-safe categorical frequency features,
 dataset-aware categorical embedding widths, optional numerical embeddings and
 feature gating, while preserving the scikit-learn estimator interface.
 
-This repository is an alpha release candidate. It is suitable for controlled
-experiments and reproducible evaluation; it is not a claim that a neural model
-will outperform gradient-boosted trees on every tabular dataset.
+NeuroTabular 0.2.0 is an experimental pre-1.0 release. It is suitable for
+controlled experiments and reproducible evaluation; it is not a claim that a
+neural model will outperform gradient-boosted trees on every tabular dataset.
 
 ## Highlights in 0.2.0
 
