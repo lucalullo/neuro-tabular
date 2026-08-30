@@ -200,7 +200,12 @@ are rejected rather than guessed.
 
 ## License and privacy
 
-NeuroTabular is released under the MIT License. Training data remains local to
-the process; the library has no telemetry, network calls, credential handling,
-or hidden dataset download. Public datasets are loaded only by explicit
-benchmark scripts.
+NeuroTabular is created by Luca Lullo and developed as an open-source project.
+It is licensed under the [MIT License](LICENSE). Dependency notices are in
+[THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md). Naming review is preliminary
+engineering due diligence, not professional legal advice or trademark
+clearance; see [LEGAL.md](LEGAL.md).
+
+## Author
+
+Created by [Luca Lullo](https://github.com/lucalullo).
