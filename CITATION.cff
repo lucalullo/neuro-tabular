@@ -1,0 +1,11 @@
+cff-version: 1.2.0
+message: "If you use NeuroTabular in research, please cite this software."
+title: "NeuroTabular"
+type: software
+authors:
+  - family-names: "Lullo"
+    given-names: "Luca"
+version: 0.2.0
+date-released: 2026-09-06
+repository-code: "https://github.com/lucalullo/neuro-tabular"
+license: MIT

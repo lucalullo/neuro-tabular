@@ -1,0 +1,103 @@
+name: Manual trusted publication
+
+on:
+  workflow_dispatch:
+    inputs:
+      target:
+        description: Package index target
+        required: true
+        type: choice
+        options:
+          - testpypi
+          - pypi
+      confirmation:
+        description: Type the exact tag matching the package version
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: manual-publish-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  verify-and-build:
+    name: Verify tag and build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+      - run: python -m pip install -e ".[dev]"
+      - name: Require an exact version-tag checkout and confirmation
+        env:
+          CONFIRMATION: ${{ inputs.confirmation }}
+        run: |
+          python - <<'PY'
+          import os
+          import tomllib
+
+          with open("pyproject.toml", "rb") as stream:
+              version = tomllib.load(stream)["project"]["version"]
+          expected = f"v{version}"
+          actual = os.environ["GITHUB_REF_NAME"]
+          ref_type = os.environ.get("GITHUB_REF_TYPE")
+          confirmation = os.environ["CONFIRMATION"]
+          if ref_type != "tag" or actual != expected or confirmation != expected:
+              raise SystemExit(
+                  "Publication requires an actual Git tag and confirmation "
+                  f"both matching {expected!r}; got ref_type={ref_type!r}, "
+                  f"ref_name={actual!r}."
+              )
+          PY
+      - run: python -m ruff check .
+      - run: python -m ruff format --check .
+      - run: python -m pytest -W error
+      - run: python -m build
+      - run: python -m twine check dist/*
+      - uses: actions/upload-artifact@v7
+        with:
+          name: python-package-distributions
+          path: dist/
+          if-no-files-found: error
+
+  publish-testpypi:
+    name: Publish to TestPyPI
+    if: inputs.target == 'testpypi'
+    needs: verify-and-build
+    runs-on: ubuntu-latest
+    environment:
+      name: testpypi
+      url: https://test.pypi.org/p/neurotabular
+    permissions:
+      id-token: write
+    steps:
+      - uses: actions/download-artifact@v7
+        with:
+          name: python-package-distributions
+          path: dist/
+      - uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          repository-url: https://test.pypi.org/legacy/
+
+  publish-pypi:
+    name: Publish to PyPI
+    if: inputs.target == 'pypi'
+    needs: verify-and-build
+    runs-on: ubuntu-latest
+    environment:
+      name: pypi
+      url: https://pypi.org/p/neurotabular
+    permissions:
+      id-token: write
+    steps:
+      - uses: actions/download-artifact@v7
+        with:
+          name: python-package-distributions
+          path: dist/
+      - uses: pypa/gh-action-pypi-publish@release/v1
