@@ -400,6 +400,7 @@ class NeuroTabularClassifier(ClassifierMixin, BaseEstimator):
         if refit_profile is not None:
             self.profile_["full_data_refit"] = refit_profile
         self.fit_time_ = perf_counter() - fit_started
+
     def predict_proba(self, X: pd.DataFrame) -> np.ndarray:
         """Return class probabilities with columns ordered by ``classes_``."""
 

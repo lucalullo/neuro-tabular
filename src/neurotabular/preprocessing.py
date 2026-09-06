@@ -279,9 +279,7 @@ class TabularPreprocessor:
         if not np.isfinite(scaled).all():
             raise ValueError("Numerical preprocessing produced non-finite values.")
         scaled_float32 = self._safe_float32(scaled, "Numerical preprocessing")
-        return np.concatenate(
-            (scaled_float32, missing.astype(np.float32)), axis=1
-        )
+        return np.concatenate((scaled_float32, missing.astype(np.float32)), axis=1)
 
     def _transform_categorical(self, X: pd.DataFrame) -> tuple[np.ndarray, np.ndarray]:
         n_samples = len(X)
