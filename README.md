@@ -42,10 +42,16 @@ broader evidence.
 
 ## Installation
 
-From the GitHub release tag:
+From GitHub after the `v0.2.0` tag is published:
 
 ```bash
 python -m pip install "git+https://github.com/lucalullo/neuro-tabular.git@v0.2.0"
+````
+
+In Kaggle:
+
+```python
+!pip install -qq git+https://github.com/lucalullo/neuro-tabular.git@v0.2.0
 ```
 
 From a local checkout:
@@ -173,29 +179,29 @@ unexpected columns are rejected rather than guessed.
 
 ## Documentation
 
-- [Usage guide](docs/USAGE.md)
-- [API reference](docs/API.md)
-- [Benchmark report](BENCHMARK_REPORT.md)
-- [Performance profile](PERFORMANCE_PROFILE.md)
-- [Ablation report](ABLATION_REPORT.md)
-- [Research notes](RESEARCH_NOTES.md)
-- [Release notes](RELEASE_NOTES.md)
-- [Publishing guide](PUBLISHING.md)
+* [Usage guide](docs/USAGE.md)
+* [API reference](docs/API.md)
+* [Benchmark report](BENCHMARK_REPORT.md)
+* [Performance profile](PERFORMANCE_PROFILE.md)
+* [Ablation report](ABLATION_REPORT.md)
+* [Research notes](RESEARCH_NOTES.md)
+* [Release notes](RELEASE_NOTES.md)
+* [Publishing guide](PUBLISHING.md)
 
 ## Limitations
 
-- binary classification only;
-- pandas DataFrame input only;
-- no built-in multiclass, regression, or calibrated-probability API yet;
-- no claim of state-of-the-art accuracy or tree-model superiority;
-- internal validation reduces the rows used for the selected model unless
+* binary classification only;
+* pandas DataFrame input only;
+* no built-in multiclass, regression, or calibrated-probability API yet;
+* no claim of state-of-the-art accuracy or tree-model superiority;
+* internal validation reduces the rows used for the selected model unless
   optional full-data refit is enabled;
-- the embedding-width budget is not a byte-level RAM/VRAM cap; very
+* the embedding-width budget is not a byte-level RAM/VRAM cap; very
   high-cardinality categoricals can still increase model size substantially;
-- concurrent `fit` calls in the same process are not guaranteed thread-safe
+* concurrent `fit` calls in the same process are not guaranteed thread-safe
   because fitting temporarily controls process-global RNG state;
-- performance and memory measurements are hardware- and workload-specific;
-- CUDA behavior is covered by fallback/probe regression tests, but this release
+* performance and memory measurements are hardware- and workload-specific;
+* CUDA behavior is covered by fallback/probe regression tests, but this release
   has not been performance-benchmarked on physical GPU hardware.
 
 ## Status
