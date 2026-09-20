@@ -89,7 +89,7 @@ def test_zero_weight_rows_cannot_supply_the_second_class(fast_model_kwargs):
     X, y = _weighted_frame()
     weights = np.ones(len(X))
     weights[y == 1] = 0.0
-    with pytest.raises(ValueError, match="binary targets only"):
+    with pytest.raises(ValueError, match="at least two target classes"):
         NeuroTabularClassifier(**fast_model_kwargs).fit(X, y, sample_weight=weights)
 
 

@@ -1,31 +1,15 @@
-# NeuroTabular 0.2.0 release checklist
+# NeuroTabular 0.3.0 release checklist
 
-## Source and version
-
-- [ ] Working tree is clean.
-- [ ] `pyproject.toml` reports `0.2.0`.
-- [ ] `src/neurotabular/_version.py` reports `0.2.0`.
-- [ ] `python -c "import neurotabular; print(neurotabular.__version__)"` prints `0.2.0`.
-- [ ] `SOURCE_MANIFEST.sha256` verifies every listed source file.
-- [ ] No `.venv`, cache, bytecode, build, or local metadata is committed.
-
-## Verification
-
-- [ ] `python -m ruff check .`
-- [ ] `python -m ruff format --check .`
-- [ ] `python -m pytest -W error`
-- [ ] GitHub Actions is green on Python 3.10, 3.11, and 3.12.
-- [ ] Windows CI is green.
-- [ ] PyTorch 2.0 compatibility job is green.
-- [ ] `python -m build`
-- [ ] `python -m twine check dist/*`
-- [ ] Built wheel installs and smoke-tests outside the source tree.
-
-## Release
-
-- [ ] Commit the exact tested source.
-- [ ] Create annotated tag `v0.2.0` from that commit.
-- [ ] Confirm GitHub Release title is `NeuroTabular 0.2.0`.
-- [ ] Mark the GitHub release as a pre-release while the project remains alpha.
-- [ ] Attach wheel/sdist only if they were produced from the tagged commit.
-- [ ] Do not rewrite the tag or published artifacts after release.
+- Confirm the intended release commit and a clean working tree.
+- Keep package metadata, package version, citation, docs, tests, and tag aligned.
+- Pass Ruff check, Ruff format, and the complete test suite.
+- Preserve binary compatibility evidence and validate multiclass/regression behavior.
+- Verify weights, feature schema, sklearn clone/pipeline/CV, and persistence.
+- Load pickle/joblib models in new processes outside the checkout.
+- Build wheel and sdist from clean source and inspect their contents.
+- Install both artifacts in clean environments and run three-task smoke tests.
+- Verify source/artifact SHA256 manifests and security/path audits.
+- Run configured Linux/Windows CI on the exact release commit.
+- Disclose that physical CUDA hardware validation is not part of 0.3.0 evidence.
+- Create immutable tag `v0.3.0` only after the exact commit is accepted.
+- Publish release artifacts manually; never move or overwrite an existing tag.

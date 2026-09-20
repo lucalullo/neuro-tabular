@@ -5,7 +5,7 @@ type: software
 authors:
   - family-names: "Lullo"
     given-names: "Luca"
-version: 0.2.0
-date-released: 2026-09-06
+version: 0.3.0
+date-released: 2026-09-20
 repository-code: "https://github.com/lucalullo/neuro-tabular"
 license: MIT

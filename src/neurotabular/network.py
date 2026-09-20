@@ -232,6 +232,7 @@ class TabularNetwork(nn.Module):
         feature_gating: bool = False,
         categorical_dropout: float = 0.0,
         embedding_dropout: float = 0.0,
+        output_dim: int = 1,
     ) -> None:
         super().__init__()
         if architecture not in {"plain", "residual"}:
@@ -324,7 +325,7 @@ class TabularNetwork(nn.Module):
                 current_width = hidden_dim
             self.input_projection = nn.Identity()
             self.backbone = nn.Sequential(*layers)
-        self.output = nn.Linear(hidden_dim, 1)
+        self.output = nn.Linear(hidden_dim, output_dim)
         self._reset_parameters()
 
     def _reset_parameters(self) -> None:
@@ -353,6 +354,13 @@ class TabularNetwork(nn.Module):
     ) -> torch.Tensor:
         """Return one binary-classification logit per row."""
 
+        return self.output(self.forward_features(numerical, categorical)).squeeze(1)
+
+    def forward_features(
+        self, numerical: torch.Tensor, categorical: torch.Tensor
+    ) -> torch.Tensor:
+        """Return the shared representation before the task head."""
+
         numerical_features = self.numerical_embedding(numerical)
         if self.training and self.categorical_dropout > 0.0:
             drop_mask = torch.rand_like(categorical, dtype=torch.float32)
@@ -372,4 +380,4 @@ class TabularNetwork(nn.Module):
         features = parts[0] if len(parts) == 1 else torch.cat(parts, dim=1)
         hidden = self.input_projection(features)
         hidden = self.backbone(hidden)
-        return self.output(hidden).squeeze(1)
+        return hidden

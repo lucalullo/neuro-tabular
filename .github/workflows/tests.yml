@@ -98,25 +98,50 @@ jobs:
       - run: python -m pip install build twine
       - run: python -m build
       - run: python -m twine check dist/*
-      - name: Smoke-test the built wheel outside the source tree
+      - name: Install and smoke-test both distributions outside the checkout
         shell: bash
         run: |
-          python -m venv wheel-check
-          wheel-check/bin/python -m pip install --upgrade pip
-          wheel-check/bin/python -m pip install dist/*.whl
-          tmpdir="$(mktemp -d)"
-          cd "$tmpdir"
-          "$GITHUB_WORKSPACE/wheel-check/bin/python" - <<'PY'
+          for artifact in dist/*.whl dist/*.tar.gz; do
+            scratch="$(mktemp -d)"
+            python -m venv "$scratch/venv"
+            "$scratch/venv/bin/python" -m pip install "$artifact"
+            cat > "$scratch/smoke.py" <<'PY'
+          import numpy as np
           import pandas as pd
-          from neurotabular import NeuroTabularClassifier
+          from neurotabular import NeuroTabularClassifier, NeuroTabularRegressor
 
-          X = pd.DataFrame({"x": [0., 1., 2., 3., 4., 5.], "cat": ["a", "a", "b", "b", "a", "b"]})
-          y = [0, 0, 0, 1, 1, 1]
-          model = NeuroTabularClassifier(max_epochs=2, random_state=1)
-          model.fit(X, y)
-          assert model.predict(X).shape == (6,)
-          assert model.predict_proba(X).shape == (6, 2)
+          Xb = pd.DataFrame({
+              "x": np.linspace(-2.0, 2.0, 18),
+              "cat": np.resize(["a", "b", "c"], 18),
+          })
+          yb = np.resize([0, 1], 18)
+          binary = NeuroTabularClassifier(max_epochs=2, random_state=1).fit(Xb, yb)
+          assert binary.predict(Xb).shape == (18,)
+          assert binary.predict_proba(Xb).shape == (18, 2)
+
+          Xm = pd.DataFrame({
+              "x": np.linspace(-3.0, 3.0, 30),
+              "cat": np.resize(["a", "b", "c", "d", "e"], 30),
+          })
+          ym = np.resize(["red", "green", "blue"], 30)
+          multi = NeuroTabularClassifier(max_epochs=2, random_state=2).fit(Xm, ym)
+          proba = multi.predict_proba(Xm)
+          assert multi.predict(Xm).shape == (30,)
+          assert proba.shape == (30, 3)
+          np.testing.assert_allclose(proba.sum(axis=1), 1.0, rtol=1e-6, atol=1e-6)
+
+          Xr = pd.DataFrame({
+              "x": np.linspace(-2.0, 2.0, 30),
+              "cat": np.resize(["a", "b", "c"], 30),
+          })
+          yr = np.linspace(-5.0, 7.0, 30)
+          reg = NeuroTabularRegressor(max_epochs=2, random_state=3).fit(Xr, yr)
+          pred = reg.predict(Xr)
+          assert pred.shape == (30,)
+          assert np.isfinite(pred).all()
           PY
+            (cd "$scratch" && "$scratch/venv/bin/python" -I smoke.py)
+          done
       - uses: actions/upload-artifact@v7
         with:
           name: neurotabular-distributions

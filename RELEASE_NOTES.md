@@ -1,64 +1,32 @@
-# NeuroTabular 0.2.0 release notes
+# NeuroTabular 0.3.0
 
-NeuroTabular 0.2.0 is the first public release in the current public history.
-It provides a compact neural binary classifier for heterogeneous pandas
-DataFrames with a scikit-learn-style API, automatic preprocessing, conservative
-defaults, and release-focused correctness checks.
+NeuroTabular 0.3.0 expands the project from binary classification to a shared
+multi-task neural tabular core supporting binary classification, multiclass
+classification, and single-output regression.
 
-## Core capabilities
+## Highlights
 
-- `NeuroTabularClassifier` with `fit`, `predict`, and `predict_proba`;
-- automatic numerical and categorical feature handling;
-- missing, unknown, and rare-category semantics;
-- training-only categorical log-frequency features;
-- adaptive categorical embedding widths;
-- compact residual MLP backbone;
-- AdamW optimization, cosine scheduling, automatic batching, and early stopping;
-- sample weights and balanced class weights;
-- CPU/CUDA device selection and explicit diagnostics;
-- scikit-learn clone, pipeline, and cross-validation compatibility.
+- `NeuroTabularClassifier` now detects binary and multiclass targets automatically.
+- New `NeuroTabularRegressor` with train-only target standardization and
+  predictions returned in original target units.
+- Shared preprocessing, backbone, device handling, weighting, training, and
+  checkpoint machinery across tasks.
+- Exact binary behavior preserved on the frozen 0.2-to-0.3 equivalence panel.
+- Pickle/joblib round trips validated in fresh processes for binary,
+  multiclass, and regression models.
+- Expanded schema, sample-weight, sklearn, packaging, documentation, and
+  installed-artifact validation.
 
-## Reliability and data integrity
+The frozen 0.3 development benchmark contains 330 fits across binary,
+multiclass, and regression tasks with fixed tree-model context. It is an
+engineering benchmark, not evidence of universal superiority or state-of-the-art
+performance. Known weak cases include credit-g, Titanic, car, quake, and
+triazines; details are in [docs/BENCHMARK_0_3.md](docs/BENCHMARK_0_3.md).
 
-- Declared but unobserved pandas `Categorical` levels remain unknown rather than
-  being learned as rare training categories.
-- Complex-valued numerical inputs are rejected explicitly.
-- Finite numerical values that would overflow float32 conversion are rejected.
-- Zero-weight rows are ignored before target discovery, splitting, and
-  preprocessing.
-- Weight normalization validates dynamic range before tensor conversion.
-- Re-fitting is transactional: a failed fit preserves a previously fitted model.
-- Caller Python, NumPy, and PyTorch CPU RNG states are restored after fitting.
-- `min_delta` controls patience while strict best-checkpoint restoration remains
-  independent.
-- Aggregate categorical embedding widths are bounded by the configured compact
-  budget.
+NeuroTabular remains experimental and pre-1.0. Input is pandas DataFrame-only,
+targets are single-output, and cross-version persistence compatibility is not
+guaranteed. Physical CUDA hardware validation was not completed for this
+release, although device/fallback paths are covered by tests.
 
-## Release engineering
-
-- Python support is declared and tested for 3.10, 3.11, and 3.12.
-- PyTorch 2.0 compatibility is checked in CI.
-- Linux and Windows CI jobs run the test suite.
-- Source and wheel distributions are built and metadata-checked.
-- The built wheel is installed into a clean environment and smoke-tested outside
-  the source tree.
-- Manual publication requires a real Git tag matching the package version.
-
-## Research status
-
-The release deliberately does not enable experimental GELU defaults, changed
-mini-batch policies, ranking-oriented checkpoint selection, automatic
-calibration, or other exploratory mechanisms. Internal research produced useful
-signals but not enough broad real-dataset evidence to justify changing the
-public defaults.
-
-## Compatibility
-
-- Python: `>=3.10,<3.13`
-- PyTorch: `>=2.0`
-- NumPy: `>=1.24`
-- pandas: `>=2.0`
-- scikit-learn: `>=1.3`
-
-NeuroTabular remains experimental, pre-1.0, binary-classification-only, and
-pandas-DataFrame-only.
+See the [usage guide](docs/USAGE.md), [API reference](docs/API.md), and
+[changelog](CHANGELOG.md) for details.

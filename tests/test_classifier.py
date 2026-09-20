@@ -128,7 +128,7 @@ def test_explicit_eval_set_skips_internal_split_and_is_leakage_safe(
     def fail_if_called(*args, **kwargs):
         raise AssertionError("internal split was called")
 
-    monkeypatch.setattr("neurotabular.classifier.train_test_split", fail_if_called)
+    monkeypatch.setattr("neurotabular._base.train_test_split", fail_if_called)
     model = NeuroTabularClassifier(**fast_model_kwargs).fit(
         X_train, y_train, eval_set=(X_valid, y_valid)
     )
@@ -182,10 +182,10 @@ def test_predict_before_fit_raises_not_fitted(fast_model):
         fast_model.predict(pd.DataFrame({"x": [1.0]}))
 
 
-def test_non_binary_and_missing_targets_are_rejected(fast_model_kwargs):
+def test_continuous_and_missing_targets_are_rejected(fast_model_kwargs):
     X = pd.DataFrame({"x": np.arange(30)})
-    with pytest.raises(ValueError, match="binary targets only"):
-        NeuroTabularClassifier(**fast_model_kwargs).fit(X, np.resize([0, 1, 2], 30))
+    with pytest.raises(ValueError, match="discrete class labels"):
+        NeuroTabularClassifier(**fast_model_kwargs).fit(X, np.linspace(0.1, 1.1, 30))
     y = np.resize([0.0, 1.0], 30)
     y[0] = np.nan
     with pytest.raises(ValueError, match="missing values"):

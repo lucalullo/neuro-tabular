@@ -1,4 +1,4 @@
-"""Low-overhead in-memory training for binary tabular networks."""
+"""Shared in-memory training for classification and regression networks."""
 
 from __future__ import annotations
 
@@ -10,13 +10,13 @@ from typing import Literal
 
 import numpy as np
 import torch
-from sklearn.metrics import accuracy_score, roc_auc_score
 from torch import nn
 
 from .network import TabularNetwork
 from .preprocessing import ProcessedTable
+from .tasks import BINARY_TASK, TaskSpec
 
-MetricName = Literal["loss", "roc_auc", "accuracy"]
+MetricName = Literal["loss", "roc_auc", "accuracy", "rmse", "mae", "r2"]
 
 
 @dataclass
@@ -95,7 +95,7 @@ def resolve_batch_size(
     return min(n_samples, 65_536, power_of_two)
 
 
-def train_binary_model(
+def train_model(
     model: TabularNetwork,
     train_data: ProcessedTable,
     train_target: np.ndarray,
@@ -119,6 +119,7 @@ def train_binary_model(
     use_amp: bool | None = None,
     compile_mode: str | None = None,
     optimizer_strategy: str = "auto",
+    task: TaskSpec = BINARY_TASK,
 ) -> TrainingResult:
     """Train ``model`` with direct tensor indexing and restore best weights."""
 
@@ -141,9 +142,9 @@ def train_binary_model(
         "compile_setup_seconds": 0.0,
     }
     conversion_started = perf_counter()
-    train_tensors = _to_tensors(train_data, train_target, train_weight)
+    train_tensors = _to_tensors(train_data, train_target, train_weight, task=task)
     validation_tensors = _to_tensors(
-        validation_data, validation_target, validation_weight
+        validation_data, validation_target, validation_weight, task=task
     )
     profile["tensor_conversion_seconds"] = perf_counter() - conversion_started
 
@@ -169,7 +170,7 @@ def train_binary_model(
         model, lr, weight_decay, device, strategy=optimizer_strategy
     )
     scheduler = _make_scheduler(optimizer, max_epochs, lr_strategy)
-    criterion = nn.BCEWithLogitsLoss(reduction="none")
+    criterion = task.criterion()
     use_amp = device.type == "cuda" if use_amp is None else use_amp
     scaler = _make_grad_scaler(use_amp)
     profile["amp_enabled"] = use_amp
@@ -178,7 +179,7 @@ def train_binary_model(
     generator.manual_seed(random_state)
     profile["engine_setup_seconds"] = perf_counter() - engine_started
 
-    best_score = math.inf if eval_metric == "loss" else -math.inf
+    best_score = math.inf if eval_metric in {"loss", "rmse", "mae"} else -math.inf
     significant_best_score = best_score
     best_validation_loss = math.inf
     best_state: dict[str, torch.Tensor] | None = None
@@ -253,6 +254,7 @@ def train_binary_model(
             metric=eval_metric,
             device=device,
             profile=profile,
+            task=task,
         )
         validation_seconds += perf_counter() - validation_started
         history.append(
@@ -312,14 +314,15 @@ def train_binary_model(
     )
 
 
-def predict_probabilities(
+def predict_outputs(
     model: TabularNetwork,
     data: ProcessedTable,
     *,
     device: torch.device,
     batch_size: int,
+    task: TaskSpec = BINARY_TASK,
 ) -> np.ndarray:
-    """Run bounded-memory inference and return positive-class probabilities."""
+    """Run bounded-memory inference with the task prediction transform."""
 
     numerical = torch.from_numpy(data.numerical)
     categorical = torch.from_numpy(data.categorical)
@@ -332,14 +335,16 @@ def predict_probabilities(
                 numerical[start:stop].to(device, non_blocking=True),
                 categorical[start:stop].to(device, non_blocking=True),
             )
-            outputs.append(torch.sigmoid(logits).cpu().numpy())
+            outputs.append(task.transform(logits).cpu().numpy())
     probabilities = np.concatenate(outputs).astype(np.float64, copy=False)
     if not np.isfinite(probabilities).all():
         raise RuntimeError("The fitted model produced non-finite probabilities.")
-    return np.clip(probabilities, 0.0, 1.0)
+    return (
+        probabilities if task.name == "regression" else np.clip(probabilities, 0.0, 1.0)
+    )
 
 
-def refit_binary_model(
+def train_fixed_epochs(
     model: TabularNetwork,
     data: ProcessedTable,
     target: np.ndarray,
@@ -352,6 +357,7 @@ def refit_binary_model(
     weight_decay: float,
     random_state: int,
     use_amp: bool,
+    task: TaskSpec = BINARY_TASK,
 ) -> dict[str, float | bool | str | int]:
     """Fit a fresh model for a fixed epoch count without validation work."""
 
@@ -369,7 +375,7 @@ def refit_binary_model(
         "optimizer": "AdamW (PyTorch-selected implementation)",
     }
     conversion_started = perf_counter()
-    tensors = _to_tensors(data, target, weight)
+    tensors = _to_tensors(data, target, weight, task=task)
     profile["tensor_conversion_seconds"] = perf_counter() - conversion_started
     transfer_started = perf_counter()
     tensors, resident = _prepare_device_table(tensors, device)
@@ -378,7 +384,7 @@ def refit_binary_model(
     model.to(device)
     optimizer = _make_optimizer(model, lr, weight_decay, device)
     scheduler = _make_scheduler(optimizer, epochs, "cosine")
-    criterion = nn.BCEWithLogitsLoss(reduction="none")
+    criterion = task.criterion()
     scaler = _make_grad_scaler(use_amp)
     generator = torch.Generator(device="cpu").manual_seed(random_state)
     final_loss = math.inf
@@ -442,11 +448,19 @@ def _to_tensors(
     data: ProcessedTable,
     target: np.ndarray,
     weight: np.ndarray,
+    *,
+    task: TaskSpec = BINARY_TASK,
 ) -> _TensorTable:
     return _TensorTable(
         numerical=torch.from_numpy(data.numerical),
         categorical=torch.from_numpy(data.categorical),
-        target=torch.from_numpy(np.array(target, dtype=np.float32, copy=True)),
+        target=torch.from_numpy(
+            np.array(
+                target,
+                dtype=np.int64 if task.name == "multiclass" else np.float32,
+                copy=True,
+            )
+        ),
         weight=torch.from_numpy(np.array(weight, dtype=np.float32, copy=True)),
     )
 
@@ -503,6 +517,7 @@ def _validate(
     metric: MetricName,
     device: torch.device,
     profile: dict[str, float | bool | str],
+    task: TaskSpec = BINARY_TASK,
 ) -> tuple[float, float]:
     model.eval()
     loss_numerator = torch.zeros((), device=device)
@@ -527,7 +542,7 @@ def _validate(
             loss_numerator += (losses * weight).sum()
             weight_denominator += weight.sum()
             if collect_metric_arrays:
-                probabilities.append(torch.sigmoid(logits))
+                probabilities.append(task.transform(logits))
                 targets.append(target)
                 weights.append(weight)
     validation_loss = float(
@@ -543,18 +558,7 @@ def _validate(
         probability_array = torch.cat(probabilities).cpu().numpy()
         target_array = torch.cat(targets).cpu().numpy()
         weight_array = torch.cat(weights).cpu().numpy()
-    if metric == "roc_auc":
-        score = float(
-            roc_auc_score(target_array, probability_array, sample_weight=weight_array)
-        )
-    elif metric == "accuracy":
-        score = float(
-            accuracy_score(
-                target_array,
-                probability_array >= 0.5,
-                sample_weight=weight_array,
-            )
-        )
+        score = task.score(target_array, probability_array, weight_array, metric)
     profile["metric_seconds"] = float(profile["metric_seconds"]) + (
         perf_counter() - metric_started
     )
@@ -631,6 +635,12 @@ def _is_improvement(
 ) -> bool:
     if not math.isfinite(score):
         return False
-    if metric == "loss":
+    if metric in {"loss", "rmse", "mae"}:
         return score < best_score - min_delta
     return score > best_score + min_delta
+
+
+# Legacy private names keep existing benchmark scripts usable.
+train_binary_model = train_model
+refit_binary_model = train_fixed_epochs
+predict_probabilities = predict_outputs

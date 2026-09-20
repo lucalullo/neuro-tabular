@@ -167,7 +167,7 @@ def test_failed_refit_preserves_previous_model(
     def fail_training(*args, **kwargs):
         raise RuntimeError("controlled training failure")
 
-    monkeypatch.setattr("neurotabular.classifier.train_binary_model", fail_training)
+    monkeypatch.setattr("neurotabular._base.train_model", fail_training)
     with pytest.raises(RuntimeError, match="controlled training failure"):
         model.fit(X, y)
 

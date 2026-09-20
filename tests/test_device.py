@@ -3,7 +3,7 @@ import pandas as pd
 import pytest
 import torch
 
-from neurotabular import NeuroTabularClassifier
+from neurotabular import NeuroTabularClassifier, NeuroTabularRegressor
 from neurotabular.device import resolve_device
 
 
@@ -39,7 +39,8 @@ def test_auto_incompatible_cuda_warns_and_falls_back(monkeypatch):
     assert "no kernel image" in message
 
 
-def test_auto_incompatible_cuda_fit_continues_on_cpu(monkeypatch):
+@pytest.mark.parametrize("task", ["binary", "multiclass", "regression"])
+def test_auto_incompatible_cuda_fit_continues_on_cpu(monkeypatch, task):
     # Device-resolution behavior is tested separately with mocked torch.cuda.
     # Do not keep torch.cuda.is_available() mocked to True while running a real
     # CPU optimizer step: CUDA-enabled PyTorch wheels may consult that function
@@ -63,14 +64,19 @@ def test_auto_incompatible_cuda_fit_continues_on_cpu(monkeypatch):
         "probe_error": "no kernel image is available for execution",
     }
     monkeypatch.setattr(
-        "neurotabular.classifier.resolve_device",
+        "neurotabular._base.resolve_device",
         lambda requested: (torch.device("cpu"), dict(fallback_info)),
     )
 
     X = pd.DataFrame({"x": np.linspace(-2.0, 2.0, 40)})
-    y = np.resize([0, 1], len(X))
+    y = (
+        np.linspace(-5, 5, len(X))
+        if task == "regression"
+        else np.resize([0, 1, 2] if task == "multiclass" else [0, 1], len(X))
+    )
 
-    model = NeuroTabularClassifier(
+    cls = NeuroTabularRegressor if task == "regression" else NeuroTabularClassifier
+    model = cls(
         hidden_dim=8,
         n_blocks=1,
         max_epochs=1,
@@ -85,7 +91,9 @@ def test_auto_incompatible_cuda_fit_continues_on_cpu(monkeypatch):
     )
     assert model.device_info_["amp_enabled"] is False
     assert model.profile_["training"]["amp_enabled"] is False
-    assert np.isfinite(model.predict_proba(X.iloc[:3])).all()
+    assert np.isfinite(model.predict(X.iloc[:3])).all()
+    if task != "regression":
+        assert np.isfinite(model.predict_proba(X.iloc[:3])).all()
 
 
 def test_explicit_incompatible_cuda_has_clear_diagnostic(monkeypatch):

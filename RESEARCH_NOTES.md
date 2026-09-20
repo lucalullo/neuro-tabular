@@ -1,4 +1,4 @@
-# NeuroTabular 0.2.0 research and design notes
+# Historical NeuroTabular 0.2.0 research and design notes
 
 ## Design goal
 
@@ -59,9 +59,10 @@ compatible CUDA probe.
 Exploratory work has investigated activation changes, update granularity,
 checkpoint/ranking criteria, calibration, robust preprocessing, categorical
 regularization, and other mechanisms. None has broad enough evidence to replace
-the public 0.2.0 defaults in this first release. Future development should test
-promising mechanisms on a larger frozen development suite before changing the
-standard algorithm.
+the public 0.2.0 defaults. NeuroTabular 0.3.0 keeps the same validated binary
+default behavior while extending the shared core to multiclass classification
+and regression. Future architecture changes should continue to require broader
+validation before replacing the standard algorithm.
 
 ## Benchmark discipline
 

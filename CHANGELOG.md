@@ -3,6 +3,24 @@
 All notable public changes to NeuroTabular are recorded here. Published tags and
 release artifacts are immutable.
 
+## [0.3.0] - 2026-09-20
+
+### Added
+
+- Automatic multiclass classification with ordered labels, cross entropy,
+  normalized softmax probabilities, weights and loss/accuracy stopping.
+- `NeuroTabularRegressor` with train-only weighted target standardization,
+  inverse transformation and loss/RMSE/MAE/R² evaluation.
+- Shared preprocessing, neural backbone and multi-task training core.
+- Pickle/joblib validation in fresh processes for all three tasks.
+- Expanded schema, weighting, target, device, sklearn and packaging validation,
+  with documentation and frozen real-data benchmark evidence.
+
+### Changed
+
+- Refactor internal estimator/training code while preserving exact v0.2.0 binary
+  behavior on the frozen 30-case equivalence panel and retaining public defaults.
+
 ## [0.2.0] - 2026-09-06
 
 ### First public release
