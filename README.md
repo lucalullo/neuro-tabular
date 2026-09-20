@@ -263,7 +263,7 @@ and defaults may evolve as broader real-world validation continues.
 
 ## License
 
-NeuroTabular is licensed under the [MIT License](LICENSE). Dependency notices
+NeuroTabular is created by Luca Lullo and released under the [MIT License](LICENSE). Dependency notices
 are in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md). See [LEGAL.md](LEGAL.md)
 for the project's legal/naming note.
 
