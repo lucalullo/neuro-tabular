@@ -1,5 +1,7 @@
 # NeuroTabular 0.3 benchmark evidence
 
+NeuroTabular 0.3.1 preserves the 0.3.0 predictive behavior on the frozen release checks, so this 0.3.0 benchmark remains the predictive-quality evidence for the 0.3.1 patch.
+
 This document summarizes the frozen development evidence used for NeuroTabular
 0.3.0. There are 330 fits: 66 neural and 264 tree fits, using paired 60/20/20
 train/validation/test splits and three seeds.

@@ -1,6 +1,6 @@
-# NeuroTabular 0.3.0 API reference
+# NeuroTabular 0.3.1 API reference
 
-This document describes the public API for NeuroTabular 0.3.0.
+This document describes the public API for NeuroTabular 0.3.1.
 
 The supported public package surface is:
 

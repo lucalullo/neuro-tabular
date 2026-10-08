@@ -1,4 +1,4 @@
-# NeuroTabular 0.3.0 usage guide
+# NeuroTabular 0.3.1 usage guide
 
 ## Minimal binary classification
 
@@ -337,5 +337,5 @@ model.predict_proba(X_test.drop(columns=["income"]))  # rejected
 This strictness prevents silent feature misalignment.
 
 CPU and mocked device paths are covered by tests, but physical CUDA hardware
-validation was not completed for 0.3.0. See the
+validation was not completed for 0.3.1. See the
 [benchmark limitations](BENCHMARK_0_3.md#known-limitations).

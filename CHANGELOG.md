@@ -3,6 +3,32 @@
 All notable public changes to NeuroTabular are recorded here. Published tags and
 release artifacts are immutable.
 
+## [0.3.1] - 2026-10-08
+
+### Changed
+
+- Reduce CPU prediction-path overhead for already numeric columns and DataFrames
+  whose columns already match the learned schema order.
+- Preserve the original conversion, schema-reordering, missing-value,
+  categorical, and caller-ownership paths when the fast paths do not apply.
+- Preserve prediction/probability behavior bit for bit on the frozen release
+  validation, including the 30-case binary equivalence panel.
+
+### Validation and packaging
+
+- Add product-path regression tests for numeric conversion, memory ownership,
+  schema ordering, and mixed/nullable numeric inputs.
+- Add distribution-hygiene checks for wheel/sdist contents and local/private
+  artifact leakage.
+- Run CI on release branches in addition to `main`, while retaining Python
+  3.10-3.12, Windows, minimum-PyTorch, Ruff, build, and installed-artifact jobs.
+- Document the scoped P35 CPU/WSL performance measurements in
+  `docs/PERFORMANCE_0_3_1.md`.
+
+NeuroTabular 0.3.1 is a compatible performance/product-hardening patch. It does
+not intentionally change the algorithm, defaults, model capacity, or predictive
+quality. Physical CUDA validation remains pending.
+
 ## [0.3.0] - 2026-09-20
 
 ### Added

@@ -46,3 +46,10 @@ local-notes/
 
 # Local pytest scratch directories
 pytest_tmp/
+
+# Local product-validation worktrees and artifacts
+.p35-local/
+.p36-local/
+.p35-product/
+.p36-product/
+product_validation/

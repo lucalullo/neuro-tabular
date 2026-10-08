@@ -20,3 +20,10 @@ recursive-include examples *.py
 recursive-include tests *.py
 include RELEASE_CHECKLIST.md
 include SOURCE_MANIFEST.sha256
+recursive-include tools *.py
+recursive-include release *.md
+prune .p35-local
+prune .p36-local
+prune .p35-product
+prune .p36-product
+prune product_validation

@@ -197,7 +197,8 @@ class TabularPreprocessor:
         started = perf_counter()
         X = self._validate_dataframe(X, fitting=False)
         self._validate_schema(X)
-        X = X.loc[:, self.feature_names_]
+        if not X.columns.equals(pd.Index(self.feature_names_, tupleize_cols=False)):
+            X = X.loc[:, self.feature_names_]
         schema_finished = perf_counter()
 
         numerical = self._transform_numeric(X)
@@ -374,8 +375,14 @@ class TabularPreprocessor:
 
     def _numeric_matrix(self, X: pd.DataFrame) -> np.ndarray:
         try:
-            converted = X.loc[:, self.numeric_features_].apply(
-                pd.to_numeric, errors="raise"
+            numeric = X.loc[:, self.numeric_features_]
+            # Already real numeric columns need no per-column conversion or
+            # DataFrame reconstruction. Keep the ownership copy below, and the
+            # original conversion/error path for other dtypes at prediction.
+            converted = (
+                numeric
+                if all(dtype.kind in "iuf" for dtype in numeric.dtypes)
+                else numeric.apply(pd.to_numeric, errors="raise")
             )
         except (TypeError, ValueError) as exc:
             raise ValueError(

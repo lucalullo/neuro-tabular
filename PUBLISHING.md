@@ -1,4 +1,4 @@
-# Publishing NeuroTabular 0.3.0
+# Publishing NeuroTabular 0.3.1
 
 NeuroTabular releases are published manually. Never reinitialize the existing
 Git repository, move a published tag, or replace published release artifacts.
@@ -25,7 +25,7 @@ metadata, version consistency, license files, manifests, and artifact hashes.
 
 The final release identity must agree across `pyproject.toml`, the package
 version module, `CITATION.cff`, changelog, release notes, wheel, sdist, and Git
-tag. For 0.3.0 the tag is `v0.3.0`.
+tag. For 0.3.1 the tag is `v0.3.1`.
 
 The publishing workflow is manual-only (`workflow_dispatch`). It requires an
 actual tag matching the package version plus an explicit matching confirmation.

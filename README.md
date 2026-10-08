@@ -6,14 +6,15 @@ DataFrames. It exposes a compact scikit-learn-style API, handles numerical and
 categorical columns automatically, and keeps preprocessing inside the estimator
 so training and inference share the same learned state.
 
-**NeuroTabular 0.3.0 adds multiclass classification and regression while
-preserving the validated binary behavior of the 0.2 line.** It remains an alpha,
-pre-1.0 release intended for controlled experiments and practical use on small
-and medium in-memory tabular datasets. It does not claim universal superiority
-over gradient-boosted trees.
+**NeuroTabular 0.3.1 is a performance and product-hardening patch over 0.3.0,
+preserving the validated binary, multiclass, and regression behavior bit for bit
+in the frozen release checks.** It remains an alpha, pre-1.0 release intended for
+controlled experiments and practical use on small and medium in-memory tabular
+datasets. It does not claim universal superiority over gradient-boosted trees.
 
 ## Highlights
 
+- 0.3.1 reduces CPU prediction-path overhead without intentional algorithmic changes;
 - `NeuroTabularClassifier` automatically handles binary and multiclass targets;
 - `NeuroTabularRegressor` learns a continuous target and predicts in original units;
 - automatic numerical, object, string, categorical, and boolean handling;
@@ -47,16 +48,16 @@ broader evidence.
 
 ## Installation
 
-From GitHub after the `v0.3.0` tag is published:
+From GitHub after the `v0.3.1` tag is published:
 
 ```bash
-python -m pip install "git+https://github.com/lucalullo/neuro-tabular.git@v0.3.0"
+python -m pip install "git+https://github.com/lucalullo/neuro-tabular.git@v0.3.1"
 ```
 
 In Kaggle:
 
 ```python
-!pip install -qq git+https://github.com/lucalullo/neuro-tabular.git@v0.3.0
+!pip install -qq git+https://github.com/lucalullo/neuro-tabular.git@v0.3.1
 ```
 
 From a local checkout:
@@ -200,6 +201,12 @@ formed with index tensors, and inference is batched. AMP is enabled only after a
 compatible CUDA probe. CPU execution uses a plain null context when AMP is
 disabled.
 
+For the 0.3.1 patch, the internal P35 CPU/WSL software panel measured median
+latency reductions of about 31% for `predict` and 36% for `predict_proba` versus
+the 0.3.0 path, with bit-for-bit outputs on the frozen equivalence checks. These
+figures are hardware- and workload-specific; see
+[0.3.1 performance validation](docs/PERFORMANCE_0_3_1.md).
+
 The frozen 0.3 development benchmark contains 330 fits across 22 task/dataset
 cases and three seeds, comparing NeuroTabular with four fixed tree recipes. Mean
 binary ROC-AUC is `0.8461`, multiclass accuracy is `0.8275`, and regression R² is
@@ -228,6 +235,7 @@ unexpected columns are rejected rather than guessed.
 * [Usage guide](docs/USAGE.md)
 * [API reference](docs/API.md)
 * [0.3 benchmark evidence](docs/BENCHMARK_0_3.md)
+* [0.3.1 performance validation](docs/PERFORMANCE_0_3_1.md)
 * [0.3 architecture overview](docs/architecture_0_3.md)
 * [Historical 0.2 benchmark report](BENCHMARK_REPORT.md)
 * [Historical 0.2 performance profile](PERFORMANCE_PROFILE.md)
@@ -258,7 +266,7 @@ unexpected columns are rejected rather than guessed.
 
 ## Status
 
-NeuroTabular 0.3.0 is experimental and pre-1.0. The public API, architecture,
+NeuroTabular 0.3.1 is experimental and pre-1.0. The public API, architecture,
 and defaults may evolve as broader real-world validation continues.
 
 ## License
