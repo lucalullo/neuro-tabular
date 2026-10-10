@@ -10,16 +10,22 @@ import numpy as np
 import pandas as pd
 from neurotabular import NeuroTabularClassifier
 
-X = pd.DataFrame({
-    "amount": np.linspace(-2, 2, 40),
-    "city": pd.Categorical(["Rome", "Milan", None, "Rome"] * 10),
-    "active": pd.Series([True, False, None, True] * 10, dtype="boolean"),
-})
+X = pd.DataFrame(
+    {
+        "amount": np.linspace(-2, 2, 40),
+        "city": pd.Categorical(["Rome", "Milan", None, "Rome"] * 10),
+        "active": pd.Series([True, False, None, True] * 10, dtype="boolean"),
+    }
+)
 X.loc[0, "amount"] = np.nan
 y = np.arange(len(X)) % 2
 model = NeuroTabularClassifier(
-    hidden_dim=8, n_blocks=1, max_epochs=1, patience=1,
-    device="cpu", random_state=7,
+    hidden_dim=8,
+    n_blocks=1,
+    max_epochs=1,
+    patience=1,
+    device="cpu",
+    random_state=7,
 )
 model.fit(X, y)
 print(model.predict(X.iloc[:3]).shape)
@@ -45,6 +51,7 @@ CUDA availability and Torch CUDA version. To include a fitted device explicitly:
 
 ```python
 from examples.support_environment import environment_report
+
 print(environment_report(requested_device="cpu", resolved_device=model.device_))
 ```
 
