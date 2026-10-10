@@ -3,6 +3,9 @@ description: Propose a focused user or research improvement.
 title: "[Feature]: "
 labels: ["enhancement"]
 body:
+  - type: markdown
+    attributes:
+      value: Use synthetic examples; do not include private data, credentials, paths or machine identifiers.
   - type: textarea
     id: problem
     attributes:

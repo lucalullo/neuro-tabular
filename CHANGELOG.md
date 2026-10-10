@@ -3,6 +3,27 @@
 All notable public changes to NeuroTabular are recorded here. Published tags and
 release artifacts are immutable.
 
+## [Unreleased]
+
+- Reconcile the public-0.3.1-based local stabilization candidate and canonical
+  policy/support scope; classify the intended 1.0 boundary without enacting a freeze.
+- Preserve Python 3.10–3.12 intent, scope CUDA to optional best effort and prepare
+  independent acceptance evidence. No algorithm, API, dependency or version change.
+
+- Adopt local-development API maintenance, deprecation, warning, persistence and
+  versioning policies without declaring a 1.0 freeze or changing the runtime.
+- Add support reporting/reproducer guidance and exact privacy-output checks;
+  clarify activation, standalone sklearn examples and optional diagnostics.
+- Keep historical compatibility models/receipts in the repository only; exclude
+  them and internal research memories from public distributions. Enforce strict
+  artifact hygiene in CI and manual-build workflows before any future upload.
+- Add a compact, training-only `input_schema_` fitted diagnostic without new
+  constructor options or changes to predictions and training semantics.
+- Identify invalid numeric and duplicate columns and clarify schema/DataFrame
+  and CUDA recovery messages, preserving exception types and strictness.
+- Extend mixed-data persistence, refit/RNG and sklearn regression coverage;
+  document fitted inspection and a DataFrame-preserving pipeline example.
+
 ## [0.3.1] - 2026-10-08
 
 ### Changed

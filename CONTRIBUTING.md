@@ -9,6 +9,7 @@ Report vulnerabilities through [SECURITY.md](SECURITY.md), not a public issue.
 
 ```bash
 python -m venv .venv
+source .venv/bin/activate  # Linux/macOS bash; Windows: .\.venv\Scripts\Activate.ps1
 python -m pip install -e ".[dev]"
 python -m ruff check .
 python -m pytest -W error

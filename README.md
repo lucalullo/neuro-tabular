@@ -48,7 +48,7 @@ broader evidence.
 
 ## Installation
 
-From GitHub after the `v0.3.1` tag is published:
+Install the public `v0.3.1` tag from GitHub (network access required):
 
 ```bash
 python -m pip install "git+https://github.com/lucalullo/neuro-tabular.git@v0.3.1"
@@ -64,9 +64,28 @@ From a local checkout:
 
 ```bash
 python -m venv .venv
+```
+
+Activate that environment before installing (choose the command for your shell):
+
+```bash
+source .venv/bin/activate  # Linux/macOS bash
+```
+
+```powershell
+.\.venv\Scripts\Activate.ps1  # Windows PowerShell
+```
+
+Then use its Python:
+
+```bash
 python -m pip install --upgrade pip
 python -m pip install -e .
 ```
+
+If your shell prevents activation, use `.venv/bin/python` on Linux/macOS or
+`.\.venv\Scripts\python.exe` on Windows in place of `python`; no policy change
+is needed. Confirm `python -c "import neurotabular; print(neurotabular.__version__)"`.
 
 For development and verification:
 
@@ -219,12 +238,19 @@ binary measurements remain in [BENCHMARK_REPORT.md](BENCHMARK_REPORT.md).
 
 ```python
 from sklearn.base import clone
+from sklearn.datasets import load_breast_cancer
 from sklearn.model_selection import cross_val_score
 
+from neurotabular import NeuroTabularClassifier
+
+X, y = load_breast_cancer(return_X_y=True, as_frame=True)
 base = NeuroTabularClassifier(max_epochs=10, random_state=7)
 copy = clone(base)
 scores = cross_val_score(copy, X, y, cv=3, scoring="roc_auc")
 ```
+
+For a complete DataFrame-preserving Pipeline, CV and small grid-search example,
+run `python examples/pipeline_workflow.py` from the local development checkout.
 
 Input to fitting and prediction must be a pandas DataFrame with unique column
 names. Prediction may reorder columns by learned schema, but missing or
@@ -232,8 +258,43 @@ unexpected columns are rejected rather than guessed.
 
 ## Documentation
 
+### Maintenance policies and stabilization scope (local development)
+
+Local development follows the [API maintenance](docs/policies/API_STABILITY_POLICY.md),
+[deprecation](docs/policies/DEPRECATION_POLICY.md),
+[persistence](docs/policies/PERSISTENCE_POLICY.md),
+[warning](docs/policies/WARNING_POLICY.md) and
+[versioning](docs/policies/VERSIONING_POLICY.md) policies. This adopts review
+discipline without declaring 1.0 stability. Rehearsal builds sharing 0.3.1 are
+unpublished and identified by source hashes; public release files are immutable.
+Historical reference models remain outside this clean candidate and are not packaged.
+The [intended 1.0 boundary](docs/API_BOUNDARY.md) is a reviewed candidate, not an
+actual freeze. [Support scope](docs/policies/SUPPORT_SCOPE.md) keeps intended
+Python 3.10–3.12 CPU support, with exact untested matrix combinations explicitly
+pending evidence. CUDA remains optional best effort; macOS is out of scope.
+See the [canonical policy index](docs/policies/README.md) for sources of truth.
+
+### Complete mixed-data workflows (local P39 development)
+
+Run the same executable example for each supported task:
+
+```bash
+python examples/mixed_dataframe_workflow.py --task binary
+python examples/mixed_dataframe_workflow.py --task multiclass
+python examples/mixed_dataframe_workflow.py --task regression
+```
+
+It includes a train/test split, nullable and categorical features, missing and
+unseen values, reordered prediction columns and scores. Add `--output-dir ./models`
+for a same-runtime joblib round-trip and optional metadata JSON. The small
+synthetic examples demonstrate usage; they are not benchmark results or tuning
+recommendations. See [usage](docs/USAGE.md#complete-task-and-device-examples).
+The prepared P37 schema diagnostic remains unpublished; the example also works
+without that optional attribute on public 0.3.1.
+
 * [Usage guide](docs/USAGE.md)
 * [API reference](docs/API.md)
+* [Minimal reproducer and safe environment report](docs/support/MINIMAL_REPRODUCER_GUIDE.md)
 * [0.3 benchmark evidence](docs/BENCHMARK_0_3.md)
 * [0.3.1 performance validation](docs/PERFORMANCE_0_3_1.md)
 * [0.3 architecture overview](docs/architecture_0_3.md)

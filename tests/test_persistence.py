@@ -8,6 +8,7 @@ from pathlib import Path
 
 import joblib
 import numpy as np
+import pandas as pd
 import pytest
 from sklearn.datasets import load_iris
 
@@ -23,6 +24,10 @@ def test_fresh_process_persistence(task, format, tmp_path):
     cls = NeuroTabularRegressor if task == "regression" else NeuroTabularClassifier
     if task == "regression":
         y = X.iloc[:, 0].to_numpy() * 10 - 20
+    X = X.copy()
+    X.iloc[::11, 0] = np.nan
+    X["group"] = pd.Categorical(np.resize(["a", "b", None], len(X)))
+    X["text"] = pd.Series(np.resize(["north", None, "south"], len(X)), dtype="string")
     model = cls(max_epochs=3, hidden_dim=12, device="cpu").fit(X, y)
     path = tmp_path / "model.bin"
     if format == "pickle":
@@ -36,6 +41,7 @@ root=Path(sys.argv[1]); torch.set_num_threads(int(sys.argv[3]))
 m=pickle.loads((root/'model.bin').read_bytes()) if sys.argv[2]=='pickle' else joblib.load(root/'model.bin')
 X=pd.read_pickle(root/'X.pkl')
 np.savez(root/'predictions.npz',labels=m.predict(X),probabilities=m.predict_proba(X) if hasattr(m,'predict_proba') else m.predict(X))
+(root/'diagnostics.pkl').write_bytes(pickle.dumps({name:getattr(m,name) for name in ['input_schema_','history_','profile_','device_info_','n_features_in_','best_epoch_','n_iter_']}))
 """
     import torch
 
@@ -59,3 +65,6 @@ np.savez(root/'predictions.npz',labels=m.predict(X),probabilities=m.predict_prob
         assert np.array_equal(raw["labels"], model.predict(X))
         if task != "regression":
             assert np.array_equal(raw["probabilities"], model.predict_proba(X))
+    diagnostics = pickle.loads((tmp_path / "diagnostics.pkl").read_bytes())
+    for name, value in diagnostics.items():
+        assert value == getattr(model, name)

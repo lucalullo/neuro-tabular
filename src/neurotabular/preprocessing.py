@@ -385,9 +385,16 @@ class TabularPreprocessor:
                 else numeric.apply(pd.to_numeric, errors="raise")
             )
         except (TypeError, ValueError) as exc:
+            bad_columns = []
+            for column in self.numeric_features_:
+                try:
+                    pd.to_numeric(X[column], errors="raise")
+                except (TypeError, ValueError):
+                    bad_columns.append(column)
             raise ValueError(
-                "A feature treated as numerical contains non-numeric values; add "
-                "the column to categorical_features if appropriate."
+                f"Numerical columns contain non-numeric values: {bad_columns!r}. "
+                "Clean the values, or declare these columns in categorical_features "
+                "and refit if they represent categories."
             ) from exc
         if np.iscomplexobj(converted.to_numpy(copy=False)):
             bad_columns = [
@@ -427,7 +434,10 @@ class TabularPreprocessor:
             details.append(f"missing columns: {missing!r}")
         if extra:
             details.append(f"unexpected columns: {extra!r}")
-        raise ValueError("Input schema mismatch (" + "; ".join(details) + ").")
+        raise ValueError(
+            "Input schema mismatch (" + "; ".join(details) + "). "
+            "Provide the same column names used during fit; order may differ."
+        )
 
     def _validate_explicit_categoricals(self, X: pd.DataFrame) -> list[Hashable]:
         if self.categorical_features is None:
@@ -449,7 +459,10 @@ class TabularPreprocessor:
             )
         unknown = [name for name in explicit if name not in X.columns]
         if unknown:
-            raise ValueError(f"Unknown categorical_features: {unknown!r}.")
+            raise ValueError(
+                f"Unknown categorical_features: {unknown!r}. "
+                "Use existing DataFrame column names."
+            )
         return explicit
 
     def _validate_options(self) -> None:
@@ -496,7 +509,10 @@ class TabularPreprocessor:
     @staticmethod
     def _validate_dataframe(X: pd.DataFrame, *, fitting: bool) -> pd.DataFrame:
         if not isinstance(X, pd.DataFrame):
-            raise TypeError("X must be a pandas.DataFrame.")
+            raise TypeError(
+                "X must be a pandas.DataFrame. Convert the input to a DataFrame "
+                "with the same named columns for fit and predict."
+            )
         if len(X) == 0:
             raise ValueError("X must contain at least one row.")
         if fitting and len(X) < 2:
@@ -504,5 +520,9 @@ class TabularPreprocessor:
         if X.shape[1] == 0:
             raise ValueError("X must contain at least one feature column.")
         if not X.columns.is_unique:
-            raise ValueError("X must have unique column names.")
+            duplicates = X.columns[X.columns.duplicated()].tolist()
+            raise ValueError(
+                f"X must have unique column names; duplicates: {duplicates!r}. "
+                "Rename or remove duplicate columns."
+            )
         return X

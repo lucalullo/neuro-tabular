@@ -20,14 +20,23 @@ body:
     attributes:
       label: Environment
       description: >-
-        Python, OS, requested/resolved device, PyTorch version, GPU name,
-        compute capability, and torch.cuda.get_arch_list() when relevant.
+        Python, OS family, PyTorch, NumPy, pandas, sklearn, requested/resolved
+        device and CUDA availability. Optionally use examples/support_environment.py.
+        Do not paste paths, usernames, machine IDs or environment variables.
     validations:
       required: true
   - type: textarea
     id: reproduction
     attributes:
       label: Minimal synthetic reproduction
+      description: Include imports, a tiny invented DataFrame, target, estimator settings and random_state. No private dataset or model upload is needed.
+    validations:
+      required: true
+  - type: textarea
+    id: traceback
+    attributes:
+      label: Traceback or diagnostic output
+      description: Paste the error, or write "No exception". Redact usernames, paths, secrets and private values first.
     validations:
       required: true
   - type: textarea

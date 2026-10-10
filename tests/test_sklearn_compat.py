@@ -1,10 +1,14 @@
 import numpy as np
 import pandas as pd
+import pytest
 from sklearn.base import clone
+from sklearn.compose import ColumnTransformer
 from sklearn.datasets import make_classification
-from sklearn.model_selection import cross_val_score
+from sklearn.model_selection import GridSearchCV, cross_val_score
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import StandardScaler
 
-from neurotabular import NeuroTabularClassifier
+from neurotabular import NeuroTabularClassifier, NeuroTabularRegressor
 
 
 def test_estimator_is_cloneable():
@@ -74,3 +78,51 @@ def test_cross_val_score_with_roc_auc():
     scores = cross_val_score(estimator, X, y, cv=3, scoring="roc_auc")
     assert scores.shape == (3,)
     assert np.all((scores >= 0.0) & (scores <= 1.0))
+
+
+@pytest.mark.parametrize("task", ["binary", "multiclass", "regression"])
+def test_dataframe_column_transformer_pipeline_cv_and_grid_search(
+    task, mixed_binary_data, fast_model_kwargs
+):
+    X, y = mixed_binary_data
+    if task == "multiclass":
+        y = np.arange(len(X)) % 3
+    elif task == "regression":
+        y = np.arange(len(X)) * 0.1
+    cls = NeuroTabularRegressor if task == "regression" else NeuroTabularClassifier
+    columns = ColumnTransformer(
+        [("scale", StandardScaler(), ["age", "balance"])],
+        remainder="passthrough",
+        verbose_feature_names_out=False,
+    ).set_output(transform="pandas")
+    pipeline = Pipeline([("columns", columns), ("model", cls(**fast_model_kwargs))])
+    scoring = "neg_mean_squared_error" if task == "regression" else "accuracy"
+    scores = cross_val_score(pipeline, X, y, cv=2, scoring=scoring)
+    assert scores.shape == (2,) and np.isfinite(scores).all()
+    search = GridSearchCV(
+        pipeline,
+        {"model__hidden_dim": [8, 12]},
+        cv=2,
+        scoring=scoring,
+        error_score="raise",
+    ).fit(X, y)
+    fitted = search.best_estimator_.named_steps["model"]
+    assert fitted.n_features_in_ == X.shape[1]
+    assert set(fitted.feature_names_in_) == set(X.columns)
+    assert len(fitted.input_schema_) == X.shape[1]
+    assert search.predict(X).shape == (len(X),)
+    assert clone(search.best_estimator_).get_params()["model__max_epochs"] == 1
+
+
+def test_default_array_transformer_is_rejected_with_dataframe_hint(
+    mixed_binary_data, fast_model_kwargs
+):
+    X, y = mixed_binary_data
+    pipeline = Pipeline(
+        [
+            ("columns", ColumnTransformer([("scale", StandardScaler(), ["age"])])),
+            ("model", NeuroTabularClassifier(**fast_model_kwargs)),
+        ]
+    )
+    with pytest.raises(TypeError, match="DataFrame.*Convert"):
+        pipeline.fit(X, y)

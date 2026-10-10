@@ -53,3 +53,8 @@ pytest_tmp/
 .p35-product/
 .p36-product/
 product_validation/
+
+# Local P37 validation evidence
+.p37-local/
+.p37-product/
+/product_validation/p37/P37_FINAL_REPORT.md

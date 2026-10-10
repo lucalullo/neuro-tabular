@@ -17,6 +17,7 @@ from sklearn.base import BaseEstimator
 from sklearn.model_selection import train_test_split
 from sklearn.utils.validation import check_is_fitted
 
+from ._version import __version__
 from .device import resolve_device
 from .network import TabularNetwork
 from .preprocessing import TabularPreprocessor
@@ -89,8 +90,9 @@ class _BaseNeuroTabularEstimator(BaseEstimator):
     ) -> _BaseNeuroTabularEstimator:
         """Fit the estimator transactionally and restore caller RNG state.
 
-        When ``eval_set`` is omitted, fitting creates a stratified internal
-        validation split. Preprocessing is learned from training rows only. Rows
+        When ``eval_set`` is omitted, fitting creates an internal split,
+        stratified for classification and random for regression.
+        Preprocessing is learned from training rows only. Rows
         with zero ``sample_weight`` are ignored completely. A failed re-fit leaves
         an already fitted estimator usable.
         """
@@ -356,6 +358,35 @@ class _BaseNeuroTabularEstimator(BaseEstimator):
         }
         if refit_profile is not None:
             self.profile_["full_data_refit"] = refit_profile
+        # Detached diagnostic metadata describes the final training-only encoder.
+        # Prediction never reads this snapshot; no rows or vocabulary are copied.
+        cardinalities = dict(
+            zip(
+                self._preprocessor_.categorical_features_,
+                self._preprocessor_.categorical_cardinalities_,
+                strict=True,
+            )
+        )
+        schema = []
+        for name, dtype in X.dtypes.items():
+            entry = {
+                "name": name,
+                "dtype": str(dtype),
+                "kind": "categorical" if name in cardinalities else "numeric",
+            }
+            if name in cardinalities:
+                rare_count = len(self._preprocessor_.rare_categories_[name])
+                entry.update(
+                    n_known_categories=(
+                        len(self._preprocessor_.category_vocabs_[name]) + rare_count
+                    ),
+                    n_rare_categories=rare_count,
+                    encoded_cardinality=cardinalities[name],
+                )
+            schema.append(entry)
+        self.input_schema_ = tuple(schema)
+        # Diagnostic provenance only; never consulted by prediction or loading.
+        self._fitted_neurotabular_version_ = __version__
         self.fit_time_ = perf_counter() - fit_started
 
     def _predict_values(self, X: pd.DataFrame) -> np.ndarray:
@@ -467,13 +498,20 @@ class _BaseNeuroTabularEstimator(BaseEstimator):
     @staticmethod
     def _validate_X(X: pd.DataFrame, *, fitting: bool = True) -> pd.DataFrame:
         if not isinstance(X, pd.DataFrame):
-            raise TypeError("X must be a pandas.DataFrame.")
+            raise TypeError(
+                "X must be a pandas.DataFrame. Convert the input to a DataFrame "
+                "with the same named columns for fit and predict."
+            )
         if len(X) == 0:
             raise ValueError("X must contain at least one row.")
         if X.shape[1] == 0:
             raise ValueError("X must contain at least one feature column.")
         if not X.columns.is_unique:
-            raise ValueError("X must have unique column names.")
+            duplicates = X.columns[X.columns.duplicated()].tolist()
+            raise ValueError(
+                f"X must have unique column names; duplicates: {duplicates!r}. "
+                "Rename or remove duplicate columns."
+            )
         return X
 
     def _validate_hyperparameters(self) -> None:

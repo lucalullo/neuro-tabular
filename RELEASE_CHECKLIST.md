@@ -1,5 +1,8 @@
 # NeuroTabular 0.3.1 release checklist
 
+This historical release checklist does not authorize recreating public 0.3.1
+artifacts. P42 is a local rehearsal; future release identity/approval is separate.
+
 - Confirm the intended release commit and a clean working tree.
 - Keep package metadata, package version, citation, docs, tests, and tag aligned.
 - Pass Ruff check, Ruff format, and the complete test suite.
@@ -9,6 +12,8 @@
 - Build wheel and sdist from clean source and inspect their contents.
 - Install both artifacts in clean environments and run three-task smoke tests.
 - Verify source/artifact SHA256 manifests and security/path audits.
+- Run Twine and strict distribution hygiene; public archives exclude even local
+  reference model fixtures, validation receipts and internal research memories.
 - Run configured Linux/Windows CI on the exact release commit.
 - Disclose that physical CUDA hardware validation is not part of 0.3.1 evidence.
 - Create immutable tag `v0.3.1` only after the exact commit is accepted.

@@ -213,5 +213,7 @@ def _cuda_error_message(requested: str, reason: str, details: dict[str, Any]) ->
         f"PyTorch CUDA={torch.version.cuda or 'unavailable'}; "
         f"compiled CUDA architectures={architecture_text}; "
         f"device count={details.get('cuda_device_count', 'unavailable')}; "
-        f"probe error={details.get('probe_error', 'none')}."
+        f"probe error={details.get('probe_error', 'none')}. "
+        "Use device='cpu' to run on CPU, or check that your GPU, driver and "
+        "PyTorch CUDA runtime are compatible."
     )

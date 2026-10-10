@@ -1,5 +1,12 @@
 # Publishing NeuroTabular 0.3.1
 
+Public 0.3.1 artifacts/tag are immutable. P42/P43 builds with the same version are
+local rehearsal artifacts identified by source/hash, never replacements or
+uploads of that existing release. This document describes a separately
+authorized future publication process; P43 performs no tag, push or upload. Exact integrated-source CI and independent
+installation/user evidence remain required before any 1.0 decision; see
+[the support policy](docs/policies/SUPPORT_SCOPE.md).
+
 NeuroTabular releases are published manually. Never reinitialize the existing
 Git repository, move a published tag, or replace published release artifacts.
 
@@ -16,6 +23,7 @@ python -m ruff check .
 python -m ruff format --check .
 python -m pytest -W error
 python -m build
+python tools/check_distribution.py dist/*.whl dist/*.tar.gz
 python -m twine check dist/*
 ```
 

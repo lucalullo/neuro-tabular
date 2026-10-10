@@ -26,4 +26,8 @@ prune .p35-local
 prune .p36-local
 prune .p35-product
 prune .p36-product
+prune .p37-local
+prune .p37-product
 prune product_validation
+prune docs/research
+prune tests/fixtures

@@ -4,6 +4,13 @@ NeuroTabular uses [Semantic Versioning](https://semver.org/) as a practical
 reference. The project is experimental and pre-1.0, so minor releases may
 intentionally evolve the API or standard architecture.
 
+The current local-development rules are in
+[the canonical versioning policy](docs/policies/VERSIONING_POLICY.md), with
+[deprecation notice](docs/policies/DEPRECATION_POLICY.md) and
+[persistence boundaries](docs/policies/PERSISTENCE_POLICY.md). Pre-1.0 evolution
+still requires explicit notice and migration review. No version or 1.0 freeze
+is created by adoption of these maintenance rules.
+
 ## Pre-1.0 versions
 
 Versions use `0.MINOR.PATCH`.

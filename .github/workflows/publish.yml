@@ -59,6 +59,8 @@ jobs:
       - run: python -m ruff format --check .
       - run: python -m pytest -W error
       - run: python -m build
+      - name: Validate distribution hygiene
+        run: python tools/check_distribution.py dist/*.whl dist/*.tar.gz
       - run: python -m twine check dist/*
       - uses: actions/upload-artifact@v7
         with:

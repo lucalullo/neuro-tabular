@@ -226,9 +226,16 @@ When both mechanisms are used, per-class and per-row weights multiply.
 
 ## Cross-validation and pipelines
 
+This standalone example defines a binary target; do not reuse regression y or
+use binary ROC-AUC on a multiclass target.
+
 ```python
+from sklearn.datasets import load_breast_cancer
 from sklearn.model_selection import StratifiedKFold, cross_val_score
 
+from neurotabular import NeuroTabularClassifier
+
+X, y = load_breast_cancer(return_X_y=True, as_frame=True)
 cv = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
 model = NeuroTabularClassifier(max_epochs=20, random_state=42)
 scores = cross_val_score(model, X, y, cv=cv, scoring="roc_auc")
@@ -311,7 +318,10 @@ promised, especially across CUDA architectures or library versions.
 
 ## Diagnostics
 
+After a successful fit, call prediction before inspecting its duration:
+
 ```python
+model.predict(X_test)
 print(model.best_epoch_, model.n_iter_, model.best_score_)
 print(model.n_parameters_, model.embedding_dimensions_)
 print(model.fit_time_, model.last_prediction_time_)
@@ -326,6 +336,30 @@ where applicable.
 
 ## Prediction schema
 
+### Inspecting a fitted model (unreleased P37)
+
+The development branch adds a compact schema snapshot; the published v0.3.1
+tag and its saved models do not yet expose it:
+
+```python
+import pandas as pd
+
+print(pd.DataFrame(model.input_schema_))
+print(model.device_, model.device_info_)
+print(model.numeric_features_, model.categorical_features_)
+print(pd.DataFrame(model.history_))
+```
+
+Schema counts are learned only from the final training partition. They include
+rare categories but exclude missing, validation-only and declared-but-unobserved
+values. They describe the final encoder after optional full-data refit; history
+describes the earlier validation fit. Treat the snapshot as read-only.
+History and device diagnostics already existed before P37; no new metric,
+prediction tensor or training pass is introduced. See the
+[API schema contract](API.md#unreleased-p37-fitted-schema-diagnostic).
+
+### Keeping the prediction schema
+
 The prediction frame may present fitted columns in another order. NeuroTabular
 reorders them to the fitted schema. Missing or extra columns raise an error:
 
@@ -336,6 +370,107 @@ model.predict_proba(X_test.drop(columns=["income"]))  # rejected
 
 This strictness prevents silent feature misalignment.
 
+Prediction uses the fitted numeric/categorical roles. A numeric column can still
+use the existing numeric-string conversion, but a non-numeric value fails with
+the offending column name. Clean the values; if the feature really represents
+categories, declare it in `categorical_features` and refit. Changing a prediction
+dtype does not train a new vocabulary. New categorical levels remain unknown.
+For unsafe numeric magnitudes, rescale input consistently and refit instead of
+discarding imaginary components, clipping overflow, or suppressing errors.
+
+For an upstream `ColumnTransformer`, use `.set_output(transform="pandas")`
+and ensure the transformed frame has stable unique column names. Default NumPy
+output is rejected. An executable mixed-data pipeline, cross-validation and
+small grid-search workflow is in `examples/pipeline_workflow.py`.
+
 CPU and mocked device paths are covered by tests, but physical CUDA hardware
 validation was not completed for 0.3.1. See the
 [benchmark limitations](BENCHMARK_0_3.md#known-limitations).
+
+## Complete task and device examples
+
+`examples/mixed_dataframe_workflow.py` is a complete synthetic workflow for
+binary, multiclass and single-output regression, with a stratified test split
+for classification and a random split for regression. All three use mixed
+DataFrames with numeric missing values, nullable integers/booleans and
+categoricals. Prediction shows new categories and reordered columns. `score`
+uses the original test frame; its value is illustrative, not a quality claim.
+
+```bash
+python examples/mixed_dataframe_workflow.py --task binary --device cpu
+python examples/mixed_dataframe_workflow.py --task multiclass --device cpu
+python examples/mixed_dataframe_workflow.py --task regression --device cpu --output-dir ./models
+```
+
+`--device auto` uses the existing checked selection/fallback path. On a machine
+with supported NVIDIA hardware and a CUDA-enabled PyTorch runtime,
+`--device cuda` explicitly requests CUDA and raises if unavailable. P39 was
+validated on CPU; the local AMD adapter and CPU Torch do not validate physical
+CUDA. No CUDA equivalence or memory claim follows from this example.
+
+With `--output-dir`, the example saves joblib and an optional human-readable
+metadata sidecar, loads the trusted local artifact and checks identical CPU
+predictions in the same runtime. P39 separately tests fresh-process pickle and
+joblib with rare, missing, unseen and declared-but-unobserved categories for all
+three tasks. Cross-version and device migration remain unsupported guarantees.
+Pin the full environment and keep original export metadata with the artifact;
+P40 additionally records private version-at-fit provenance; older artifacts
+without it remain unknown. Never load untrusted
+pickle/joblib files.
+
+For Pipeline, DataFrame-preserving `ColumnTransformer`, CV and grid-search,
+use the existing `examples/pipeline_workflow.py`. Keep external `eval_set`
+already transformed consistently if using preprocessing: ordinary pipeline
+parameter passing does not transform that set automatically.
+
+At prediction, new feature categories are accepted as unknown; missing or extra
+column names are errors. New target classes in a classification `eval_set` are
+an error. `input_schema_` describes roles/counts, not an editable vocabulary.
+
+## Refit and parameter changes
+
+`model.set_params(hidden_dim=12)` changes the settings for the next fit. An
+already fitted model keeps its current network, encoder and resolved device
+until a successful `fit`. `get_params` and repr show pending settings, so they
+are not a historical training receipt. Prediction keeps using the fitted state;
+set_params does not move a saved CUDA model to CPU. Clone copies settings and
+is unfitted. A successful refit can learn new data/schema; a failed refit leaves
+the previous fitted snapshot and predictions usable, with the new pending
+settings still in place. Do not modify fitted attributes to reconfigure a model.
+
+Python/NumPy/PyTorch CPU RNG states are restored after fit. This does not make
+same-process concurrent fits thread-safe because RNG handling is process-global.
+Use isolated processes when fitting concurrently and account for resource use.
+
+## Persistence versions and warnings
+
+Use the same pinned CPU runtime/source build for supported round-trips.
+Patch upgrades are best effort; minor/major, dependency and device migrations
+need explicit validation. Keep a trusted probe frame and original outputs with
+environment/source hashes. Public 0.3.1 artifacts lack the later input_schema_
+and P40 internal version metadata; loading does not fabricate them. Refit under
+new code only when intended, with original training data.
+
+Schema failures raise existing standard exceptions; ordinary column reordering,
+missing-value handling and unseen feature categories do not warn. Explicit CUDA
+fails if unavailable; auto compatibility failure warns with a recorded fallback.
+No current parameter is deprecated, and P40's tested internal FutureWarning
+helper is dormant. Physical CUDA validation is still pending on the AMD-only PC.
+
+## Reporting and recovering from mistakes
+
+Use the [minimal reproducer guide](support/MINIMAL_REPRODUCER_GUIDE.md) for a
+small synthetic example, safe environment report and recovery table. Run
+`python examples/support_environment.py` from a checkout to print only version,
+OS family and CUDA availability fields; it does not choose or probe a device.
+An import failure should be reported with the traceback after reviewing it for
+personal paths. Do not upload private frames, model files, tokens or full
+environment-variable listings.
+
+
+## Canonical maintenance and intended stabilization scope
+
+Current behavior above is unchanged. See [the policy index](policies/README.md),
+[intended 1.0 boundary](API_BOUNDARY.md) and [support scope](policies/SUPPORT_SCOPE.md).
+The boundary is a future freeze candidate, not an actual freeze/release; experimental
+routing/schema/timing/optional mechanisms remain explicitly bounded.

@@ -15,6 +15,8 @@ FORBIDDEN = {
     ".p36-local",
     ".p35-product",
     ".p36-product",
+    ".p37-local",
+    ".p37-product",
     "product_validation",
     ".venv",
     "venv",
@@ -52,11 +54,24 @@ TEXT_SUFFIXES = {
 def check_member(name, data, *, sdist=False):
     path = PurePosixPath(name.replace("\\", "/"))
     parts = path.parts
-    if path.is_absolute() or ".." in parts or any(p in FORBIDDEN for p in parts):
+    if (
+        path.is_absolute()
+        or ".." in parts
+        or any(
+            p in FORBIDDEN or re.fullmatch(r"\.p[0-9]+-(?:local|product)", p)
+            for p in parts
+        )
+    ):
         raise ValueError(f"Forbidden distribution member: {name}")
     relative = parts[1:] if sdist else parts
     if "research" in relative and (relative[0] == "research" or "raw" in relative):
         raise ValueError(f"Raw research member: {name}")
+    if relative[:2] == ("docs", "research") or relative[:2] == ("tests", "fixtures"):
+        raise ValueError(f"Internal archive/fixture member: {name}")
+    if path.suffix == ".json" and re.search(
+        r"(?i)provenance|receipt|validation", path.name
+    ):
+        raise ValueError(f"Internal receipt member: {name}")
     if path.suffix in {
         ".pyc",
         ".pyo",
