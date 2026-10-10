@@ -9,6 +9,7 @@ from typing import Hashable
 import numpy as np
 import pandas as pd
 from sklearn.base import RegressorMixin
+from sklearn.utils.validation import check_is_fitted
 
 from ._base import _BaseNeuroTabularEstimator
 from .network import TabularNetwork
@@ -27,6 +28,13 @@ class NeuroTabularRegressor(RegressorMixin, _BaseNeuroTabularEstimator):
     """
 
     _supported_metrics = {"loss", "rmse", "mae", "r2"}
+
+    def score(self, X, y, sample_weight=None):
+        """Return R² after validating a finite, real, single-output target."""
+        check_is_fitted(self, ["_model_", "_preprocessor_"])
+        X = self._validate_X(X, fitting=False)
+        y = self._numeric_target(y, len(X), "score y")
+        return super().score(X, y, sample_weight=sample_weight)
 
     def __init__(
         self,

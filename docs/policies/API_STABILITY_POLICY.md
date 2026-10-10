@@ -1,8 +1,10 @@
 # API maintenance policy
 
-P42, 2026-10-09. **ADOPTED_FOR_LOCAL_DEVELOPMENT** as a compatibility/review
-process. This does **not** enact the proposed 1.0 API freeze. Public release is
-pre-1.0 0.3.1, with no signature/default/runtime changes in this phase.
+**ADOPTED_FOR_LOCAL_DEVELOPMENT** as a compatibility/review process. Public
+0.3.1 remains immutable; the current checkout is unpublished 1.0.0rc1, including
+the authorized pre-1.0 target contract hardening. This is not stable 1.0 approval.
+Constructor defaults and valid-input training/prediction math are unchanged by
+that repair.
 
 The public surface is NeuroTabularClassifier, NeuroTabularRegressor and package
 __version__; documented constructor parameters, methods, outputs, error families

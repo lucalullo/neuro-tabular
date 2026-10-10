@@ -12,7 +12,7 @@ from p40_helpers import data, kwargs
 from sklearn.exceptions import NotFittedError
 from test_version_metadata import fresh_load
 
-from neurotabular import NeuroTabularClassifier, NeuroTabularRegressor
+from neurotabular import NeuroTabularClassifier, NeuroTabularRegressor, __version__
 
 
 @pytest.fixture(scope="module", params=["binary", "multiclass", "regression"])
@@ -44,7 +44,7 @@ def test_frame_indices_roles_and_recovery(journey):
     expected = model.predict(X)
     assert model.n_features_in_ == len(X.columns)
     assert model.feature_names_in_.tolist() == list(X.columns)
-    assert model.device_ == "cpu" and model._fitted_neurotabular_version_ == "0.3.1"
+    assert model.device_ == "cpu" and model._fitted_neurotabular_version_ == __version__
     assert [entry["name"] for entry in model.input_schema_] == list(X.columns)
     assert (
         "text" in model.categorical_features_
@@ -114,7 +114,7 @@ def test_mixed_fresh_process_and_size(journey, format, tmp_path):
     metadata, prediction, probability = fresh_load(path, format, X, tmp_path)
     np.testing.assert_array_equal(prediction, model.predict(X))
     assert metadata["schema"] == model.input_schema_
-    assert metadata["version"] == "0.3.1" and metadata["device"] == "cpu"
+    assert metadata["version"] == __version__ and metadata["device"] == "cpu"
     if task != "regression":
         np.testing.assert_array_equal(probability, model.predict_proba(X))
     start = time.perf_counter_ns()

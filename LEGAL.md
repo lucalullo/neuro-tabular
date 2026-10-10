@@ -13,8 +13,9 @@ name **NeuroTabular** is not represented or guaranteed to be legally available.
 - Public scientific papers and official performance documentation informed
   independently written design decisions recorded in `RESEARCH_NOTES.md`.
 - No source implementation was copied from external tabular-learning projects.
-- Tests, examples, and release benchmarks use synthetic data. No third-party
-  dataset is distributed.
+- Software validation uses synthetic fixtures. Some executable examples use
+  demo datasets bundled with scikit-learn; historical benchmark reports describe
+  their own dataset sources. No third-party dataset is distributed here.
 - Training and inference contain no telemetry, hosted-service client, upload,
   account requirement, or network request.
 

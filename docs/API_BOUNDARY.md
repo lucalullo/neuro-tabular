@@ -1,22 +1,21 @@
-# P43 intended 1.0 API boundary
+# Intended API boundary for the unpublished 1.0.0rc1 candidate
 
-2026-10-10. Local boundary decision is complete; FREEZE_FOR_1_0 means the
-intended future stable contract, **not an enacted freeze or 1.0 release**.
-Semantics/defaults/runtime remain current. Canonical product copy:
-`P43_INTEGRATED_PRODUCT_CANDIDATE/docs/API_BOUNDARY.md`; this roadmap is a
-generated identical review copy. Original P40/P42 documents remain historical.
+FREEZE_FOR_1_0 records the intended stable scope, **not stable-release approval**.
+This canonical product document includes the authorized pre-1.0 target repair.
+Constructor defaults and valid-input training/prediction math remain unchanged.
+Exact corrected-source validation and a separate release decision are required.
 
 ## Export and method contract
 
 | Symbol | Classification | Exact scope / evidence |
 | --- | --- | --- |
-| NeuroTabularClassifier | FREEZE_FOR_1_0 | DataFrame-only binary/multiclass; sorted comparable original labels, same self from fit; classifier/Pipeline/clone/persistence tests. |
+| NeuroTabularClassifier | FREEZE_FOR_1_0 | DataFrame-only binary/multiclass; sklearn binary/multiclass single-output finite labels, sorted original labels, same self from fit; classifier/Pipeline/clone/persistence tests. |
 | NeuroTabularRegressor | FREEZE_FOR_1_0 | Separate single-output finite real target, original-unit float64 predictions; no predict_proba/class_weight parameter. |
 | __version__ | FREEZE_FOR_1_0 | Version string matches package metadata; unpublished same-version builds require source identity. |
-| fit(X,y,sample_weight=None,eval_set=None) | FREEZE_FOR_1_0 | Positional 1-D y/weights; nonnegative finite weights with positive total, zero rows excluded; train-only preprocessing; new eval target classes rejected; transactional committed state. |
+| fit(X,y,sample_weight=None,eval_set=None) | FREEZE_FOR_1_0 | Positional 1-D y/weights; task target validation shared with eval_set/score; nonnegative finite weights with positive total, zero rows excluded; train-only preprocessing; new eval target classes rejected; transactional committed state. |
 | predict(X) | FREEZE_FOR_1_0 | Shape(n,), classifier original-label dtype/threshold0.5 or argmax; regression float64 original units/constant path; schema names aligned, row order preserved. |
 | predict_proba(X), classifier only | FREEZE_FOR_1_0 | float64(n,C), sorted classes_ columns, normalized finite probabilities; no calibration guarantee. |
-| score(X,y,sample_weight=None) | FREEZE_FOR_1_0 | Inherited accuracy/R2 with existing weights, not a new scoring API. |
+| score(X,y,sample_weight=None) | FREEZE_FOR_1_0 | Sklearn accuracy/R2 with existing weights, after the shared task target validation; signature unchanged. |
 | get_params(deep=True), set_params(**params), clone conventions | FREEZE_FOR_1_0 | U below; invalid names ValueError, clone unfitted. Exact repr pretty-print not frozen. |
 | get_metadata_routing, set_fit_request, set_score_request | KEEP_EXPERIMENTAL | Installed sklearn behavior; no general routing or automatic external eval_set transformation. |
 | Private modules/underscore methods/network/encoder/optimizer/tensors/sklearn implementation tags | INTERNAL | Importability is not a public stability promise. |
@@ -62,7 +61,7 @@ Classifier has all 22 rows; regressor has 21, omitting class_weight. Numerical
 embedding's parameter/default scalar interface stays stable; non-scalar behavior
 is explicitly experimental. device selection interface is stable; actual CUDA
 hardware/portability remains outside validated support. Exact signatures are in
-the unchanged P40 inventory and P43 SOURCE_CONTRACT_AUDIT.json.
+the tested constructor inventory and docs/API.md.
 
 ## Fitted attribute contract
 
@@ -121,15 +120,22 @@ CUDA failure -> error. Normal reorder/missing values/unseen feature levels quiet
 FutureWarning is adopted for future public notices; no feature currently deprecated.
 UserWarning/DeprecationWarning are policy categories, no new emitter/API.
 
-## Evidence and regret review
+## Evidence and remaining limits
 
-Every stable row has API/USAGE or policy documentation and existing contract,
-sklearn workflow/clone, lifecycle and relevant persistence tests; 266 source
-tests PASS plus nine external public-reference checks, 30/30 frozen binary and
-4/4 representative exact checks. Full sklearn check_estimator is not claimed.
-No stable candidate has an unresolved redesign/breaking concern: established
-names/defaults, next-fit semantics, conditional attributes, checkpoint units and
-bounded persistence are ACCEPT; routing, schema format, timers/probe keys,
-allocation heuristics and optional scientific paths KEEP_EXPERIMENTAL.
-No FIX_BEFORE_1_0 runtime change is warranted by executed evidence.
-Support and independent acceptance are separately gated; this is not 1.0-ready.
+The target repair closes the final-audit B1/B2 continuous/non-finite target
+defects through shared fit/eval_set/score validation. See
+[TARGET_CONTRACT.md](TARGET_CONTRACT.md). Focused/randomized checks, transactional
+refit, valid-input frozen equivalence, persistence, schema and sklearn workflow
+tests must pass again on the exact RC source; historical phase counts do not
+substitute for that run.
+
+No full sklearn check_estimator compliance is claimed. External CV splitters
+and scorers can validate y before the estimator; use ordinary inferred numeric
+arrays for object-backed numeric classification labels in those workflows.
+Routing, schema format, clocks/probe keys, allocation heuristics and optional
+scientific paths remain experimental.
+
+Remote CI for the corrected commit is pending. Independent-user pilots remain
+an outstanding soft risk, native Windows local execution is host-policy blocked,
+and physical CUDA is optional pending evidence. See
+[SUPPORT_SCOPE.md](policies/SUPPORT_SCOPE.md).

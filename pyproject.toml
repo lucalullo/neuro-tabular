@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "neurotabular"
-version = "0.3.1"
+version = "1.0.0rc1"
 description = "Compact neural classification and regression for pandas DataFrames"
 readme = "README.md"
 requires-python = ">=3.10,<3.13"
@@ -13,7 +13,7 @@ license-files = ["LICENSE"]
 authors = [{ name = "Luca Lullo" }]
 keywords = ["machine-learning", "deep-learning", "tabular", "pytorch", "scikit-learn"]
 classifiers = [
-  "Development Status :: 3 - Alpha",
+  "Development Status :: 4 - Beta",
   "Intended Audience :: Developers",
   "Intended Audience :: Science/Research",
   "Operating System :: OS Independent",

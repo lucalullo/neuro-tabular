@@ -3,12 +3,39 @@
 All notable public changes to NeuroTabular are recorded here. Published tags and
 release artifacts are immutable.
 
-## [Unreleased]
+## [1.0.0rc1] - Unpublished release candidate
+
+### Target contract hardening
+
+- Classifier fit, eval_set and score share single-output binary/multiclass
+  target validation. Fractional, non-finite and unsupported multioutput targets
+  raise ValueError before training, encoding or metrics.
+- Object-backed scalar labels receive value-preserving pandas inference before
+  sklearn target typing. Numeric strings stay strings. Zero-weight training rows
+  remain ignored before target discovery, including their invalid labels.
+- Regression score now shares the existing finite numeric-target contract of
+  fit and eval_set. Valid regression values and R2 semantics are unchanged.
+- Constructor defaults, prediction math, training, preprocessing, checkpoint
+  selection and valid-model persistence are unchanged by this repair.
+- Add focused and randomized target tests, transactional refit checks and an
+  explicit target contract. This intentionally removes erroneous acceptance of
+  unsupported targets before 1.0; it is not an artifact migration mechanism.
+
+### Candidate scope
+
+- Include the previously unreleased product diagnostics, support guidance and
+  maintenance policies listed below. Physical CUDA remains optional and unvalidated.
+- Candidate artifacts are local and unpublished. CI for the exact corrected
+  commit is pending; earlier 0.3.1-based CI does not validate this RC.
+- Independent user pilots remain outstanding evidence and a disclosed soft risk.
+  Stable 1.0 approval and publication are separate maintainer decisions.
+
+### Previously unreleased product hardening
 
 - Reconcile the public-0.3.1-based local stabilization candidate and canonical
   policy/support scope; classify the intended 1.0 boundary without enacting a freeze.
-- Preserve Python 3.10–3.12 intent, scope CUDA to optional best effort and prepare
-  independent acceptance evidence. No algorithm, API, dependency or version change.
+- Preserve Python 3.10â€“3.12 intent, scope CUDA to optional best effort and prepare
+  independent acceptance evidence. These earlier changes did not alter algorithm or dependency bounds.
 
 - Adopt local-development API maintenance, deprecation, warning, persistence and
   versioning policies without declaring a 1.0 freeze or changing the runtime.
@@ -57,7 +84,7 @@ quality. Physical CUDA validation remains pending.
 - Automatic multiclass classification with ordered labels, cross entropy,
   normalized softmax probabilities, weights and loss/accuracy stopping.
 - `NeuroTabularRegressor` with train-only weighted target standardization,
-  inverse transformation and loss/RMSE/MAE/R² evaluation.
+  inverse transformation and loss/RMSE/MAE/RÂ² evaluation.
 - Shared preprocessing, neural backbone and multi-task training core.
 - Pickle/joblib validation in fresh processes for all three tasks.
 - Expanded schema, weighting, target, device, sklearn and packaging validation,

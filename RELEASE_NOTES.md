@@ -1,31 +1,41 @@
-# NeuroTabular 0.3.1
+# NeuroTabular 1.0.0rc1 release notes
 
-NeuroTabular 0.3.1 is a performance and product-hardening patch release. It
-preserves the 0.3.0 algorithm, public API, defaults, and predictive behavior
-while reducing avoidable CPU preprocessing overhead in prediction paths.
+**Unpublished local release candidate.** This is preparation for review, not a
+stable 1.0 release or publication authorization.
 
-## Highlights
+The classifier now enforces one single-output binary/multiclass target contract
+for fit, eval_set and score. Fractional/continuous labels, non-finite numeric
+labels and unsupported dimensions fail early with ValueError. Integer, string,
+boolean and discrete integer-valued floating labels remain supported. Object
+containers receive value-preserving scalar inference; numeric strings are not
+converted to numbers. See [the target contract](docs/TARGET_CONTRACT.md).
 
-- Faster CPU `predict` and `predict_proba` paths for already-valid numeric and
-  already-ordered DataFrame inputs.
-- Bit-for-bit behavior preservation on frozen release validation, including the
-  30-case binary equivalence panel and representative multiclass/regression
-  checks.
-- Additional product-path regression tests covering conversion, schema order,
-  memory ownership, nullable numeric inputs, and mixed storage.
-- Distribution-hygiene checks for wheel/sdist contents and accidental local or
-  private artifact leakage.
-- Release-branch CI coverage in addition to the existing Linux, Windows,
-  minimum-PyTorch, Ruff, build, and installed-artifact checks.
+Regression score uses the same finite numeric-target validation as fit/eval_set.
+Zero-weight training rows remain excluded before target discovery. Failed
+invalid-target refits preserve the previous fitted model and caller RNG state.
 
-On the internal P35 CPU/WSL validation panel, median latency improved by about
-31% for `predict` and 36% for `predict_proba` versus the public 0.3.0 path.
-Actual improvements depend on hardware, dependency versions, dataset shape, and
-workload. See [docs/PERFORMANCE_0_3_1.md](docs/PERFORMANCE_0_3_1.md).
+This repair changes no constructor default, training algorithm, preprocessing,
+checkpoint selection, prediction or probability math. The candidate also
+contains earlier unreleased input-schema diagnostics, actionable schema errors,
+support examples, packaging hygiene and maintenance policies from the
+0.3.1-based stabilization tree; see [the changelog](CHANGELOG.md).
 
-NeuroTabular remains experimental and pre-1.0. This patch makes no claim of
-state-of-the-art performance, universal superiority over tree-based models, or
-improved predictive accuracy. Physical CUDA hardware validation remains pending.
+Validation must be associated with the exact source and artifact hashes.
+Frozen valid-input checks require 30/30 binary and 4/4 representative
+multiclass/regression equivalence. Historical trusted 0.3.1 model checks have a
+pinned Linux CPU dependency scope; no universal serialization portability or
+migration of previously unsupported-target models is promised.
 
-See the [usage guide](docs/USAGE.md), [API reference](docs/API.md), and
-[changelog](CHANGELOG.md) for details.
+**REMOTE_CI_PENDING_FOR_CORRECTED_COMMIT.** The old baseline CI is historical
+evidence only. Python 3.10–3.12 intent and dependency bounds remain unchanged;
+the new commit still needs its own seven-job remote matrix. Native Windows on
+the maintainer PC is blocked by Application Control, a separate environment
+limitation; no policy bypass is part of this candidate.
+
+Independent user pilots are still unavailable and remain a soft risk. macOS
+has no validated support claim. Physical NVIDIA CUDA validation is optional and
+pending. No benchmark superiority or new scientific conclusion is claimed.
+
+No tag, push, release, PR or package publication is performed by local
+preparation. Review the local reports and exact-commit CI before any later
+maintainer go/no-go decision; see [publishing](PUBLISHING.md).

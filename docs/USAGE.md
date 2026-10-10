@@ -474,3 +474,11 @@ Current behavior above is unchanged. See [the policy index](policies/README.md),
 [intended 1.0 boundary](API_BOUNDARY.md) and [support scope](policies/SUPPORT_SCOPE.md).
 The boundary is a future freeze candidate, not an actual freeze/release; experimental
 routing/schema/timing/optional mechanisms remain explicitly bounded.
+
+## Target validation before 1.0
+
+Classification supports only single-output sklearn binary/multiclass targets.
+Fractional continuous targets and missing/non-finite numeric labels raise
+ValueError consistently in fit, eval_set and score. Regression keeps finite real
+single-output targets. See [target contract](TARGET_CONTRACT.md), including the
+existing zero-weight row and validation-class rules.

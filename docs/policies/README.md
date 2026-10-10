@@ -1,7 +1,7 @@
 # Canonical product policies
 
-P43 local integration, 2026-10-10. These are the single normative product
-locations; historical phase reports/roadmaps are evidence, not competing policies.
+These are the canonical policies for the unpublished 1.0.0rc1 candidate.
+Historical phase reports/roadmaps are evidence, not competing policies.
 
 | Subject | Canonical location |
 | --- | --- |
@@ -13,8 +13,6 @@ locations; historical phase reports/roadmaps are evidence, not competing policie
 | Versioning | [VERSIONING_POLICY.md](VERSIONING_POLICY.md) |
 | Platform/dependency support matrix | [SUPPORT_SCOPE.md](SUPPORT_SCOPE.md) |
 
-P43 roadmap boundary/support review copies are generated identically from these
-candidate files and hash-checked. Edit canonical product locations for future
-work and regenerate review copies; do not maintain independent competing text.
-Historical P39–P42 files/seals are preserved and date-scoped. Public version
-0.3.1 remains immutable; local adoption is not a public 1.0 freeze or release.
+Edit these canonical locations for future work. Historical phase evidence remains
+date-scoped. Public 0.3.1 is immutable; local RC validation does not enact stable
+1.0 approval. Exact-corrected-commit remote CI remains pending.

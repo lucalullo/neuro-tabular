@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import math
+from numbers import Number
 
 import numpy as np
 import pandas as pd
@@ -10,6 +11,7 @@ import torch
 from pandas.errors import InvalidIndexError
 from sklearn.base import ClassifierMixin
 from sklearn.utils.multiclass import type_of_target
+from sklearn.utils.validation import check_is_fitted
 
 from ._base import _BaseNeuroTabularEstimator
 from .network import TabularNetwork
@@ -78,6 +80,13 @@ class NeuroTabularClassifier(ClassifierMixin, _BaseNeuroTabularEstimator):
 
     _supported_metrics = {"loss", "roc_auc", "accuracy"}
 
+    def score(self, X, y, sample_weight=None):
+        """Return accuracy after validating a single-output classification target."""
+        check_is_fitted(self, ["_model_", "_preprocessor_"])
+        X = self._validate_X(X, fitting=False)
+        y = self._classification_target(y, len(X), name="score y")
+        return super().score(X, y, sample_weight=sample_weight)
+
     def predict_proba(self, X: pd.DataFrame) -> np.ndarray:
         """Return class probabilities with columns ordered by ``classes_``."""
 
@@ -122,8 +131,52 @@ class NeuroTabularClassifier(ClassifierMixin, _BaseNeuroTabularEstimator):
         if positive_weight > 0.0 and negative_weight > 0.0:
             model.set_output_bias(math.log(positive_weight / negative_weight))
 
+    @staticmethod
+    def _classification_target(
+        y: object, n_samples: int, *, name: str = "y"
+    ) -> np.ndarray:
+        """Validate target values without discovering or changing fitted classes."""
+        y_array = _BaseNeuroTabularEstimator._target_array(y, n_samples, name=name)
+        if y_array.dtype.kind == "O":
+            # Infer scalar values without string/numeric coercion. This also
+            # removes dtype artifacts left by excluded zero-weight labels.
+            y_array = pd.Series(y_array).infer_objects().to_numpy()
+        try:
+            finite = np.isfinite(y_array).all()
+        except TypeError:
+            # Object/string arrays may contain numeric scalars without having
+            # a numeric dtype. Check those scalars, retaining original labels.
+            finite = True
+            for value in y_array:
+                if isinstance(value, Number):
+                    try:
+                        scalar_finite = bool(np.isfinite(value))
+                    except TypeError:
+                        scalar_finite = value not in (-math.inf, math.inf)
+                    if not scalar_finite:
+                        finite = False
+                        break
+        if not finite:
+            raise ValueError(f"{name} must contain only finite values.")
+        try:
+            # sklearn may cast large finite floats while checking integrality.
+            # Keep that inspection independent of caller NumPy warning filters.
+            with np.errstate(invalid="ignore", over="ignore"):
+                target_type = type_of_target(y_array)
+        except (TypeError, ValueError) as exc:
+            raise ValueError(
+                f"{name} must contain discrete class labels "
+                "(single-output binary or multiclass targets)."
+            ) from exc
+        if target_type not in {"binary", "multiclass"}:
+            raise ValueError(
+                f"{name} must contain discrete class labels "
+                "(single-output binary or multiclass targets)."
+            )
+        return y_array
+
     def _validate_target(self, y: object, n_samples: int) -> np.ndarray:
-        y_array = self._target_array(y, n_samples)
+        y_array = self._classification_target(y, n_samples)
         try:
             classes = np.unique(y_array)
         except TypeError as exc:
@@ -134,8 +187,6 @@ class NeuroTabularClassifier(ClassifierMixin, _BaseNeuroTabularEstimator):
                 f"received {len(classes)} classes."
             )
         if len(classes) > 2:
-            if type_of_target(y_array) != "multiclass":
-                raise ValueError("Classifier y must contain discrete class labels.")
             if self.eval_metric == "roc_auc":
                 raise ValueError(
                     "eval_metric='roc_auc' is binary-only; use 'loss' or 'accuracy' for multiclass."
@@ -148,7 +199,7 @@ class NeuroTabularClassifier(ClassifierMixin, _BaseNeuroTabularEstimator):
         return y_array
 
     def _validate_validation_target(self, y: object, n_samples: int) -> np.ndarray:
-        y_array = self._target_array(y, n_samples, name="eval_set y")
+        y_array = self._classification_target(y, n_samples, name="eval_set y")
         try:
             positions = pd.Index(self.classes_).get_indexer(y_array)
         except (InvalidIndexError, TypeError):

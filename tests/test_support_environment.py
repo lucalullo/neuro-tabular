@@ -36,7 +36,7 @@ def test_allowlist_and_no_environment_or_host_collection(monkeypatch):
         "cuda_available",
         "torch_cuda",
     }
-    assert result["neurotabular"] == "0.3.1"
+    assert result["neurotabular"] == support.__version__
     assert result["requested_device"] == result["resolved_device"] == "cpu"
     encoded = json.dumps(result)
     assert "PRIVATE_SENTINEL" not in encoded

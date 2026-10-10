@@ -146,16 +146,23 @@ model.fit(X, y, sample_weight=None, eval_set=None)
 ```
 
 `X` must be a non-empty pandas DataFrame with unique column names. Classifier `y`
-must contain at least two mutually comparable classes and have the same length.
-Three or more labels must be discrete classes. Labels are sorted into `classes_`;
-no `task` parameter is required. A single class is rejected. Continuous regression
-targets belong in `NeuroTabularRegressor`.
+must be one-dimensional, have the same length, and be classified by sklearn as
+`binary` or `multiclass`, with at least two mutually comparable classes.
+Integer, string and boolean labels are supported, as are integer-valued floating
+labels when sklearn identifies them as classification targets. Fractional
+continuous targets, missing/non-finite numeric labels and multilabel/multioutput
+targets raise `ValueError`. Labels are sorted into `classes_`; no `task`
+parameter is required. A single training class is rejected. Continuous regression
+targets belong in `NeuroTabularRegressor`. See the
+[target contract](TARGET_CONTRACT.md).
 
 `sample_weight`, when supplied, is a finite one-dimensional non-negative array
 with at least one positive value. Rows with zero weight are ignored completely:
 they cannot affect target classes, preprocessing statistics, vocabularies, or
 validation splitting. `eval_set` is either `None` or `(X_valid, y_valid)`.
-Validation weights are not accepted separately.
+Validation weights are not accepted separately. Validation targets use the same
+classification type/finite-value checks before class membership is checked; an
+eval target may contain a single known class, subject to the selected metric.
 
 The method returns `self`. Fitting is transactional: if a re-fit fails, a
 previously fitted model remains usable. Caller Python, NumPy, and PyTorch CPU RNG
@@ -317,7 +324,11 @@ CUDA tests require suitable hardware and are skipped otherwise.
 parameter names. It changes constructor settings, not an already trained
 predictor; call `fit` to train with the new settings. `score(X, y,
 sample_weight=None)` returns accuracy for classifiers and R² in original units
-for regressors. `class_weight_` records the fitted classifier weighting (None
+for regressors. Scoring validates the same single-output target domain before
+prediction and metric evaluation; invalid continuous classification or non-finite
+targets raise `ValueError`. A single class or previously unseen class in a valid
+score target is permitted (ordinary accuracy semantics), unlike training or
+validation class membership requirements. `class_weight_` records the fitted classifier weighting (None
 or a class-to-weight dictionary); it is distinct from the constructor setting.
 
 Metadata-routing helpers inherited from sklearn depend on the sklearn version

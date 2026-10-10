@@ -6,11 +6,14 @@ DataFrames. It exposes a compact scikit-learn-style API, handles numerical and
 categorical columns automatically, and keeps preprocessing inside the estimator
 so training and inference share the same learned state.
 
-**NeuroTabular 0.3.1 is a performance and product-hardening patch over 0.3.0,
-preserving the validated binary, multiclass, and regression behavior bit for bit
-in the frozen release checks.** It remains an alpha, pre-1.0 release intended for
-controlled experiments and practical use on small and medium in-memory tabular
-datasets. It does not claim universal superiority over gradient-boosted trees.
+**This checkout is NeuroTabular 1.0.0rc1, an unpublished local release
+candidate.** It hardens the classification target contract and includes the
+product stabilization work since public 0.3.1. Valid-input prediction and
+training math remain unchanged by the target repair. See the
+[RC release notes](RELEASE_NOTES.md) and [target contract](docs/TARGET_CONTRACT.md).
+Exact-commit remote CI and a separate maintainer release decision remain pending.
+It is intended for controlled experiments and small or medium in-memory tabular
+datasets, without a claim of universal superiority over gradient-boosted trees.
 
 ## Highlights
 
@@ -47,6 +50,10 @@ full-data refit. Experimental research ideas are not enabled by default without
 broader evidence.
 
 ## Installation
+
+The commands below install the existing public `v0.3.1` baseline, **not this
+unpublished RC**. For RC validation, install its supplied wheel or sdist by local
+filename, or use the local source checkout. Do not infer a remote RC tag exists.
 
 Install the public `v0.3.1` tag from GitHub (network access required):
 
@@ -265,8 +272,9 @@ Local development follows the [API maintenance](docs/policies/API_STABILITY_POLI
 [persistence](docs/policies/PERSISTENCE_POLICY.md),
 [warning](docs/policies/WARNING_POLICY.md) and
 [versioning](docs/policies/VERSIONING_POLICY.md) policies. This adopts review
-discipline without declaring 1.0 stability. Rehearsal builds sharing 0.3.1 are
-unpublished and identified by source hashes; public release files are immutable.
+discipline without declaring stable 1.0 approval. This 1.0.0rc1 checkout is
+unpublished and identified by commit and artifact hashes; public release files
+are immutable.
 Historical reference models remain outside this clean candidate and are not packaged.
 The [intended 1.0 boundary](docs/API_BOUNDARY.md) is a reviewed candidate, not an
 actual freeze. [Support scope](docs/policies/SUPPORT_SCOPE.md) keeps intended
@@ -289,8 +297,8 @@ unseen values, reordered prediction columns and scores. Add `--output-dir ./mode
 for a same-runtime joblib round-trip and optional metadata JSON. The small
 synthetic examples demonstrate usage; they are not benchmark results or tuning
 recommendations. See [usage](docs/USAGE.md#complete-task-and-device-examples).
-The prepared P37 schema diagnostic remains unpublished; the example also works
-without that optional attribute on public 0.3.1.
+The RC includes the optional input-schema diagnostic; the example also works
+without that attribute on the existing public 0.3.1 baseline.
 
 * [Usage guide](docs/USAGE.md)
 * [API reference](docs/API.md)
@@ -327,8 +335,9 @@ without that optional attribute on public 0.3.1.
 
 ## Status
 
-NeuroTabular 0.3.1 is experimental and pre-1.0. The public API, architecture,
-and defaults may evolve as broader real-world validation continues.
+NeuroTabular 1.0.0rc1 is an unpublished prerelease. Stable 1.0 approval is
+separate from local RC validation. Remote CI for the corrected commit is pending;
+independent user pilots remain outstanding and are a disclosed soft risk.
 
 ## License
 

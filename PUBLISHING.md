@@ -1,19 +1,18 @@
-# Publishing NeuroTabular 0.3.1
+# NeuroTabular 1.0.0rc1 preparation and future publication
 
-Public 0.3.1 artifacts/tag are immutable. P42/P43 builds with the same version are
-local rehearsal artifacts identified by source/hash, never replacements or
-uploads of that existing release. This document describes a separately
-authorized future publication process; P43 performs no tag, push or upload. Exact integrated-source CI and independent
-installation/user evidence remain required before any 1.0 decision; see
-[the support policy](docs/policies/SUPPORT_SCOPE.md).
+The current candidate is **local and unpublished**. No push, tag, release, PR,
+workflow dispatch or upload is authorized by its preparation. Existing public
+0.3.1 artifacts and tags remain immutable.
 
-NeuroTabular releases are published manually. Never reinitialize the existing
-Git repository, move a published tag, or replace published release artifacts.
+Before any later publication decision, require a clean candidate tree and green
+CI on the **exact corrected commit**. The seven-job matrix covers Ruff, Linux
+Python 3.10/3.11/3.12, Windows Python 3.12, the PyTorch 2.0 family and distribution
+builds. Current status: **REMOTE_CI_PENDING_FOR_CORRECTED_COMMIT**.
+Baseline CI cannot be transferred to a changed tree.
 
-Before publishing, require a clean source tree and green CI on the exact commit
-to be tagged. The configured CI covers Ruff, tests on supported Python versions,
-Linux/Windows execution, minimum-PyTorch compatibility, distribution builds, and
-installed-artifact smoke tests.
+Independent user/other-machine pilots remain outstanding and a disclosed soft
+risk, not a result created by maintainer-local testing. Physical NVIDIA CUDA is
+optional and pending. See [support scope](docs/policies/SUPPORT_SCOPE.md).
 
 Build from clean source with:
 
@@ -27,14 +26,23 @@ python tools/check_distribution.py dist/*.whl dist/*.tar.gz
 python -m twine check dist/*
 ```
 
-Install the wheel and sdist in separate clean environments and run binary,
-multiclass, and regression smoke tests outside the checkout. Verify package
-metadata, version consistency, license files, manifests, and artifact hashes.
+Install wheel, sdist, source and editable source in separate clean environments.
+Check pip consistency, metadata/import identity, binary/multiclass/regression,
+Pipeline, cross validation and trusted pickle/joblib in fresh processes.
+Inspect all archives for private/local material and verify artifact hashes.
 
-The final release identity must agree across `pyproject.toml`, the package
-version module, `CITATION.cff`, changelog, release notes, wheel, sdist, and Git
-tag. For 0.3.1 the tag is `v0.3.1`.
+Freeze release metadata and source bytes **before** regenerating
+SOURCE_MANIFEST.sha256. Preserve its sorted, two-space SHA256 format and file
+selection; document legitimate new product files and exclude the manifest
+itself and the existing Git/workflow-only exclusions. Verify every entry against
+both source and sdist. Never reformat covered files after generating it without
+repeating the freeze and affected validation.
 
-The publishing workflow is manual-only (`workflow_dispatch`). It requires an
-actual tag matching the package version plus an explicit matching confirmation.
-TestPyPI/PyPI publication remains a separate maintainer action.
+Version identity must agree across pyproject.toml, the package version module,
+CITATION.cff, changelog, release notes, wheel and sdist. 1.0.0rc1 is a prerelease;
+no release date or remote tag is assigned by this local preparation.
+
+A maintainer must separately review evidence, obtain exact-commit CI and decide
+whether to publish a prerelease or eventually stable 1.0. The existing manual
+publishing workflow and TestPyPI/PyPI actions require separate authorization.
+Never reinitialize the repository, move a published tag or replace its artifacts.

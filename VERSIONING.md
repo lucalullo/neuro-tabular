@@ -1,8 +1,9 @@
 # Versioning policy
 
 NeuroTabular uses [Semantic Versioning](https://semver.org/) as a practical
-reference. The project is experimental and pre-1.0, so minor releases may
-intentionally evolve the API or standard architecture.
+reference. The current checkout is unpublished 1.0.0rc1. Stable 1.0 approval
+is separate; earlier 0.x minor releases may intentionally evolve experimental
+API or architecture.
 
 The current local-development rules are in
 [the canonical versioning policy](docs/policies/VERSIONING_POLICY.md), with
@@ -10,6 +11,13 @@ The current local-development rules are in
 [persistence boundaries](docs/policies/PERSISTENCE_POLICY.md). Pre-1.0 evolution
 still requires explicit notice and migration review. No version or 1.0 freeze
 is created by adoption of these maintenance rules.
+
+## Release candidates
+
+1.0.0rc1 is a prerelease version. Local preparation assigns no public release
+date or remote tag. The authorized target hardening is documented as an
+intentional pre-1.0 correction; constructor defaults and valid prediction math
+remain unchanged. Exact-source CI and a separate maintainer decision are pending.
 
 ## Pre-1.0 versions
 
