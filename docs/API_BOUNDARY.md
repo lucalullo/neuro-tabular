@@ -126,7 +126,7 @@ The target repair closes the final-audit B1/B2 continuous/non-finite target
 defects through shared fit/eval_set/score validation. See
 [TARGET_CONTRACT.md](TARGET_CONTRACT.md). Focused/randomized checks, transactional
 refit, valid-input frozen equivalence, persistence, schema and sklearn workflow
-tests must pass again on the exact candidate source; historical phase counts do not
+tests must pass on the exact release source; historical phase counts do not
 substitute for that run.
 
 No full sklearn check_estimator compliance is claimed. External CV splitters
@@ -135,8 +135,9 @@ arrays for object-backed numeric classification labels in those workflows.
 Routing, schema format, clocks/probe keys, allocation heuristics and optional
 scientific paths remain experimental.
 
-Published RC1 exact-commit CI passed all seven jobs. This stable commit requires
-its own remote CI before publication. Fresh local native Windows CPU execution
-now succeeds without security workarounds. Independent human pilots remain an
-outstanding soft risk; physical CUDA remains optional/PENDING. See
+Published RC1 exact-commit CI passed all seven jobs. The exact stable 1.0.0
+commit also passed the seven-job remote CI matrix before publication. Fresh
+local native Windows CPU execution succeeded without security workarounds.
+Independent human pilots remain an outstanding soft risk; physical CUDA remains
+optional/PENDING. See
 [SUPPORT_SCOPE.md](policies/SUPPORT_SCOPE.md).

@@ -50,11 +50,8 @@ broader evidence.
 
 ## Installation
 
-Before stable publication, validate the supplied 1.0.0 wheel/sdist by local
-filename or install from the source checkout. The following tag commands apply
-**after the maintainer publishes v1.0.0**; local preparation creates no tag or release.
-
-Install the intended stable tag from GitHub (network access required):
+NeuroTabular 1.0.0 is the current stable release. Install the immutable
+`v1.0.0` tag from GitHub (network access required):
 
 ```bash
 python -m pip install "git+https://github.com/lucalullo/neuro-tabular.git@v1.0.0"
@@ -264,24 +261,23 @@ unexpected columns are rejected rather than guessed.
 
 ## Documentation
 
-### Maintenance policies and stabilization scope (local development)
+### Maintenance policies and stable scope
 
-Local development follows the [API maintenance](docs/policies/API_STABILITY_POLICY.md),
+NeuroTabular 1.0.0 follows the [API maintenance](docs/policies/API_STABILITY_POLICY.md),
 [deprecation](docs/policies/DEPRECATION_POLICY.md),
 [persistence](docs/policies/PERSISTENCE_POLICY.md),
 [warning](docs/policies/WARNING_POLICY.md) and
-[versioning](docs/policies/VERSIONING_POLICY.md) policies. This adopts review
-discipline without declaring stable 1.0 approval. This 1.0.0rc1 checkout is
-unpublished and identified by commit and artifact hashes; public release files
-are immutable.
-Historical reference models remain outside this clean candidate and are not packaged.
-The [intended 1.0 boundary](docs/API_BOUNDARY.md) is a reviewed candidate, not an
-actual freeze. [Support scope](docs/policies/SUPPORT_SCOPE.md) keeps intended
-Python 3.10–3.12 CPU support, with exact untested matrix combinations explicitly
-pending evidence. CUDA remains optional best effort; macOS is out of scope.
-See the [canonical policy index](docs/policies/README.md) for sources of truth.
+[versioning](docs/policies/VERSIONING_POLICY.md) policies. The reviewed
+[1.0 API boundary](docs/API_BOUNDARY.md) is the stable public contract; items
+explicitly classified as experimental or internal remain outside that guarantee.
+[Support scope](docs/policies/SUPPORT_SCOPE.md) documents the validated
+Python 3.10–3.12 CPU matrix and remaining evidence limits. CUDA remains optional
+best effort with physical NVIDIA validation pending; macOS remains outside the
+validated support scope. Historical reference models and private validation
+evidence are not packaged. See the [canonical policy index](docs/policies/README.md)
+for sources of truth.
 
-### Complete mixed-data workflows (local P39 development)
+### Complete mixed-data workflows
 
 Run the same executable example for each supported task:
 
@@ -296,8 +292,9 @@ unseen values, reordered prediction columns and scores. Add `--output-dir ./mode
 for a same-runtime joblib round-trip and optional metadata JSON. The small
 synthetic examples demonstrate usage; they are not benchmark results or tuning
 recommendations. See [usage](docs/USAGE.md#complete-task-and-device-examples).
-The RC includes the optional input-schema diagnostic; the example also works
-without that attribute on the existing public 0.3.1 baseline.
+NeuroTabular 1.0.0 includes the optional `input_schema_` diagnostic. The
+examples exercise the stable task APIs while keeping diagnostic-only fields
+outside the core prediction contract.
 
 * [Usage guide](docs/USAGE.md)
 * [API reference](docs/API.md)
@@ -334,9 +331,10 @@ without that attribute on the existing public 0.3.1 baseline.
 
 ## Status
 
-NeuroTabular 1.0.0rc1 is an unpublished prerelease. Stable 1.0 approval is
-separate from local RC validation. Remote CI for the corrected commit is pending;
-independent user pilots remain outstanding and are a disclosed soft risk.
+NeuroTabular 1.0.0 is the current stable release. The stable tag and release
+were validated on the exact 1.0.0 commit with the seven-job Linux/Windows CI
+matrix. Independent human pilots remain unavailable and are disclosed as a soft
+risk rather than a supported-evidence claim.
 
 ## License
 

@@ -1,7 +1,7 @@
 # Minimal reproducer and safe support report
 
-P41 local development, public release 0.3.1. No private dataset or saved model
-upload is required. Start with invented values and the smallest failing call.
+For NeuroTabular 1.0.0 support, no private dataset or saved-model upload is
+required. Start with invented values and the smallest failing call.
 
 ## Runnable starting point
 

@@ -20,10 +20,11 @@ Promotion from 1.0.0rc1 changes release metadata and documentation only. It adds
 no feature, algorithm, predictive default or dependency-bound change. Frozen
 30-case binary and four representative checks must remain exact bit-for-bit.
 
-Python 3.10–3.12 is the declared scope. The exact published RC passed Linux and
+Python 3.10–3.12 is the declared scope. The published RC passed Linux and
 Windows CI, including the PyTorch 2.0 family (2.0.1), and fresh local Linux/
-Windows CPU checks. The stable commit requires its own exact-commit remote CI
-before publication; RC CI is not relabeled as stable-commit evidence.
+Windows CPU checks. The exact stable 1.0.0 commit also passed the seven-job
+remote CI matrix before publication; RC CI is retained as separate historical
+evidence rather than relabeled as stable-commit evidence.
 
 Limitations remain explicit: DataFrame-only, single-output, in-memory workloads;
 no full sklearn check_estimator or automatic external eval_set transformation;
@@ -38,5 +39,6 @@ validated support. Independent human pilots remain unavailable and a disclosed
 soft risk. Local synthetic tests are not external-user or production evidence.
 There is no SOTA, universal superiority or tree-model superiority claim.
 
-This local stable candidate is prepared for a separate maintainer publication
-decision. No tag, remote write or release is performed by preparation.
+NeuroTabular 1.0.0 was published from the validated stable commit after the
+exact-commit CI gate passed. The `v1.0.0` tag and release artifacts are immutable
+release identities; future changes belong to later versions.

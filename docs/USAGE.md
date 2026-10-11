@@ -468,14 +468,15 @@ personal paths. Do not upload private frames, model files, tokens or full
 environment-variable listings.
 
 
-## Canonical maintenance and intended stabilization scope
+## Canonical maintenance and stable scope
 
 Current behavior above is unchanged. See [the policy index](policies/README.md),
-[intended 1.0 boundary](API_BOUNDARY.md) and [support scope](policies/SUPPORT_SCOPE.md).
-The boundary is a future freeze candidate, not an actual freeze/release; experimental
-routing/schema/timing/optional mechanisms remain explicitly bounded.
+[1.0 API boundary](API_BOUNDARY.md) and [support scope](policies/SUPPORT_SCOPE.md).
+The reviewed boundary is the stable 1.0 public contract; experimental
+routing/schema/timing/optional mechanisms remain explicitly bounded outside that
+guarantee.
 
-## Target validation before 1.0
+## Target validation contract
 
 Classification supports only single-output sklearn binary/multiclass targets.
 Fractional continuous targets and missing/non-finite numeric labels raise

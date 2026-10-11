@@ -3,14 +3,14 @@
 All notable public changes to NeuroTabular are recorded here. Published tags and
 release artifacts are immutable.
 
-## [1.0.0] - Unpublished stable candidate
+## [1.0.0] - 2026-10-11
 
 - Stabilize the reviewed public estimator/API scope for the first stable release.
 - Retain RC1 target hardening and earlier product/persistence/packaging work.
 - Promote version, stable metadata, installation guidance and support policies;
   no algorithm, predictive default, dependency-bound or feature change.
-- Require fresh full validation, frozen equivalence, clean installs and an
-  exact stable-commit remote CI result before maintainer publication.
+- Complete fresh full validation, frozen equivalence, clean installs and an
+  exact stable-commit seven-job remote CI result before publication.
 - Disclose independent human pilots, macOS and physical CUDA evidence limits.
 
 ## [1.0.0rc1] - Published release candidate

@@ -14,12 +14,13 @@ stability does not establish universal serialized-artifact portability.
 ## Release identity
 
 Package metadata, version module, CITATION, changelog, release notes, artifacts
-and intended tag v1.0.0 must identify the same version and source commit.
-Published tags/artifacts are immutable. Unpublished same-version builds require
-source/artifact hashes. The published RC1 remains a separate immutable identity.
+and tag `v1.0.0` identify the same stable release. Published tags/artifacts are
+immutable. Unpublished same-version development builds require source/artifact
+hashes. The published RC1 remains a separate immutable historical identity.
 
 Review README, API, USAGE, changelog and release notes before every release.
 Public behavior requires matching tests/documentation. Algorithm/performance
 changes require reproducible baseline evidence; this promotion makes neither.
-No roadmap version/date is promised. Local preparation is not publication;
-the maintainer must obtain exact stable-commit CI and decide separately.
+No roadmap version/date is promised. Every future publication requires a
+separate maintainer decision and exact-commit validation appropriate to that
+release.

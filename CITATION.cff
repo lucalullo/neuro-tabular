@@ -6,6 +6,6 @@ authors:
   - family-names: "Lullo"
     given-names: "Luca"
 version: 1.0.0
-# Local stable candidate; publication date is assigned by the maintainer.
+date-released: 2026-10-11
 repository-code: "https://github.com/lucalullo/neuro-tabular"
 license: MIT

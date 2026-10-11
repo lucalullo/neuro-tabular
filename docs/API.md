@@ -390,7 +390,7 @@ Same-version/build, pinned-runtime CPU pickle/joblib round-trips are supported
 in the tested three-task scope. Patch upgrades are best effort and need explicit
 load/prediction validation. Minor/major upgrades, dependency changes and device
 migration are not guaranteed. Pinned Linux CPU tests validate tiny trusted fixtures from the
-public v0.3.1 tag against this candidate; it does not declare all future
+public v0.3.1 tag against the 1.0.0 release; it does not declare all future
 patches compatible. Old models remain usable without new optional diagnostics.
 Load only trusted artifacts and retain original training/export environment.
 
@@ -407,9 +407,10 @@ no new load/import/fit/predict warning is emitted. No automatic persistence
 version checker or migration engine is added.
 
 
-## Canonical maintenance and intended stabilization scope
+## Canonical maintenance and stable scope
 
 Current behavior above is unchanged. See [the policy index](policies/README.md),
-[intended 1.0 boundary](API_BOUNDARY.md) and [support scope](policies/SUPPORT_SCOPE.md).
-The boundary is a future freeze candidate, not an actual freeze/release; experimental
-routing/schema/timing/optional mechanisms remain explicitly bounded.
+[1.0 API boundary](API_BOUNDARY.md) and [support scope](policies/SUPPORT_SCOPE.md).
+The reviewed boundary is the stable 1.0 public contract; experimental
+routing/schema/timing/optional mechanisms remain explicitly bounded outside that
+guarantee.

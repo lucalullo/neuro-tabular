@@ -1,7 +1,8 @@
 # Canonical product policies
 
-These are the canonical policies for the 1.0.0 stable candidate.
-Historical phase reports/roadmaps are evidence, not competing policies.
+These are the canonical maintenance policies for the NeuroTabular 1.0 stable
+public scope. Historical phase reports and roadmaps are evidence, not competing
+policies.
 
 | Subject | Canonical location |
 | --- | --- |
@@ -13,6 +14,6 @@ Historical phase reports/roadmaps are evidence, not competing policies.
 | Versioning | [VERSIONING_POLICY.md](VERSIONING_POLICY.md) |
 | Platform/dependency support matrix | [SUPPORT_SCOPE.md](SUPPORT_SCOPE.md) |
 
-Edit these canonical locations for future work. Historical phase evidence remains
-date-scoped. Public 0.3.1 and published RC1 remain immutable; local stable
-preparation does not publish 1.0.0. Exact stable-commit remote CI is required.
+Edit these canonical locations for future work. Historical evidence remains
+date-scoped. Public 0.3.1, 1.0.0rc1 and 1.0.0 identities are immutable. The
+1.0.0 stable commit passed its exact seven-job remote CI gate before publication.
