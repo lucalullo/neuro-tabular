@@ -12,7 +12,7 @@ body:
     id: version
     attributes:
       label: NeuroTabular version
-      placeholder: 0.3.1
+      placeholder: 1.0.0
     validations:
       required: true
   - type: textarea

@@ -1,6 +1,7 @@
-# NeuroTabular 0.3.1 API reference
+# NeuroTabular 1.0.0 API reference
 
-This document describes the public API for NeuroTabular 0.3.1.
+This document describes the public API for NeuroTabular 1.0.0. The stable and experimental scopes
+are defined in [API_BOUNDARY.md](API_BOUNDARY.md).
 
 The supported public package surface is:
 
@@ -216,9 +217,9 @@ original target units, shape `(n_samples,)`.
 Timing attributes use `time.perf_counter` seconds and describe the current host
 and workload; they are diagnostics, not service-level guarantees.
 
-## Unreleased P37 fitted schema diagnostic
+## Optional fitted schema diagnostic
 
-The development branch adds `input_schema_` after a successful fit. This is not
+Version 1.0.0 includes `input_schema_` after a successful fit. This is not
 an attribute of the published v0.3.1 tag. It is a tuple of small dictionaries in
 input-column order, with `name`, fit-time `dtype` (a string), and `kind`
 (`"numeric"` or `"categorical"`). Categorical entries additionally contain:
@@ -338,7 +339,7 @@ stable, unique names throughout a pipeline.
 
 ## Optional model metadata
 
-P40 local development records internal fit-version provenance without a new
+The implementation records internal fit-version provenance without a new
 public field or persistence format. The example
 `examples/mixed_dataframe_workflow.py` can export a user-owned JSON sidecar
 containing the NeuroTabular version **at export**, Python/Torch versions, fitted
@@ -363,7 +364,7 @@ vocabulary, target/class state and diagnostics. Failed refit retains the old
 snapshot. A non-string-schema refit removes an old `feature_names_in_`. Training
 checkpoints/history and detailed clocks have their documented existing scopes;
 timing fields are not deterministic. Exact per-attribute presence, mutability
-and proposed stability are documented in the local P40 API contract.
+and stability scope are documented in [API_BOUNDARY.md](API_BOUNDARY.md).
 
 `set_params` after fit changes pending next-fit settings and retains the trained
 predictor. `get_params`/repr may therefore differ from that predictor's training
@@ -374,22 +375,22 @@ model but does not undo a previous user call to `set_params`.
 
 ## Version behavior
 
-New P40 fits store `_fitted_neurotabular_version_` as INTERNAL provenance,
+New fits store `_fitted_neurotabular_version_` as INTERNAL provenance,
 created only by successful fit. It is not a supported public fitted attribute,
 does not control prediction/loading and is absent on old public 0.3.1 models.
 Missing provenance means unknown; loading does not invent the current version
 as the training version. Successful refit replaces the value, failed refit
 preserves it with the old model. A version string cannot distinguish unpublished
 builds sharing a version; keep source/environment hashes outside the artifact.
-Package `__version__` remains coherent with pyproject metadata and is not bumped.
+Package `__version__` remains coherent with pyproject metadata and identifies this 1.0.0 source build.
 
 ## Persistence compatibility scope
 
 Same-version/build, pinned-runtime CPU pickle/joblib round-trips are supported
 in the tested three-task scope. Patch upgrades are best effort and need explicit
 load/prediction validation. Minor/major upgrades, dependency changes and device
-migration are not guaranteed. P40 validates tiny trusted fixtures from the local
-public v0.3.1 tag against its unreleased source; it does not declare all future
+migration are not guaranteed. Pinned Linux CPU tests validate tiny trusted fixtures from the
+public v0.3.1 tag against this candidate; it does not declare all future
 patches compatible. Old models remain usable without new optional diagnostics.
 Load only trusted artifacts and retain original training/export environment.
 

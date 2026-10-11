@@ -1,23 +1,22 @@
 # NeuroTabular
 
-NeuroTabular is an experimental PyTorch library for binary classification,
+NeuroTabular is a PyTorch library for binary classification,
 multiclass classification, and single-output regression on heterogeneous pandas
 DataFrames. It exposes a compact scikit-learn-style API, handles numerical and
 categorical columns automatically, and keeps preprocessing inside the estimator
 so training and inference share the same learned state.
 
-**This checkout is NeuroTabular 1.0.0rc1, an unpublished local release
-candidate.** It hardens the classification target contract and includes the
-product stabilization work since public 0.3.1. Valid-input prediction and
-training math remain unchanged by the target repair. See the
-[RC release notes](RELEASE_NOTES.md) and [target contract](docs/TARGET_CONTRACT.md).
-Exact-commit remote CI and a separate maintainer release decision remain pending.
-It is intended for controlled experiments and small or medium in-memory tabular
-datasets, without a claim of universal superiority over gradient-boosted trees.
+**NeuroTabular 1.0.0 stabilizes the documented public API** for binary and
+multiclass classification and single-output regression. It includes the target
+contract hardening validated in the published 1.0.0rc1 candidate, with unchanged
+valid-input training and prediction behavior. See the [release notes](RELEASE_NOTES.md),
+[API boundary](docs/API_BOUNDARY.md) and [target contract](docs/TARGET_CONTRACT.md).
+It targets small or medium in-memory tabular datasets, without SOTA or universal
+superiority claims over gradient-boosted trees.
 
 ## Highlights
 
-- 0.3.1 reduces CPU prediction-path overhead without intentional algorithmic changes;
+- retain CPU prediction-path overhead reductions from 0.3.1;
 - `NeuroTabularClassifier` automatically handles binary and multiclass targets;
 - `NeuroTabularRegressor` learns a continuous target and predicts in original units;
 - automatic numerical, object, string, categorical, and boolean handling;
@@ -51,20 +50,20 @@ broader evidence.
 
 ## Installation
 
-The commands below install the existing public `v0.3.1` baseline, **not this
-unpublished RC**. For RC validation, install its supplied wheel or sdist by local
-filename, or use the local source checkout. Do not infer a remote RC tag exists.
+Before stable publication, validate the supplied 1.0.0 wheel/sdist by local
+filename or install from the source checkout. The following tag commands apply
+**after the maintainer publishes v1.0.0**; local preparation creates no tag or release.
 
-Install the public `v0.3.1` tag from GitHub (network access required):
+Install the intended stable tag from GitHub (network access required):
 
 ```bash
-python -m pip install "git+https://github.com/lucalullo/neuro-tabular.git@v0.3.1"
+python -m pip install "git+https://github.com/lucalullo/neuro-tabular.git@v1.0.0"
 ```
 
 In Kaggle:
 
 ```python
-!pip install -qq git+https://github.com/lucalullo/neuro-tabular.git@v0.3.1
+!pip install -qq git+https://github.com/lucalullo/neuro-tabular.git@v1.0.0
 ```
 
 From a local checkout:

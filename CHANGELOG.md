@@ -3,7 +3,17 @@
 All notable public changes to NeuroTabular are recorded here. Published tags and
 release artifacts are immutable.
 
-## [1.0.0rc1] - Unpublished release candidate
+## [1.0.0] - Unpublished stable candidate
+
+- Stabilize the reviewed public estimator/API scope for the first stable release.
+- Retain RC1 target hardening and earlier product/persistence/packaging work.
+- Promote version, stable metadata, installation guidance and support policies;
+  no algorithm, predictive default, dependency-bound or feature change.
+- Require fresh full validation, frozen equivalence, clean installs and an
+  exact stable-commit remote CI result before maintainer publication.
+- Disclose independent human pilots, macOS and physical CUDA evidence limits.
+
+## [1.0.0rc1] - Published release candidate
 
 ### Target contract hardening
 
@@ -25,8 +35,8 @@ release artifacts are immutable.
 
 - Include the previously unreleased product diagnostics, support guidance and
   maintenance policies listed below. Physical CUDA remains optional and unvalidated.
-- Candidate artifacts are local and unpublished. CI for the exact corrected
-  commit is pending; earlier 0.3.1-based CI does not validate this RC.
+- RC1 was subsequently published with exact-commit seven-job CI PASS.
+  This historical result does not replace stable-commit remote CI.
 - Independent user pilots remain outstanding evidence and a disclosed soft risk.
   Stable 1.0 approval and publication are separate maintainer decisions.
 
@@ -34,7 +44,7 @@ release artifacts are immutable.
 
 - Reconcile the public-0.3.1-based local stabilization candidate and canonical
   policy/support scope; classify the intended 1.0 boundary without enacting a freeze.
-- Preserve Python 3.10â€“3.12 intent, scope CUDA to optional best effort and prepare
+- Preserve Python 3.10–3.12 intent, scope CUDA to optional best effort and prepare
   independent acceptance evidence. These earlier changes did not alter algorithm or dependency bounds.
 
 - Adopt local-development API maintenance, deprecation, warning, persistence and
@@ -84,7 +94,7 @@ quality. Physical CUDA validation remains pending.
 - Automatic multiclass classification with ordered labels, cross entropy,
   normalized softmax probabilities, weights and loss/accuracy stopping.
 - `NeuroTabularRegressor` with train-only weighted target standardization,
-  inverse transformation and loss/RMSE/MAE/RÂ² evaluation.
+  inverse transformation and loss/RMSE/MAE/R² evaluation.
 - Shared preprocessing, neural backbone and multi-task training core.
 - Pickle/joblib validation in fresh processes for all three tasks.
 - Expanded schema, weighting, target, device, sklearn and packaging validation,

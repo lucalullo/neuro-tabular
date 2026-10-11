@@ -1,41 +1,42 @@
-# NeuroTabular 1.0.0rc1 release notes
+# NeuroTabular 1.0.0
 
-**Unpublished local release candidate.** This is preparation for review, not a
-stable 1.0 release or publication authorization.
+The first stable 1.0 release stabilizes a deliberately compact public API for
+binary classification, multiclass classification and single-output regression
+on heterogeneous pandas DataFrames. Numerical and categorical preprocessing
+remains inside each estimator and is learned only from training data.
 
-The classifier now enforces one single-output binary/multiclass target contract
-for fit, eval_set and score. Fractional/continuous labels, non-finite numeric
-labels and unsupported dimensions fail early with ValueError. Integer, string,
-boolean and discrete integer-valued floating labels remain supported. Object
-containers receive value-preserving scalar inference; numeric strings are not
-converted to numbers. See [the target contract](docs/TARGET_CONTRACT.md).
+The release includes sklearn clone, Pipeline and cross-validation workflows;
+transactional refits; caller Python/NumPy/PyTorch CPU RNG restoration; sample
+weights; trusted pickle/joblib persistence; and the product diagnostics,
+support guidance and distribution hardening developed since 0.3.1.
 
-Regression score uses the same finite numeric-target validation as fit/eval_set.
-Zero-weight training rows remain excluded before target discovery. Failed
-invalid-target refits preserve the previous fitted model and caller RNG state.
+The pre-1.0 target repair is retained: fit, eval_set and score reject fractional
+classification labels, nonfinite targets and unsupported target dimensions.
+Discrete integer, boolean, string and integer-valued floating classification
+labels remain supported; regression uses finite real numeric targets and
+predicts in original units. Invalid refits preserve the previous fitted model.
 
-This repair changes no constructor default, training algorithm, preprocessing,
-checkpoint selection, prediction or probability math. The candidate also
-contains earlier unreleased input-schema diagnostics, actionable schema errors,
-support examples, packaging hygiene and maintenance policies from the
-0.3.1-based stabilization tree; see [the changelog](CHANGELOG.md).
+Promotion from 1.0.0rc1 changes release metadata and documentation only. It adds
+no feature, algorithm, predictive default or dependency-bound change. Frozen
+30-case binary and four representative checks must remain exact bit-for-bit.
 
-Validation must be associated with the exact source and artifact hashes.
-Frozen valid-input checks require 30/30 binary and 4/4 representative
-multiclass/regression equivalence. Historical trusted 0.3.1 model checks have a
-pinned Linux CPU dependency scope; no universal serialization portability or
-migration of previously unsupported-target models is promised.
+Python 3.10–3.12 is the declared scope. The exact published RC passed Linux and
+Windows CI, including the PyTorch 2.0 family (2.0.1), and fresh local Linux/
+Windows CPU checks. The stable commit requires its own exact-commit remote CI
+before publication; RC CI is not relabeled as stable-commit evidence.
 
-**REMOTE_CI_PENDING_FOR_CORRECTED_COMMIT.** The old baseline CI is historical
-evidence only. Python 3.10–3.12 intent and dependency bounds remain unchanged;
-the new commit still needs its own seven-job remote matrix. Native Windows on
-the maintainer PC is blocked by Application Control, a separate environment
-limitation; no policy bypass is part of this candidate.
+Limitations remain explicit: DataFrame-only, single-output, in-memory workloads;
+no full sklearn check_estimator or automatic external eval_set transformation;
+no probability calibration/interval guarantee; and no cross-version, dependency,
+OS or device pickle portability promise. Historical 0.3.1 fixture compatibility
+is restricted to its tested pinned Linux CPU runtime. Non-scalar numerical
+representations, feature gating, detailed diagnostics and routing remain
+experimental as listed in [API_BOUNDARY](docs/API_BOUNDARY.md).
 
-Independent user pilots are still unavailable and remain a soft risk. macOS
-has no validated support claim. Physical NVIDIA CUDA validation is optional and
-pending. No benchmark superiority or new scientific conclusion is claimed.
+Physical NVIDIA CUDA validation remains PENDING / BEST_EFFORT. macOS is outside
+validated support. Independent human pilots remain unavailable and a disclosed
+soft risk. Local synthetic tests are not external-user or production evidence.
+There is no SOTA, universal superiority or tree-model superiority claim.
 
-No tag, push, release, PR or package publication is performed by local
-preparation. Review the local reports and exact-commit CI before any later
-maintainer go/no-go decision; see [publishing](PUBLISHING.md).
+This local stable candidate is prepared for a separate maintainer publication
+decision. No tag, remote write or release is performed by preparation.

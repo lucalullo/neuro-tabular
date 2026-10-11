@@ -1,55 +1,25 @@
 # Versioning policy
 
-NeuroTabular uses [Semantic Versioning](https://semver.org/) as a practical
-reference. The current checkout is unpublished 1.0.0rc1. Stable 1.0 approval
-is separate; earlier 0.x minor releases may intentionally evolve experimental
-API or architecture.
+NeuroTabular 1.0.0 establishes the reviewed stable public API scope in
+[API_BOUNDARY](docs/API_BOUNDARY.md). Semantic Versioning is the practical
+change-classification rule: compatible fixes are patches, compatible additions
+are minors, incompatible stable contracts require a major and notice.
 
-The current local-development rules are in
-[the canonical versioning policy](docs/policies/VERSIONING_POLICY.md), with
-[deprecation notice](docs/policies/DEPRECATION_POLICY.md) and
-[persistence boundaries](docs/policies/PERSISTENCE_POLICY.md). Pre-1.0 evolution
-still requires explicit notice and migration review. No version or 1.0 freeze
-is created by adoption of these maintenance rules.
+The canonical [versioning policy](docs/policies/VERSIONING_POLICY.md),
+[deprecation rules](docs/policies/DEPRECATION_POLICY.md) and
+[persistence policy](docs/policies/PERSISTENCE_POLICY.md) define the limits.
+Experimental and internal items retain their explicit classifications. API
+stability does not establish universal serialized-artifact portability.
 
-## Release candidates
+## Release identity
 
-1.0.0rc1 is a prerelease version. Local preparation assigns no public release
-date or remote tag. The authorized target hardening is documented as an
-intentional pre-1.0 correction; constructor defaults and valid prediction math
-remain unchanged. Exact-source CI and a separate maintainer decision are pending.
+Package metadata, version module, CITATION, changelog, release notes, artifacts
+and intended tag v1.0.0 must identify the same version and source commit.
+Published tags/artifacts are immutable. Unpublished same-version builds require
+source/artifact hashes. The published RC1 remains a separate immutable identity.
 
-## Pre-1.0 versions
-
-Versions use `0.MINOR.PATCH`.
-
-- PATCH releases contain compatible bug fixes, documentation updates,
-  packaging corrections, and maintenance.
-- MINOR releases may add features or intentionally change experimental
-  behavior. Examples include multiclass support, regression, a new standard
-  architecture, or an internal neural ensemble.
-
-No roadmap item has a promised version or date.
-
-## Immutable release identity
-
-Every release must have one matching version in package metadata, the package
-version module, changelog, Git tag, release notes, wheel, and source
-distribution. Official tags and published artifacts are immutable.
-
-Every Git tag freezes the code and documentation for that exact version.
-
-## Mandatory documentation rule
-
-No future release may be created without reviewing and, where behavior or
-version references require it, updating all of:
-
-- `README.md`;
-- `docs/API.md`;
-- `docs/USAGE.md`;
-- `CHANGELOG.md`; and
-- release notes.
-
-Public behavior must not be released without matching tests and documentation.
-Architecture or performance changes require reproducible benchmarks against
-the current release baseline.
+Review README, API, USAGE, changelog and release notes before every release.
+Public behavior requires matching tests/documentation. Algorithm/performance
+changes require reproducible baseline evidence; this promotion makes neither.
+No roadmap version/date is promised. Local preparation is not publication;
+the maintainer must obtain exact stable-commit CI and decide separately.

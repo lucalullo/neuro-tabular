@@ -1,10 +1,8 @@
 # API maintenance policy
 
-**ADOPTED_FOR_LOCAL_DEVELOPMENT** as a compatibility/review process. Public
-0.3.1 remains immutable; the current checkout is unpublished 1.0.0rc1, including
-the authorized pre-1.0 target contract hardening. This is not stable 1.0 approval.
-Constructor defaults and valid-input training/prediction math are unchanged by
-that repair.
+Adopted for the 1.0.0 stable public scope. RC1's authorized target hardening
+is retained without constructor-default or valid-input numerical changes.
+The exact stable/experimental/internal boundary is [API_BOUNDARY](../API_BOUNDARY.md).
 
 The public surface is NeuroTabularClassifier, NeuroTabularRegressor and package
 __version__; documented constructor parameters, methods, outputs, error families
@@ -27,14 +25,10 @@ sklearn behavior. Experimental public parameters still need explicit notice.
 Do not claim full sklearn check_estimator or automatic eval_set transformation
 from the tested subset of workflows.
 
-P43 defines the intended stable/experimental boundary in [API_BOUNDARY](../API_BOUNDARY.md)
-and [support scope](SUPPORT_SCOPE.md); both remain prospective, not an actual freeze.
-Before an actual 1.0 freeze, review that boundary against external findings,
-publish the supported platform/dependency boundaries and policies, obtain exact-
-source compatibility evidence and address concrete usability failures. A version
-number, new backbone, SOTA claim or universal tree superiority is insufficient.
-Features left experimental can stay available with explicit limits; 1.0 need
-not add every possible input type, calibration or CUDA support.
+The reviewed stable contract does not require every input type, calibration,
+mandatory CUDA, a new backbone, SOTA or universal tree superiority. Experimental
+features remain available with explicit limits and notice discipline. Technical
+validation and public release decisions remain separate.
 
 No default/architecture/preprocessing/optimization change is authorized by this
 policy. Release/tag/publication decisions remain separate, and research remains

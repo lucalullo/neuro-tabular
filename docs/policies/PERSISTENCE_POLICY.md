@@ -1,9 +1,8 @@
 # Persistence and upgrade policy
 
-P42, 2026-10-09. **ADOPTED_FOR_LOCAL_DEVELOPMENT**; publication is a separate
-release action. Public version remains 0.3.1. This policy deliberately promises
-less than a portable model format. Load only trusted pickle/joblib artifacts:
-unpickling can execute code. No new serialization API or loader is introduced.
+Adopted for 1.0.0. This deliberately promises less than a portable model format.
+Load only trusted pickle/joblib artifacts: unpickling can execute code. No new
+serialization API or loader is introduced.
 
 | Boundary | Policy | Required evidence / recovery |
 | --- | --- | --- |
@@ -15,7 +14,7 @@ unpickling can execute code. No new serialization API or loader is introduced.
 | Different Python/Torch/NumPy/pandas/sklearn/joblib, OS or device | NOT GUARANTEED merely by install support | Validate the exact boundary separately; set_params(device='cpu') is not an artifact remapper |
 
 The CPU scope is grounded in fresh-process same-runtime tests and specific
-trusted public-0.3.1 -> local development fixture comparisons. Those immutable
+trusted public-0.3.1 -> this candidate fixture comparisons. Those immutable
 fixtures stay in the local repository and are excluded from public packages.
 Historical-reference tests explicitly require their recorded runtime. This
 policy does not infer all patch upgrades, future runtimes or physical CUDA.

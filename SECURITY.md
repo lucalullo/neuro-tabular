@@ -1,8 +1,8 @@
 # Security policy
 
-NeuroTabular is experimental and pre-1.0. Security fixes are provided for the
-latest released line when practical; older pre-1.0 releases may not receive
-fixes.
+Security fixes prioritize the latest released stable line when practical.
+Older release lines may not receive fixes; no response-time SLA is promised.
+Version 1.0.0 stabilizes the documented API, not a security certification.
 
 ## Reporting a vulnerability
 

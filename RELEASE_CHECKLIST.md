@@ -1,24 +1,18 @@
-# NeuroTabular 1.0.0rc1 local candidate checklist
+# NeuroTabular 1.0.0 release checklist
 
-This checklist authorizes no remote writes or publication. Public 0.3.1 identity
-remains immutable. Stable 1.0 acceptance is a separate maintainer decision.
-
-- Confirm the intended baseline, final local commit and clean working tree.
-- Align RC version metadata, citation, changelog and release notes.
-- Pass full tests, Ruff check and Ruff format --check on the exact RC source.
-- Close the continuous/non-finite target blockers across fit/eval_set/score.
-- Preserve valid binary/multiclass/regression, transactional refit and caller RNG.
-- Require 30/30 frozen binary and 4/4 representative exact equivalence.
-- Verify weights, schema, clone/Pipeline/CV and trusted persistence.
-- Load current and scoped public-0.3.1 pickle/joblib models in fresh processes.
-- Build wheel/sdist from a clean source archive; run Twine and distribution hygiene.
-- Install wheel, sdist, source and editable source in separate clean environments.
-- Execute documentation, privacy/path audits and performance safety comparisons.
-- Freeze source metadata, regenerate the source manifest, verify complete N/N,
-  and record source/artifact SHA256 hashes.
-- Preserve only public material in the GitHub-ready repository and source ZIP.
-- Mark exact-corrected-commit remote CI PENDING until the maintainer supplies it.
-- Disclose native Windows host-policy blocking separately from remote Windows CI.
-- Disclose independent-user pilots as outstanding soft risk and physical CUDA
-  as optional PENDING; do not count local tests as independent-user evidence.
-- Stop after the local commit and evidence. No push, tag, release or upload.
+- Verify exact final local commit, version coherence and clean tree.
+- Pass fresh full tests, Ruff check/format, target/schema/weight/RNG/API contracts.
+- Require 30/30 binary and 4/4 representative frozen exact equivalence.
+- Check current and scoped old 0.3.1 trusted persistence, including fresh processes.
+- Execute documentation; review privacy/security/support/legal consistency.
+- Build wheel/sdist, Twine, member hygiene and complete source/sdist manifest.
+- Install wheel/sdist/source/editable separately; test three tasks, Pipeline/CV.
+- Verify performance safety and bounded resources; cleanroom build/install.
+- Freeze final source and record artifact SHA256 values.
+- Obtain exact stable-commit seven-job remote CI before publication; RC CI alone
+  does not validate the changed stable tree.
+- Disclose absent independent human pilots as soft risk, macOS out of scope and
+  physical CUDA optional/PENDING; no superiority or portability claims.
+- Review existing legal/naming notes and make a separate maintainer go/no-go.
+- Only after authorization publish immutable v1.0.0 and verified assets.
+- Local preparation performs no push, tag, release, PR, upload or write API.

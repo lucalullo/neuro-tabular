@@ -1,9 +1,7 @@
 # Deprecation and behavior-change policy
 
-P42, 2026-10-09. **ADOPTED_FOR_LOCAL_DEVELOPMENT** under the P42 policy-adoption
-scope. Publication accompanies a separately authorized future release. This is
-a maintenance rule, not a declaration that the pre-1.0 API is frozen. No current
-feature is deprecated and no removal/version/date is announced.
+Adopted for the 1.0.0 stable scope. No current feature is deprecated and no
+removal or schedule is announced. Release/publication remains a separate action.
 
 Documented public classes, constructor parameters, methods, output/schema/weight
 contracts and documented fitted observations are covered. Experimental public

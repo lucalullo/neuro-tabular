@@ -1,7 +1,7 @@
 # Warning and error policy
 
-P42, 2026-10-09. **ADOPTED_FOR_LOCAL_DEVELOPMENT**. The current tested behavior
-is retained. No current API is deprecated and no new runtime emitter is added.
+Adopted for the 1.0.0 stable API scope. Existing runtime behavior is retained.
+No current API is deprecated and no new runtime emitter is added.
 
 | Category | Use |
 | --- | --- |

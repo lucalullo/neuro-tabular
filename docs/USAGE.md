@@ -1,4 +1,4 @@
-# NeuroTabular 0.3.1 usage guide
+# NeuroTabular 1.0.0 usage guide
 
 ## Minimal binary classification
 
@@ -336,9 +336,9 @@ where applicable.
 
 ## Prediction schema
 
-### Inspecting a fitted model (unreleased P37)
+### Inspecting a fitted model
 
-The development branch adds a compact schema snapshot; the published v0.3.1
+Version 1.0.0 includes a compact schema snapshot; the published v0.3.1
 tag and its saved models do not yet expose it:
 
 ```python
@@ -455,7 +455,7 @@ Schema failures raise existing standard exceptions; ordinary column reordering,
 missing-value handling and unseen feature categories do not warn. Explicit CUDA
 fails if unavailable; auto compatibility failure warns with a recorded fallback.
 No current parameter is deprecated, and P40's tested internal FutureWarning
-helper is dormant. Physical CUDA validation is still pending on the AMD-only PC.
+helper is dormant. Physical NVIDIA CUDA validation remains optional and pending.
 
 ## Reporting and recovering from mistakes
 

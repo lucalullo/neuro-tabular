@@ -1,8 +1,7 @@
 # Versioning and stabilization policy
 
-P42, 2026-10-09. **ADOPTED_FOR_LOCAL_DEVELOPMENT**. Public release remains
-0.3.1; no future version/date is assigned here. Semver is a practical change-
-classification rule, not evidence that an artifact or platform has been tested.
+Adopted for 1.0.0. Semver is a practical change-classification rule, not proof
+that a platform/artifact has been tested. Published older identities remain immutable.
 
 | Change class | Rule |
 | --- | --- |
@@ -27,8 +26,7 @@ API and serialized-artifact compatibility are separate policies.
 Each eventual release has matching package metadata/version module/CITATION,
 changelog/release notes/docs, artifacts and immutable tag/commit. Official tags
 and published files must not move or be overwritten. Unpublished builds sharing
-a version require source/artifact hashes; do not distribute this rehearsal as a
-replacement for the existing public 0.3.1 files.
+a version require source/artifact hashes; do not replace any existing published version with a different build.
 
 Review README, API, USAGE, changelog and release notes for every release. Obtain
 exact integrated-source CI/platform evidence, inspect distributions, run Twine

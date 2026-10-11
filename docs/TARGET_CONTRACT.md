@@ -1,6 +1,6 @@
 # Classification and regression target contract
 
-This is deliberate pre-1.0 invalid-input hardening. Earlier 0.3.1 code could
+Version 1.0.0 retains the deliberate invalid-input hardening introduced in RC1. Earlier 0.3.1 code could
 accept fractional binary labels in fit/predict even though sklearn scoring
 rejected them. That inconsistent acceptance is not preserved.
 
