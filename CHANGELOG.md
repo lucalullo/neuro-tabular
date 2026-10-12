@@ -3,6 +3,16 @@
 All notable public changes to NeuroTabular are recorded here. Published tags and
 release artifacts are immutable.
 
+## [1.0.1] - 2026-10-11
+
+- Make the package README suitable for PyPI with absolute documentation links
+  and stable installation/status guidance.
+- Align version/citation metadata, release notes and the version regression test.
+- Retain the existing manual Trusted Publishing workflow and separate
+  TestPyPI/PyPI environments.
+- Preserve all runtime implementation bytes except the version constant;
+  no algorithm, API, default, feature or dependency-bound change.
+
 ## [1.0.0] - 2026-10-11
 
 - Stabilize the reviewed public estimator/API scope for the first stable release.

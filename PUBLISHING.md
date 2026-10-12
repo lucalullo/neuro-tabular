@@ -1,6 +1,6 @@
 # NeuroTabular publishing guide
 
-NeuroTabular 1.0.0 is published as the current stable release. Published tags
+The published NeuroTabular 1.0.0 is immutable; this tree prepares patch 1.0.1. Published tags
 and release artifacts are immutable: do not move, overwrite or reuse them for
 changed source. The same rule applies to 0.3.1 and 1.0.0rc1.
 
@@ -41,3 +41,28 @@ For a future release, the maintainer may authorize a release-branch push for
 exact-commit CI, then an immutable annotated tag and GitHub release with verified
 assets. Package-index publication requires separate authorization. Never force
 replace a published tag or artifact.
+
+## Trusted Publishing for 1.0.1
+
+The existing manual `.github/workflows/publish.yml` is retained unchanged.
+Dispatch it against the immutable `v1.0.1` tag, after reviewing the exact tagged
+commit and its seven successful CI jobs. Select `target=testpypi` and enter
+`confirmation=v1.0.1`. Dispatching from `main` fails the existing tag guard.
+The workflow checks that the Git tag, confirmation and package version agree,
+then tests and builds from that tag before publishing its new distributions.
+It does not consume prebuilt GitHub release assets or accept artifact SHA256
+inputs; archive hashes can differ from earlier local builds.
+
+TestPyPI and PyPI use the separate `testpypi` and `pypi` environments. The publish
+jobs request `id-token: write` and use the official PyPA action without stored
+API tokens. The maintainer must separately configure registry publishers and
+environment protections that allow the approved release tag. Local validation
+does not establish those settings or prove an actual OIDC exchange.
+PyPI publication remains a separately authorized action after TestPyPI review.
+
+Follow the [PyPI Trusted Publishing documentation](https://docs.pypi.org/trusted-publishers/)
+and [TestPyPI guide](https://packaging.python.org/en/latest/guides/using-testpypi/).
+After separately authorized publication, verify registry file digests and install
+in a fresh environment. Resolve dependencies from PyPI first, then install
+NeuroTabular alone with `--no-deps --index-url https://test.pypi.org/simple` for
+TestPyPI; do not mix registries with `--extra-index-url`.

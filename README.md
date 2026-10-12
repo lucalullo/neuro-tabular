@@ -6,11 +6,10 @@ DataFrames. It exposes a compact scikit-learn-style API, handles numerical and
 categorical columns automatically, and keeps preprocessing inside the estimator
 so training and inference share the same learned state.
 
-**NeuroTabular 1.0.0 stabilizes the documented public API** for binary and
-multiclass classification and single-output regression. It includes the target
-contract hardening validated in the published 1.0.0rc1 candidate, with unchanged
-valid-input training and prediction behavior. See the [release notes](RELEASE_NOTES.md),
-[API boundary](docs/API_BOUNDARY.md) and [target contract](docs/TARGET_CONTRACT.md).
+**NeuroTabular 1.0.1 retains the stable public API introduced in 1.0.0** for binary and
+multiclass classification and single-output regression. This packaging and documentation patch preserves the target contract hardening
+and valid-input training and prediction behavior of 1.0.0. See the [release notes](https://github.com/lucalullo/neuro-tabular/blob/main/RELEASE_NOTES.md),
+[API boundary](https://github.com/lucalullo/neuro-tabular/blob/main/docs/API_BOUNDARY.md) and [target contract](https://github.com/lucalullo/neuro-tabular/blob/main/docs/TARGET_CONTRACT.md).
 It targets small or medium in-memory tabular datasets, without SOTA or universal
 superiority claims over gradient-boosted trees.
 
@@ -50,17 +49,16 @@ broader evidence.
 
 ## Installation
 
-NeuroTabular 1.0.0 is the current stable release. Install the immutable
-`v1.0.0` tag from GitHub (network access required):
+Install the stable package from PyPI with Python 3.10–3.12:
 
 ```bash
-python -m pip install "git+https://github.com/lucalullo/neuro-tabular.git@v1.0.0"
+python -m pip install "neurotabular==1.0.1"
 ```
 
-In Kaggle:
+In Kaggle, select a supported Python runtime and install the same version:
 
 ```python
-!pip install -qq git+https://github.com/lucalullo/neuro-tabular.git@v1.0.0
+!pip install -qq neurotabular==1.0.1
 ```
 
 From a local checkout:
@@ -202,7 +200,7 @@ weight are ignored before target validation and preprocessing.
 Regression uses train-only weighted population mean and standard deviation for
 the target, with MSE on the standardized scale and an automatic inverse transform
 at prediction. A constant training target produces the exact constant. See the
-[API reference](docs/API.md) for task-specific details.
+[API reference](https://github.com/lucalullo/neuro-tabular/blob/main/docs/API.md) for task-specific details.
 
 ## Persistence
 
@@ -210,7 +208,7 @@ Pickle and joblib round trips are tested in fresh processes for binary,
 multiclass, and regression models. Use matching package/dependency versions when
 loading persisted models; cross-version and cross-device persistence
 compatibility is not guaranteed. Only load trusted pickle/joblib artifacts.
-See the [usage guide](docs/USAGE.md#persistence).
+See the [usage guide](https://github.com/lucalullo/neuro-tabular/blob/main/docs/USAGE.md#persistence).
 
 ## Devices and performance
 
@@ -227,15 +225,15 @@ For the 0.3.1 patch, the internal P35 CPU/WSL software panel measured median
 latency reductions of about 31% for `predict` and 36% for `predict_proba` versus
 the 0.3.0 path, with bit-for-bit outputs on the frozen equivalence checks. These
 figures are hardware- and workload-specific; see
-[0.3.1 performance validation](docs/PERFORMANCE_0_3_1.md).
+[0.3.1 performance validation](https://github.com/lucalullo/neuro-tabular/blob/main/docs/PERFORMANCE_0_3_1.md).
 
 The frozen 0.3 development benchmark contains 330 fits across 22 task/dataset
 cases and three seeds, comparing NeuroTabular with four fixed tree recipes. Mean
 binary ROC-AUC is `0.8461`, multiclass accuracy is `0.8275`, and regression R² is
 `0.5320`. These are workload-specific engineering measurements, not a claim of
-universal superiority. See [0.3 benchmark evidence](docs/BENCHMARK_0_3.md) for
+universal superiority. See [0.3 benchmark evidence](https://github.com/lucalullo/neuro-tabular/blob/main/docs/BENCHMARK_0_3.md) for
 scope, exact aggregates, comparisons, and known failure cases. Historical 0.2
-binary measurements remain in [BENCHMARK_REPORT.md](BENCHMARK_REPORT.md).
+binary measurements remain in [BENCHMARK_REPORT.md](https://github.com/lucalullo/neuro-tabular/blob/main/BENCHMARK_REPORT.md).
 
 ## scikit-learn use
 
@@ -263,18 +261,18 @@ unexpected columns are rejected rather than guessed.
 
 ### Maintenance policies and stable scope
 
-NeuroTabular 1.0.0 follows the [API maintenance](docs/policies/API_STABILITY_POLICY.md),
-[deprecation](docs/policies/DEPRECATION_POLICY.md),
-[persistence](docs/policies/PERSISTENCE_POLICY.md),
-[warning](docs/policies/WARNING_POLICY.md) and
-[versioning](docs/policies/VERSIONING_POLICY.md) policies. The reviewed
-[1.0 API boundary](docs/API_BOUNDARY.md) is the stable public contract; items
+NeuroTabular 1.0.1 follows the [API maintenance](https://github.com/lucalullo/neuro-tabular/blob/main/docs/policies/API_STABILITY_POLICY.md),
+[deprecation](https://github.com/lucalullo/neuro-tabular/blob/main/docs/policies/DEPRECATION_POLICY.md),
+[persistence](https://github.com/lucalullo/neuro-tabular/blob/main/docs/policies/PERSISTENCE_POLICY.md),
+[warning](https://github.com/lucalullo/neuro-tabular/blob/main/docs/policies/WARNING_POLICY.md) and
+[versioning](https://github.com/lucalullo/neuro-tabular/blob/main/docs/policies/VERSIONING_POLICY.md) policies. The reviewed
+[1.0 API boundary](https://github.com/lucalullo/neuro-tabular/blob/main/docs/API_BOUNDARY.md) is the stable public contract; items
 explicitly classified as experimental or internal remain outside that guarantee.
-[Support scope](docs/policies/SUPPORT_SCOPE.md) documents the validated
+[Support scope](https://github.com/lucalullo/neuro-tabular/blob/main/docs/policies/SUPPORT_SCOPE.md) documents the validated
 Python 3.10–3.12 CPU matrix and remaining evidence limits. CUDA remains optional
 best effort with physical NVIDIA validation pending; macOS remains outside the
 validated support scope. Historical reference models and private validation
-evidence are not packaged. See the [canonical policy index](docs/policies/README.md)
+evidence are not packaged. See the [canonical policy index](https://github.com/lucalullo/neuro-tabular/blob/main/docs/policies/README.md)
 for sources of truth.
 
 ### Complete mixed-data workflows
@@ -291,23 +289,23 @@ It includes a train/test split, nullable and categorical features, missing and
 unseen values, reordered prediction columns and scores. Add `--output-dir ./models`
 for a same-runtime joblib round-trip and optional metadata JSON. The small
 synthetic examples demonstrate usage; they are not benchmark results or tuning
-recommendations. See [usage](docs/USAGE.md#complete-task-and-device-examples).
-NeuroTabular 1.0.0 includes the optional `input_schema_` diagnostic. The
+recommendations. See [usage](https://github.com/lucalullo/neuro-tabular/blob/main/docs/USAGE.md#complete-task-and-device-examples).
+NeuroTabular 1.0.1 includes the optional `input_schema_` diagnostic. The
 examples exercise the stable task APIs while keeping diagnostic-only fields
 outside the core prediction contract.
 
-* [Usage guide](docs/USAGE.md)
-* [API reference](docs/API.md)
-* [Minimal reproducer and safe environment report](docs/support/MINIMAL_REPRODUCER_GUIDE.md)
-* [0.3 benchmark evidence](docs/BENCHMARK_0_3.md)
-* [0.3.1 performance validation](docs/PERFORMANCE_0_3_1.md)
-* [0.3 architecture overview](docs/architecture_0_3.md)
-* [Historical 0.2 benchmark report](BENCHMARK_REPORT.md)
-* [Historical 0.2 performance profile](PERFORMANCE_PROFILE.md)
-* [Historical 0.2 ablation report](ABLATION_REPORT.md)
-* [Research notes](RESEARCH_NOTES.md)
-* [Release notes](RELEASE_NOTES.md)
-* [Publishing guide](PUBLISHING.md)
+* [Usage guide](https://github.com/lucalullo/neuro-tabular/blob/main/docs/USAGE.md)
+* [API reference](https://github.com/lucalullo/neuro-tabular/blob/main/docs/API.md)
+* [Minimal reproducer and safe environment report](https://github.com/lucalullo/neuro-tabular/blob/main/docs/support/MINIMAL_REPRODUCER_GUIDE.md)
+* [0.3 benchmark evidence](https://github.com/lucalullo/neuro-tabular/blob/main/docs/BENCHMARK_0_3.md)
+* [0.3.1 performance validation](https://github.com/lucalullo/neuro-tabular/blob/main/docs/PERFORMANCE_0_3_1.md)
+* [0.3 architecture overview](https://github.com/lucalullo/neuro-tabular/blob/main/docs/architecture_0_3.md)
+* [Historical 0.2 benchmark report](https://github.com/lucalullo/neuro-tabular/blob/main/BENCHMARK_REPORT.md)
+* [Historical 0.2 performance profile](https://github.com/lucalullo/neuro-tabular/blob/main/PERFORMANCE_PROFILE.md)
+* [Historical 0.2 ablation report](https://github.com/lucalullo/neuro-tabular/blob/main/ABLATION_REPORT.md)
+* [Research notes](https://github.com/lucalullo/neuro-tabular/blob/main/RESEARCH_NOTES.md)
+* [Release notes](https://github.com/lucalullo/neuro-tabular/blob/main/RELEASE_NOTES.md)
+* [Publishing guide](https://github.com/lucalullo/neuro-tabular/blob/main/PUBLISHING.md)
 
 ## Limitations
 
@@ -317,7 +315,7 @@ outside the core prediction contract.
 * credit-g and Titanic show weaker binary results and split sensitivity;
 * car can collapse to its majority class; yeast/glass have weak rare-class coverage;
 * quake has negative R² and triazines is weak and split-sensitive; see the
-  [benchmark limitations](docs/BENCHMARK_0_3.md#known-limitations);
+  [benchmark limitations](https://github.com/lucalullo/neuro-tabular/blob/main/docs/BENCHMARK_0_3.md#known-limitations);
 * no claim of state-of-the-art accuracy or tree-model superiority;
 * internal validation reduces the rows used for the selected model unless
   optional full-data refit is enabled;
@@ -331,15 +329,16 @@ outside the core prediction contract.
 
 ## Status
 
-NeuroTabular 1.0.0 is the current stable release. The stable tag and release
-were validated on the exact 1.0.0 commit with the seven-job Linux/Windows CI
-matrix. Independent human pilots remain unavailable and are disclosed as a soft
-risk rather than a supported-evidence claim.
+NeuroTabular 1.0.1 is a packaging and documentation patch on the stable 1.0 API.
+It changes no algorithm, predictive default or public API. Linux and Windows
+seven-job CI evidence for the published 1.0.0 is historical evidence; each new
+release must pass CI on its own exact commit before publication. Independent
+human pilots remain unavailable and are disclosed as a soft risk.
 
 ## License
 
-NeuroTabular is created by Luca Lullo and released under the [MIT License](LICENSE). Dependency notices
-are in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md). See [LEGAL.md](LEGAL.md)
+NeuroTabular is created by Luca Lullo and released under the [MIT License](https://github.com/lucalullo/neuro-tabular/blob/main/LICENSE). Dependency notices
+are in [THIRD_PARTY_NOTICES.md](https://github.com/lucalullo/neuro-tabular/blob/main/THIRD_PARTY_NOTICES.md). See [LEGAL.md](https://github.com/lucalullo/neuro-tabular/blob/main/LEGAL.md)
 for the project's legal/naming note.
 
 ## Author
