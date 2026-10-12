@@ -3,6 +3,25 @@
 All notable public changes to NeuroTabular are recorded here. Published tags and
 release artifacts are immutable.
 
+## [1.0.2] - Unreleased compatibility candidate
+
+- Remove the unnecessary Python <3.13 metadata cap; retain Requires-Python >=3.10.
+- Validate conventional CPython 3.11–3.14 on Linux CPU, including exact 3.13.15,
+  ordinary PyPI dependency installs, minimum/current stacks and warnings as errors.
+- Retain Python 3.10 legacy compatibility; distinguish Python 3.15 code compatibility
+  on the official Torch CPU channel from its ordinary PyPI distribution limitation.
+- Expand the proposed Linux/Windows CI matrix and add Apple Silicon macOS coverage.
+- Update installation/support guidance, version metadata and release notes.
+- Preserve runtime implementation bytes except the version constant and frozen
+  30/30 binary plus 4/4 representative predictions bit for bit.
+- Retain the four existing direct dependency bounds. Require joblib>=1.5 on
+  Python 3.12; >=1.4.2 excluding 1.5.0/1.5.1 on Python 3.13; >=1.5.2 on
+  Python 3.14; and >=1.6 on Python>=3.15. These prevent removed-distutils,
+  pickle-hashing and loky worker/resource-tracker failures. Add cached-Pipeline
+  and parallel cross-validation regression tests.
+- Keep public API, training, predictive defaults and persistence contracts unchanged.
+  Remote CI and publication remain separate maintainer gates.
+
 ## [1.0.1] - 2026-10-11
 
 - Make the package README suitable for PyPI with absolute documentation links

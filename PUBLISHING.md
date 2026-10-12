@@ -1,13 +1,16 @@
 # NeuroTabular publishing guide
 
-The published NeuroTabular 1.0.0 is immutable; this tree prepares patch 1.0.1. Published tags
+The published NeuroTabular 1.0.0 is immutable; this tree prepares compatibility patch 1.0.2. Published tags
 and release artifacts are immutable: do not move, overwrite or reuse them for
 changed source. The same rule applies to 0.3.1 and 1.0.0rc1.
 
-For any future release, require a clean final tree and green seven-job CI on the
-exact release commit: Ruff, Linux Python 3.10/3.11/3.12, Windows Python 3.12,
-PyTorch 2.0-family compatibility and distribution builds. CI from an earlier
-commit or release does not satisfy that gate.
+For this candidate require a clean final tree and successful CI on the exact
+release commit: Ruff; Linux Python 3.10–3.14; Windows Python 3.11–3.14; the
+PyTorch 2.0-family and useful minimum dependency gates; proposed Apple Silicon
+macOS coverage; and distribution builds. The expanded matrix is a local proposal
+and has not run remotely. Earlier seven-job results do not validate this candidate.
+Review Python 3.15 forward compatibility separately while its ordinary PyPI Torch
+distribution is unavailable.
 
 Build and validate in isolated environments:
 
@@ -18,7 +21,7 @@ python -m ruff format --check .
 python -m pytest -W error
 python -m build
 python tools/check_distribution.py dist/*.whl dist/*.tar.gz
-python -m twine check dist/*
+python -m twine check --strict dist/*
 ```
 
 Separately install wheel, sdist, source and editable source. Check pip, version,
@@ -42,12 +45,12 @@ exact-commit CI, then an immutable annotated tag and GitHub release with verifie
 assets. Package-index publication requires separate authorization. Never force
 replace a published tag or artifact.
 
-## Trusted Publishing for 1.0.1
+## Future Trusted Publishing for 1.0.2
 
 The existing manual `.github/workflows/publish.yml` is retained unchanged.
-Dispatch it against the immutable `v1.0.1` tag, after reviewing the exact tagged
-commit and its seven successful CI jobs. Select `target=testpypi` and enter
-`confirmation=v1.0.1`. Dispatching from `main` fails the existing tag guard.
+Dispatch it against the immutable `v1.0.2` tag, after reviewing the exact tagged
+commit and all required successful CI jobs. Select `target=testpypi` and enter
+`confirmation=v1.0.2`. Dispatching from `main` fails the existing tag guard.
 The workflow checks that the Git tag, confirmation and package version agree,
 then tests and builds from that tag before publishing its new distributions.
 It does not consume prebuilt GitHub release assets or accept artifact SHA256

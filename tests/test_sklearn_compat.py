@@ -6,7 +6,7 @@ from sklearn.compose import ColumnTransformer
 from sklearn.datasets import make_classification
 from sklearn.model_selection import GridSearchCV, cross_val_score
 from sklearn.pipeline import Pipeline
-from sklearn.preprocessing import StandardScaler
+from sklearn.preprocessing import FunctionTransformer, StandardScaler
 
 from neurotabular import NeuroTabularClassifier, NeuroTabularRegressor
 
@@ -126,3 +126,28 @@ def test_default_array_transformer_is_rejected_with_dataframe_hint(
     )
     with pytest.raises(TypeError, match="DataFrame.*Convert"):
         pipeline.fit(X, y)
+
+
+def test_cached_pipeline_reuses_transform_without_prediction_change(
+    mixed_binary_data, fast_model_kwargs, tmp_path
+):
+    X, y = mixed_binary_data
+    pipeline = Pipeline(
+        [
+            ("identity", FunctionTransformer(validate=False)),
+            ("model", NeuroTabularClassifier(**fast_model_kwargs)),
+        ],
+        memory=str(tmp_path / "pipeline-cache"),
+    )
+    pipeline.fit(X, y)
+    expected = pipeline.predict_proba(X)
+    pipeline.fit(X, y)
+    np.testing.assert_array_equal(pipeline.predict_proba(X), expected)
+
+
+def test_parallel_cross_validation_with_loky(mixed_binary_data, fast_model_kwargs):
+    X, y = mixed_binary_data
+    estimator = NeuroTabularClassifier(**fast_model_kwargs)
+    scores = cross_val_score(estimator, X, y, cv=2, n_jobs=2, error_score="raise")
+    assert scores.shape == (2,)
+    assert np.isfinite(scores).all()
