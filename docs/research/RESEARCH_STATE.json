@@ -1,0 +1,827 @@
+{
+  "schema_version": "1.0",
+  "project": "NeuroTabular",
+  "product_version": "1.0.2",
+  "research_status": "RESEARCH_REBOOT_NOT_JUSTIFIED",
+  "latest_authoritative_phase": "R38",
+  "primary_candidate": null,
+  "backup_candidate": null,
+  "held_out_status": "CLOSED",
+  "research_principles": [
+    "Practical compact neural tabular baseline.",
+    "Evidence before complexity; negative results remain knowledge.",
+    "Separate stable software from exploratory mechanisms.",
+    "Replicate with frozen protocols, paired controls and inclusive compute.",
+    "Keep reserved evaluation separate and closed during development.",
+    "Make workload-specific claims; no universal superiority claim."
+  ],
+  "research_phases": [
+    {
+      "phase": "Legacy cycles and Micro-Lab",
+      "motivation": "Explore cheap changes before larger campaigns.",
+      "approach": "Routing, interactions, schedules, transforms and adapters; six Micro-Lab batches.",
+      "evaluation": "Small real and synthetic diagnostics; 54 distinct Micro-Lab IDs and 648 recorded scientific fits, with baseline reuse.",
+      "result": "Local signals, reversals, cost failures and inconclusive screens motivated stronger controls.",
+      "decision": "Exploratory evidence; no automatic promotion."
+    },
+    {
+      "phase": "H1–H4",
+      "motivation": "Establish binary baselines and test optimization, activation and calibration.",
+      "approach": "Paired baseline, GELU, batch/exposure and checkpoint/calibration tests.",
+      "evaluation": "Initially 13 binary datasets with fixed paired seeds; narrower trajectory tests for calibration.",
+      "result": "GELU and update frequency showed local gains; no general calibration improvement.",
+      "decision": "Advance selected hypotheses only to stronger comparisons."
+    },
+    {
+      "phase": "H5–H6C; CORE_GELU",
+      "motivation": "Confirm activation changes beyond short screens.",
+      "approach": "Component tests, broader real panels and fresh confirmation.",
+      "evaluation": "Up to 22 eligible real datasets; H6C reused H6 results and is not an independent replication.",
+      "result": "Earlier GELU gains were not sufficient for a general default; the fresh confirmation also lacked complete original integrity bindings.",
+      "decision": "Keep the SiLU default; preserve the historical positive signal and integrity limitation."
+    },
+    {
+      "phase": "H7–H9",
+      "motivation": "Reduce sensitivity to stopping, splits and trajectories.",
+      "approach": "Patience, crossed seed-role diagnostics and checkpoint averaging.",
+      "evaluation": "Paired real binary panels with separate diagnostic and confirmation roles.",
+      "result": "Patience did not establish general stability. Averaging improved mean AUC but failed variance and concentration gates.",
+      "decision": "No general stability or averaging mechanism promoted."
+    },
+    {
+      "phase": "H10–H11",
+      "motivation": "Test feature-token representations and their explanation.",
+      "approach": "Uniform attention followed by offline causal review.",
+      "evaluation": "Eight datasets with paired seeds for attention; no new fits in the follow-up.",
+      "result": "A positive average hid a worst-case failure; the proposed hybrid explanation was unsupported.",
+      "decision": "No representation replacement; hybrid architecture was not built."
+    },
+    {
+      "phase": "H12–H15",
+      "motivation": "Find a practical multitask backbone improvement.",
+      "approach": "Input gating, preprocessing selection, stagewise learning and stronger compute controls.",
+      "evaluation": "Staged tests culminating in a 39-dataset development panel.",
+      "result": "Input gating remained historically positive and unpromoted. Stagewise gains failed the stronger compute comparison; longer training showed regression-specific gains.",
+      "decision": "No new stable default; retain scoped positive signals."
+    },
+    {
+      "phase": "H16–H18",
+      "motivation": "Search for specialist or adaptive headroom.",
+      "approach": "Seventeen bounded forms, MIMO failure analysis and policy-oracle analysis.",
+      "evaluation": "Small staged panels plus offline analysis of fixed policies.",
+      "result": "MIMO had concentrated gains and severe failures; no safe universal cue or sufficient quality-first policy headroom emerged.",
+      "decision": "No specialist routing or learned meta-policy."
+    },
+    {
+      "phase": "H19",
+      "motivation": "Test bounded alternative computational families.",
+      "approach": "Probabilistic circuits, prior-fitted prototypes, relaxed logic and deep equilibrium models.",
+      "evaluation": "Staged small real/synthetic tests with fresh confirmation for the DEQ hint.",
+      "result": "Invalid circuit attempts were separated from corrected weak results; the DEQ hint did not confirm.",
+      "decision": "No radical-family signal in the exact tested forms."
+    },
+    {
+      "phase": "H20–H23",
+      "motivation": "Use tree knowledge or training methods to improve the backbone.",
+      "approach": "Out-of-fold distillation, structural transfer and training-only methods.",
+      "evaluation": "Teacher-inclusive cost controls, prospective graph controls and fresh regression confirmation.",
+      "result": "No broad practical survivor; an early structural hint did not pass its controls.",
+      "decision": "Release with the current backbone."
+    },
+    {
+      "phase": "H24–H26",
+      "motivation": "Test task-specific models, amortization and uncertainty.",
+      "approach": "Eight task-specific forms, a shared synthetic-prior pilot and a last-layer Gaussian approximation.",
+      "evaluation": "Staged task panels, synthetic acceptance gates and ten regression datasets with three seeds.",
+      "result": "No task-specific survivor; synthetic gates stopped amortization before real data; uncertainty breadth and coverage were insufficient.",
+      "decision": "No new backbone, pretrained predictor or interval feature."
+    },
+    {
+      "phase": "H27–H29",
+      "motivation": "Decompose failures and assess complementary models.",
+      "approach": "Retrospective diagnostics, neural/tree blending and official external neural recipes.",
+      "evaluation": "23 diagnostic cohorts, an 18-dataset blend panel and staged external comparisons.",
+      "result": "Multiple partial failure mechanisms; blend cost/robustness failed; external results were mixed with incomplete matched coverage.",
+      "decision": "No single explanation, hybrid promotion or automatic external adoption."
+    },
+    {
+      "phase": "H30–H30C",
+      "motivation": "Test adaptive capacity growth.",
+      "approach": "Mechanical gate, repair, then controlled scientific comparison.",
+      "evaluation": "Synthetic mechanics followed by 15 observational datasets and two seeds.",
+      "result": "Repair passed mechanics; the scientific comparison failed quality and robustness.",
+      "decision": "Exact growth recipe closed."
+    },
+    {
+      "phase": "H31–H33",
+      "motivation": "Identify and validate a justified next mechanism.",
+      "approach": "Prior-art/control review, variable-projection mechanics and candidate red-teaming.",
+      "evaluation": "Algebraic fixtures and analysis; no scientific variable-projection fits.",
+      "result": "Numerical acceptance failed; no subsequent candidate met admission requirements.",
+      "decision": "Quality unevaluated for variable projection; no next mechanism."
+    },
+    {
+      "phase": "R34–R35",
+      "motivation": "Consolidate knowledge and seek new reopening evidence.",
+      "approach": "Source-bound history review and literature audit.",
+      "evaluation": "Existing records and reviewed papers; no new scientific fits.",
+      "result": "New-to-corpus evidence was insufficiently actionable.",
+      "decision": "Research remains frozen; historical roadmap proposals are superseded."
+    },
+    {
+      "phase": "R36",
+      "motivation": "Check failure hypotheses on newly catalogued development data.",
+      "approach": "Grouped duplicate-feature splits, fixed neural/tree recipes and perturbation controls.",
+      "evaluation": "27 UCI datasets, nine per task, three seeds; 306 fits with no failed, censored or retried fits.",
+      "result": "Ten material neural losses and several counterexamples; causal hypotheses remained partial.",
+      "decision": "No research reopening; freshness is relative to the audited catalog."
+    },
+    {
+      "phase": "D37",
+      "motivation": "Make future research auditable.",
+      "approach": "Identity, alias, seed, overlap and failure-panel infrastructure.",
+      "evaluation": "117 scoped identities and 80 campaign records; prospective failure panels were not executed.",
+      "result": "Useful navigation and heuristic checks; incomplete first-use and reservation evidence remain.",
+      "decision": "Infrastructure readiness is not research admission."
+    },
+    {
+      "phase": "R38",
+      "motivation": "Decide whether evidence justifies another research phase.",
+      "approach": "Zero-fit candidate review and inexpensive arithmetic checks.",
+      "evaluation": "No estimator fits, scientific solvers, dataset loading or new seed campaign.",
+      "result": "No candidate met the combined scientific, mathematical and practical requirements.",
+      "decision": "RESEARCH_REBOOT_NOT_JUSTIFIED; primary and backup NONE; held-outs CLOSED."
+    },
+    {
+      "phase": "P35–P43X; 1.0–1.0.2",
+      "motivation": "Turn the existing model into a stable software baseline.",
+      "approach": "Performance parity, API lifecycle, examples, persistence, compatibility and release engineering.",
+      "evaluation": "Bounded engineering and contract validation; separate from algorithm comparisons.",
+      "result": "Stable contracts and measured implementation improvements without a new algorithmic promotion.",
+      "decision": "NeuroTabular 1.0.2 remains the product baseline."
+    }
+  ],
+  "experiment_families": [
+    {
+      "id": "F01",
+      "family": "Compact residual MLP",
+      "problem": "Ordinary mixed-data learning with bounded training.",
+      "result": "Retained as the stable backbone; width, depth and longer-training alternatives did not establish a general replacement.",
+      "status": "STABLE_DEFAULT",
+      "phases": "H5, H12, H15, H23"
+    },
+    {
+      "id": "F02",
+      "family": "Numerical and categorical representations",
+      "problem": "Imputation, missing states, embeddings, frequency, robust/rank transforms and cross-fitted target encoding.",
+      "result": "Stable train-only representations remain; alternative transforms had local or inconclusive benefits. Target encoding was tested, without a general promotion.",
+      "status": "MIXED_PRODUCT_AND_RESEARCH",
+      "phases": "Micro-Lab, H13, H16"
+    },
+    {
+      "id": "F03",
+      "family": "Activations and gated MLPs",
+      "problem": "Improve optimization and input selection without excessive capacity.",
+      "result": "Earlier GELU gains did not survive general-default confirmation. H12 input gating was historically positive but remained unpromoted; it differs from the public opt-in gate.",
+      "status": "RESEARCH_ONLY",
+      "phases": "H2, H5, H6, H6C, CORE_GELU, H12"
+    },
+    {
+      "id": "F04",
+      "family": "Feature tokens, attention and mixers",
+      "problem": "Represent heterogeneous feature interactions.",
+      "result": "Positive average attention results coexisted with a worst-case regression in classification performance; the attention-specific explanation was not isolated. Mixer variants lacked general support.",
+      "status": "NOT_PROMOTED",
+      "phases": "H10, H11, H16"
+    },
+    {
+      "id": "F05",
+      "family": "Cross, factorization and tensor interactions",
+      "problem": "Capture sparse or higher-order interactions compactly.",
+      "result": "Synthetic or local gains did not establish robust real-data transfer; no general interaction replacement was promoted.",
+      "status": "NOT_PROMOTED",
+      "phases": "Cycles 2, H5, H12, H13"
+    },
+    {
+      "id": "F06",
+      "family": "Routing, mixtures and ensembles",
+      "problem": "Adapt representation or allocate specialists to rows.",
+      "result": "Routing gains reversed on evaluation or incurred excess cost. Mixtures and ensembles did not establish a robust, practical general benefit.",
+      "status": "NOT_PROMOTED",
+      "phases": "Cycles 1, H12, H13, H16, H17"
+    },
+    {
+      "id": "F07",
+      "family": "Differentiable trees",
+      "problem": "Learn structured decision boundaries within neural training.",
+      "result": "Bounded differentiable-tree screens did not support promotion; this does not reject all tree methods.",
+      "status": "NOT_PROMOTED",
+      "phases": "H12, H13"
+    },
+    {
+      "id": "F08",
+      "family": "Retrieval, prototypes and kernels",
+      "problem": "Use local residual information.",
+      "result": "Some regression gains were retained as signals; inference cost, retained state and insufficient breadth prevented promotion.",
+      "status": "RESEARCH_ONLY",
+      "phases": "H12, H13, H16"
+    },
+    {
+      "id": "F09",
+      "family": "Regularization, optimization and stopping",
+      "problem": "Change update frequency, loss, batch size, regularization or stopping.",
+      "result": "Most screens were inconclusive or specialized. Later controls exposed learning-rate, exposure and stopping confounds; no general replacement emerged.",
+      "status": "NOT_PROMOTED",
+      "phases": "Micro-Lab, H3, H5, H7, H15, H23"
+    },
+    {
+      "id": "F10",
+      "family": "Checkpoint selection, averaging and calibration",
+      "problem": "Improve ranking, probability quality or trajectory stability.",
+      "result": "Averaging improved mean AUC but failed variance and concentration gates. Calibration safeguards stabilized narrow cases without general real-data ranking benefit.",
+      "status": "RESEARCH_ONLY",
+      "phases": "Micro-Lab, H4, H9"
+    },
+    {
+      "id": "F11",
+      "family": "Preprocessing adaptation and meta-adaptation",
+      "problem": "Select a representation or training policy from training evidence.",
+      "result": "Selection overhead and weak broad gains prevented promotion. The policy oracle did not justify training a meta-policy; an oracle is not an implemented learner.",
+      "status": "NOT_PROMOTED",
+      "phases": "H13, H16, H18"
+    },
+    {
+      "id": "F12",
+      "family": "Training-only and self-supervised methods",
+      "problem": "Improve a fixed backbone through auxiliary training.",
+      "result": "Bounded screens produced no general survivor. Regression compute gains were insufficiently practical under the frozen cost gate.",
+      "status": "NOT_PROMOTED",
+      "phases": "H12, H13, H16, H23"
+    },
+    {
+      "id": "F13",
+      "family": "Stagewise neural boosting",
+      "problem": "Fit residual information in an additional stage.",
+      "result": "Gains against the cheaper baseline did not survive comparison with the stronger compute control.",
+      "status": "NOT_PROMOTED",
+      "phases": "H13, H14"
+    },
+    {
+      "id": "F14",
+      "family": "MIMO",
+      "problem": "Share training across multiple input/output streams.",
+      "result": "A positive mean was concentrated in few datasets, with a negative median and severe failures. Subsequent diagnostics did not justify safe routing.",
+      "status": "NOT_PROMOTED",
+      "phases": "H16, H17"
+    },
+    {
+      "id": "F15",
+      "family": "Probabilistic circuits and relaxed logic",
+      "problem": "Test bounded alternatives to ordinary neural representations.",
+      "result": "The original symmetric circuit implementation was invalid; the corrected circuit and relaxed-logic prototypes lacked a general signal.",
+      "status": "NOT_PROMOTED",
+      "phases": "H19"
+    },
+    {
+      "id": "F16",
+      "family": "Deep equilibrium models",
+      "problem": "Use an implicit learned representation.",
+      "result": "An initial binary signal failed fresh specialist confirmation. Only the bounded tested recipes are covered.",
+      "status": "NOT_PROMOTED",
+      "phases": "H19"
+    },
+    {
+      "id": "F17",
+      "family": "Prior-fitted prototypes and amortized learning",
+      "problem": "Learn a reusable predictor from synthetic tasks.",
+      "result": "A small prototype lacked practical broad evidence. The later shared amortized pilot failed frozen synthetic gates before any real-data evaluation. Large pretrained systems were not evaluated by these tests.",
+      "status": "NOT_PROMOTED",
+      "phases": "H19, H25"
+    },
+    {
+      "id": "F18",
+      "family": "Tree output distillation",
+      "problem": "Transfer a tree teacher through out-of-fold training targets.",
+      "result": "Positive mean but negative median and inclusive teacher cost prevented promotion; additional conditional arms were not triggered.",
+      "status": "NOT_PROMOTED",
+      "phases": "H20"
+    },
+    {
+      "id": "F19",
+      "family": "Tree-derived interactions",
+      "problem": "Transfer structural information instead of teacher predictions.",
+      "result": "An early descriptive hint failed the threshold control; prospective graph transfer did not confirm the mechanism.",
+      "status": "NOT_PROMOTED",
+      "phases": "H21, H22"
+    },
+    {
+      "id": "F20",
+      "family": "Task-specific backbones and heads",
+      "problem": "Use task-specific grouping, class representations or regression objectives.",
+      "result": "Eight bounded forms produced no survivor. Some panels stopped early after severe failures; a robust-regression gain depended on one dataset.",
+      "status": "NOT_PROMOTED",
+      "phases": "H24"
+    },
+    {
+      "id": "F21",
+      "family": "Bayesian last-layer uncertainty",
+      "problem": "Improve uncertainty without changing the point predictor.",
+      "result": "Some Gaussian likelihood gains occurred, but coverage and breadth gates failed. The mean prediction remained unchanged; no interval API resulted.",
+      "status": "RESEARCH_ONLY",
+      "phases": "H26"
+    },
+    {
+      "id": "F22",
+      "family": "Neural/tree hybrids",
+      "problem": "Recover complementary errors through an out-of-fold blend.",
+      "result": "The blend improved over the neural baseline, but did not robustly improve over the tree comparator and had high inclusive cost and unstable weights.",
+      "status": "NOT_PROMOTED",
+      "phases": "H28"
+    },
+    {
+      "id": "F23",
+      "family": "Progressive residual growth",
+      "problem": "Allocate model capacity during learning.",
+      "result": "Mechanical defects were repaired before scientific testing; the repaired recipe then failed quality and robustness gates.",
+      "status": "NOT_PROMOTED",
+      "phases": "H30, H30R, H30C"
+    },
+    {
+      "id": "F24",
+      "family": "Variable projection",
+      "problem": "Profile a supervised readout during representation learning.",
+      "result": "Mechanical and numerical acceptance contracts failed before scientific fits. Quality remains unevaluated; the exact line is operationally closed.",
+      "status": "QUALITY_UNEVALUATED",
+      "phases": "H31, H32, H32R, H32V2"
+    },
+    {
+      "id": "F25",
+      "family": "Further admission proposals",
+      "problem": "Seek a justified next mechanism after earlier failures.",
+      "result": "Overlap, incomplete specification, unsupported causal premises or practical scope prevented admission. Unexecuted proposals are not empirical negative results.",
+      "status": "NOT_ADMITTED",
+      "phases": "H33, R35, R38"
+    },
+    {
+      "id": "F26",
+      "family": "Failure decomposition and engineering",
+      "problem": "Understand failure categories and improve implementation cost.",
+      "result": "Diagnostics found multiple partial mechanisms, without a universal cause. Performance engineering improved measured workloads while preserving model behavior.",
+      "status": "DIAGNOSTIC_AND_ENGINEERING",
+      "phases": "H8, H27, R36, D37, P35–P43X"
+    }
+  ],
+  "retained_mechanisms": [
+    {
+      "status": "STABLE_DEFAULT",
+      "mechanism": "Train-only numeric representation",
+      "reason": "Median imputation, standardization and missing indicators; limits leakage and gives predictable input behavior."
+    },
+    {
+      "status": "STABLE_DEFAULT",
+      "mechanism": "Categorical states and embeddings",
+      "reason": "Training vocabulary, explicit missing/unknown/rare states and train-only bucket frequency."
+    },
+    {
+      "status": "STABLE_DEFAULT",
+      "mechanism": "Compact residual SiLU backbone",
+      "reason": "A bounded mixed-data neural baseline; research alternatives did not justify a general replacement."
+    },
+    {
+      "status": "STABLE_DEFAULT",
+      "mechanism": "Ordinary task objectives and bounded training",
+      "reason": "Binary/multiclass classification and single-output regression; validation-loss selection and bounded optimization."
+    },
+    {
+      "status": "STABLE_DEFAULT",
+      "mechanism": "Estimator lifecycle and caller ownership",
+      "reason": "Transactional fit state, schema alignment and protection of caller inputs and RNG state are software contracts."
+    },
+    {
+      "status": "SUPPORTED_OPTIONAL",
+      "mechanism": "Full-data refit and declared stable options",
+      "reason": "Existing opt-in refit and supported categorical/class-weight settings; refit cost is additional and it is skipped with external evaluation data."
+    },
+    {
+      "status": "EXPERIMENTAL_PUBLIC",
+      "mechanism": "Alternative numerical embeddings and feature gating",
+      "reason": "Existing opt-in behavior remains experimental; public feature gating is distinct from H12 research input gating."
+    },
+    {
+      "status": "EXPERIMENTAL_PUBLIC",
+      "mechanism": "Classified diagnostic and routing formats",
+      "reason": "Support is limited to the documented experimental scope; importability alone is not a stable promise."
+    },
+    {
+      "status": "RESEARCH_ONLY",
+      "mechanism": "Historically positive partial signals",
+      "reason": "Activation, calibration, averaging, input-gating, retrieval, compute and uncertainty signals remain scoped and unpromoted."
+    },
+    {
+      "status": "REJECTED",
+      "mechanism": "Exact forms failing their gates",
+      "reason": "Closed tested recipes retain their quality, cost, integrity or mechanical reason; this is not a rejection of entire scientific families."
+    },
+    {
+      "status": "REMOVED",
+      "mechanism": "No stable 1.0 removal established",
+      "reason": "Never-promoted research is not described as a shipped feature that was later removed."
+    }
+  ],
+  "non_promoted_mechanisms": [
+    {
+      "family": "Activations and gated MLPs",
+      "problem": "Improve optimization and input selection without excessive capacity.",
+      "result": "Earlier GELU gains did not survive general-default confirmation. H12 input gating was historically positive but remained unpromoted; it differs from the public opt-in gate.",
+      "status": "RESEARCH_ONLY",
+      "phases": "H2, H5, H6, H6C, CORE_GELU, H12"
+    },
+    {
+      "family": "Feature tokens, attention and mixers",
+      "problem": "Represent heterogeneous feature interactions.",
+      "result": "Positive average attention results coexisted with a worst-case regression in classification performance; the attention-specific explanation was not isolated. Mixer variants lacked general support.",
+      "status": "NOT_PROMOTED",
+      "phases": "H10, H11, H16"
+    },
+    {
+      "family": "Cross, factorization and tensor interactions",
+      "problem": "Capture sparse or higher-order interactions compactly.",
+      "result": "Synthetic or local gains did not establish robust real-data transfer; no general interaction replacement was promoted.",
+      "status": "NOT_PROMOTED",
+      "phases": "Cycles 2, H5, H12, H13"
+    },
+    {
+      "family": "Routing, mixtures and ensembles",
+      "problem": "Adapt representation or allocate specialists to rows.",
+      "result": "Routing gains reversed on evaluation or incurred excess cost. Mixtures and ensembles did not establish a robust, practical general benefit.",
+      "status": "NOT_PROMOTED",
+      "phases": "Cycles 1, H12, H13, H16, H17"
+    },
+    {
+      "family": "Differentiable trees",
+      "problem": "Learn structured decision boundaries within neural training.",
+      "result": "Bounded differentiable-tree screens did not support promotion; this does not reject all tree methods.",
+      "status": "NOT_PROMOTED",
+      "phases": "H12, H13"
+    },
+    {
+      "family": "Retrieval, prototypes and kernels",
+      "problem": "Use local residual information.",
+      "result": "Some regression gains were retained as signals; inference cost, retained state and insufficient breadth prevented promotion.",
+      "status": "RESEARCH_ONLY",
+      "phases": "H12, H13, H16"
+    },
+    {
+      "family": "Regularization, optimization and stopping",
+      "problem": "Change update frequency, loss, batch size, regularization or stopping.",
+      "result": "Most screens were inconclusive or specialized. Later controls exposed learning-rate, exposure and stopping confounds; no general replacement emerged.",
+      "status": "NOT_PROMOTED",
+      "phases": "Micro-Lab, H3, H5, H7, H15, H23"
+    },
+    {
+      "family": "Checkpoint selection, averaging and calibration",
+      "problem": "Improve ranking, probability quality or trajectory stability.",
+      "result": "Averaging improved mean AUC but failed variance and concentration gates. Calibration safeguards stabilized narrow cases without general real-data ranking benefit.",
+      "status": "RESEARCH_ONLY",
+      "phases": "Micro-Lab, H4, H9"
+    },
+    {
+      "family": "Preprocessing adaptation and meta-adaptation",
+      "problem": "Select a representation or training policy from training evidence.",
+      "result": "Selection overhead and weak broad gains prevented promotion. The policy oracle did not justify training a meta-policy; an oracle is not an implemented learner.",
+      "status": "NOT_PROMOTED",
+      "phases": "H13, H16, H18"
+    },
+    {
+      "family": "Training-only and self-supervised methods",
+      "problem": "Improve a fixed backbone through auxiliary training.",
+      "result": "Bounded screens produced no general survivor. Regression compute gains were insufficiently practical under the frozen cost gate.",
+      "status": "NOT_PROMOTED",
+      "phases": "H12, H13, H16, H23"
+    },
+    {
+      "family": "Stagewise neural boosting",
+      "problem": "Fit residual information in an additional stage.",
+      "result": "Gains against the cheaper baseline did not survive comparison with the stronger compute control.",
+      "status": "NOT_PROMOTED",
+      "phases": "H13, H14"
+    },
+    {
+      "family": "MIMO",
+      "problem": "Share training across multiple input/output streams.",
+      "result": "A positive mean was concentrated in few datasets, with a negative median and severe failures. Subsequent diagnostics did not justify safe routing.",
+      "status": "NOT_PROMOTED",
+      "phases": "H16, H17"
+    },
+    {
+      "family": "Probabilistic circuits and relaxed logic",
+      "problem": "Test bounded alternatives to ordinary neural representations.",
+      "result": "The original symmetric circuit implementation was invalid; the corrected circuit and relaxed-logic prototypes lacked a general signal.",
+      "status": "NOT_PROMOTED",
+      "phases": "H19"
+    },
+    {
+      "family": "Deep equilibrium models",
+      "problem": "Use an implicit learned representation.",
+      "result": "An initial binary signal failed fresh specialist confirmation. Only the bounded tested recipes are covered.",
+      "status": "NOT_PROMOTED",
+      "phases": "H19"
+    },
+    {
+      "family": "Prior-fitted prototypes and amortized learning",
+      "problem": "Learn a reusable predictor from synthetic tasks.",
+      "result": "A small prototype lacked practical broad evidence. The later shared amortized pilot failed frozen synthetic gates before any real-data evaluation. Large pretrained systems were not evaluated by these tests.",
+      "status": "NOT_PROMOTED",
+      "phases": "H19, H25"
+    },
+    {
+      "family": "Tree output distillation",
+      "problem": "Transfer a tree teacher through out-of-fold training targets.",
+      "result": "Positive mean but negative median and inclusive teacher cost prevented promotion; additional conditional arms were not triggered.",
+      "status": "NOT_PROMOTED",
+      "phases": "H20"
+    },
+    {
+      "family": "Tree-derived interactions",
+      "problem": "Transfer structural information instead of teacher predictions.",
+      "result": "An early descriptive hint failed the threshold control; prospective graph transfer did not confirm the mechanism.",
+      "status": "NOT_PROMOTED",
+      "phases": "H21, H22"
+    },
+    {
+      "family": "Task-specific backbones and heads",
+      "problem": "Use task-specific grouping, class representations or regression objectives.",
+      "result": "Eight bounded forms produced no survivor. Some panels stopped early after severe failures; a robust-regression gain depended on one dataset.",
+      "status": "NOT_PROMOTED",
+      "phases": "H24"
+    },
+    {
+      "family": "Bayesian last-layer uncertainty",
+      "problem": "Improve uncertainty without changing the point predictor.",
+      "result": "Some Gaussian likelihood gains occurred, but coverage and breadth gates failed. The mean prediction remained unchanged; no interval API resulted.",
+      "status": "RESEARCH_ONLY",
+      "phases": "H26"
+    },
+    {
+      "family": "Neural/tree hybrids",
+      "problem": "Recover complementary errors through an out-of-fold blend.",
+      "result": "The blend improved over the neural baseline, but did not robustly improve over the tree comparator and had high inclusive cost and unstable weights.",
+      "status": "NOT_PROMOTED",
+      "phases": "H28"
+    },
+    {
+      "family": "Progressive residual growth",
+      "problem": "Allocate model capacity during learning.",
+      "result": "Mechanical defects were repaired before scientific testing; the repaired recipe then failed quality and robustness gates.",
+      "status": "NOT_PROMOTED",
+      "phases": "H30, H30R, H30C"
+    },
+    {
+      "family": "Variable projection",
+      "problem": "Profile a supervised readout during representation learning.",
+      "result": "Mechanical and numerical acceptance contracts failed before scientific fits. Quality remains unevaluated; the exact line is operationally closed.",
+      "status": "QUALITY_UNEVALUATED",
+      "phases": "H31, H32, H32R, H32V2"
+    },
+    {
+      "family": "Further admission proposals",
+      "problem": "Seek a justified next mechanism after earlier failures.",
+      "result": "Overlap, incomplete specification, unsupported causal premises or practical scope prevented admission. Unexecuted proposals are not empirical negative results.",
+      "status": "NOT_ADMITTED",
+      "phases": "H33, R35, R38"
+    }
+  ],
+  "failure_modes": [
+    {
+      "category": "Irrelevant-feature sensitivity",
+      "evidence": "Perturbation and association evidence identified partial sensitivity, with confounding and counterexamples.",
+      "boundary": "No general nuisance-removal cure was demonstrated."
+    },
+    {
+      "category": "Rare categorical support",
+      "evidence": "Weak support, cardinality and conditional structure can coincide with failures; broad correlations changed after removing influential datasets.",
+      "boundary": "Rare categories can also carry information; blanket suppression is not justified."
+    },
+    {
+      "category": "Sparse and conditional interactions",
+      "evidence": "Interaction probes and tree comparisons exposed local representational gaps.",
+      "boundary": "No controlled, practical mechanism solved them generally."
+    },
+    {
+      "category": "Small-data generalization",
+      "evidence": "Some small datasets were difficult, but reduced-data controls contradicted a universal sample-size explanation.",
+      "boundary": "Initialization, splits, support and finite capacity cannot be collapsed into one cause."
+    },
+    {
+      "category": "Target-tail behavior",
+      "evidence": "Tail-related comparisons supported some contrasts but included clear counterexamples.",
+      "boundary": "Neither a universal tail diagnosis nor a robust-regression default was established."
+    }
+  ],
+  "benchmark_history": [
+    {
+      "history": "Legacy cycles",
+      "design": "Small public/development and historical internal panels; partial original manifests.",
+      "metrics_and_comparators": "Binary ranking, probability quality and cost.",
+      "limitations": "Exploratory; older held-out sets differ from current reservations."
+    },
+    {
+      "history": "Micro-Lab",
+      "design": "Six batches, 54 IDs, 648 recorded fits; tiny real and synthetic panels.",
+      "metrics_and_comparators": "AUC, probability losses, training/exposure and inference cost.",
+      "limitations": "Baseline reuse, exploratory tiers and one-thread CPU scope; not independent 648-fold confirmation."
+    },
+    {
+      "history": "Public 0.2 engineering",
+      "design": "Small public/synthetic workloads.",
+      "metrics_and_comparators": "API, installation and performance measurements.",
+      "limitations": "Engineering evidence; no broad accuracy ranking."
+    },
+    {
+      "history": "Public 0.3 quality",
+      "design": "22 datasets, three seeds, five fixed recipes: 330 fits; 5 binary, 9 multiclass, 8 regression.",
+      "metrics_and_comparators": "Neural model and 100-iteration HGB, LightGBM, XGBoost and CatBoost recipes; no HPO.",
+      "limitations": "Development panel; nonisolated timing and recipe-specific comparisons."
+    },
+    {
+      "history": "H1–H11 binary campaigns",
+      "design": "Paired real panels growing from 13 to 22 datasets.",
+      "metrics_and_comparators": "AUC plus log loss/Brier safety; phase-specific fixed seeds and controls.",
+      "limitations": "H6/H6C reuse and incomplete original CORE_GELU integrity limit interpretation."
+    },
+    {
+      "history": "H12–H26 frontier",
+      "design": "Staged multitask panels, including a 39-dataset development suite and narrower task panels.",
+      "metrics_and_comparators": "Capacity/compute controls, task-native metrics and phase-specific normalized gains.",
+      "limitations": "Early stops are not complete family rankings; teacher, selector and pretraining cost must be included."
+    },
+    {
+      "history": "H27/H28/H30C controlled work",
+      "design": "23 diagnostic cohorts; blend 18 datasets by two seeds; growth 15 by two seeds.",
+      "metrics_and_comparators": "Failure associations, paired blend/growth quality and inclusive costs.",
+      "limitations": "Retrospective reuse, confounded interventions, unstable blend weights and incomplete compute eligibility."
+    },
+    {
+      "history": "H29 external neural models",
+      "design": "Official fixed TabM, RealMLP-TD-S, TabR and FT-Transformer recipes; staged panels.",
+      "metrics_and_comparators": "Native quality, matched neural controls and inclusive fit/inference cost.",
+      "limitations": "Incomplete matched coverage, censored attempts, timeouts and incompatibilities; no HPO or universal ranking."
+    },
+    {
+      "history": "R36 failure replication",
+      "design": "27 UCI datasets by three seeds; grouped duplicate-feature 60/20/20 splits, four CPU threads.",
+      "metrics_and_comparators": "Fixed public 0.3.1 neural model versus HGB with 100 iterations, learning rate 0.1 and 31 leaves.",
+      "limitations": "Fresh relative to audited catalog; observational findings do not prove a universal failure cause."
+    }
+  ],
+  "research_guardrails": [
+    {
+      "id": "G01",
+      "area": "Authority",
+      "rule": "The latest decision governs; infrastructure and old plans do not authorize experiments."
+    },
+    {
+      "id": "G02",
+      "area": "Held-outs",
+      "rule": "Six reserved datasets remain CLOSED; unresolved reservation identities/seeds prevent opening."
+    },
+    {
+      "id": "G03",
+      "area": "Freshness",
+      "rule": "Resolve namespaces, aliases and lineage; new seeds are not new datasets and catalog absence is not proof of never-used status."
+    },
+    {
+      "id": "G04",
+      "area": "Training and splits",
+      "rule": "Keep preprocessing and selection training-only; pair splits and RNG roles and group duplicate features where required."
+    },
+    {
+      "id": "G05",
+      "area": "Experiment contract",
+      "rule": "Freeze hypotheses, panel, metrics, controls, seeds, budgets, attempts and stop rules before outcomes; mechanical gates come first."
+    },
+    {
+      "id": "G06",
+      "area": "Controls",
+      "rule": "Use strong compute and capacity controls; distinguish correlation, oracle headroom and causal evidence."
+    },
+    {
+      "id": "G07",
+      "area": "Aggregation",
+      "rule": "Average seeds within datasets; report mean, median, breadth, worst case, seed consistency and contributor concentration."
+    },
+    {
+      "id": "G08",
+      "area": "Metrics",
+      "rule": "Keep native metric meanings and phase-specific normalized-gain definitions separate."
+    },
+    {
+      "id": "G09",
+      "area": "Compute",
+      "rule": "Count selection, teachers, pretraining, solvers, refits, retrieval state, failed/censored attempts and cold/hot inference; missing cost is unknown."
+    },
+    {
+      "id": "G10",
+      "area": "Replay and failures",
+      "rule": "Preserve source-bound attempts; separate replay, retiming, replication, invalid, censored and unexecuted work. Parity cannot repair missing original evidence."
+    },
+    {
+      "id": "G11",
+      "area": "Reopening",
+      "rule": "Require a materially new premise, overlap and prior-art review, specification, controls, bounded cost and cheap falsification before admission."
+    },
+    {
+      "id": "G12",
+      "area": "Product boundary",
+      "rule": "Research is separate from stable defaults; maintenance is not an algorithmic quality claim."
+    }
+  ],
+  "known_limitations": [
+    "Historical comparisons are workload-, recipe-, version- and budget-specific; they do not establish universal state-of-the-art performance.",
+    "Tree baselines often outperform the neural baseline on important development tasks; no single mechanism explains all losses.",
+    "Some positive means depend on a few datasets; worst-case, variance, cost and integrity gates can prevent promotion.",
+    "Some original manifests, auxiliary RNG roles and all-in compute totals are incomplete; the original Micro-Lab container and CORE_GELU confirmation cannot be fully authenticated from available records.",
+    "Dataset first-use and reserved held-out identity/seed records are incomplete; unknown identities are ineligible for reserved evaluation.",
+    "External neural comparisons include missing or ineligible cells, timeouts and incompatibilities, so coverage and censoring must accompany comparisons.",
+    "Synthetic learning, mechanical repair, algebraic checks and oracle analyses do not establish real-data generalization.",
+    "Supported persistence is bounded by tested same-build and pinned-runtime contracts; universal cross-version portability is not promised."
+  ],
+  "open_questions": [
+    "How can statistical support constrain useful capacity without discarding rare informative features?",
+    "Can sparse or conditional interactions be learned robustly under dependence and limited data at practical training and inference cost?",
+    "How should irrelevant-feature sensitivity, rare-category behavior and target-tail failures be separated through controlled evidence?",
+    "Support-adaptive sparse interactions remain an unresolved conceptual direction, without an admitted algorithm or demonstrated benefit."
+  ],
+  "reopening_requirements": [
+    "A zero-fit reopening audit establishes a materially new, source-supported premise.",
+    "An overlap check distinguishes the proposal from tested families and existing methods.",
+    "A prior-art and literature review clarifies established methods and unresolved questions.",
+    "An explicit mathematical and implementation specification defines targets, controls, support assumptions, cost and product compatibility.",
+    "A cheap falsification plan freezes mechanical checks, failure predictions, comparison rules, budgets and stop conditions.",
+    "An explicit admission decision must precede any possible scientific fits; held-outs remain CLOSED and require a separate opening decision."
+  ],
+  "public_evidence_scope": {
+    "basis": "Reviewed historical research reports, source-pinned configurations, result summaries and stable software contracts.",
+    "availability": "Curated synthesis; raw internal evidence is retained separately and is not installed with the package.",
+    "time_scope": "Historical evidence through R38 and the stable 1.0.2 baseline; no new scientific execution in preparing this snapshot.",
+    "claim_scope": "Results describe the recorded workloads and exact tested forms. Unexecuted proposals and mechanically blocked methods have no empirical quality verdict.",
+    "family_boundary": "H19 PC means probabilistic circuits. A completed predictive-coding evaluation is not established by the reviewed history."
+  },
+  "last_updated": "2026-10-12",
+  "external_neural_benchmark": {
+    "phase": "H29",
+    "verdict": "INCONCLUSIVE_EXTERNAL_EVALUATION",
+    "stage_a": {
+      "datasets": 15,
+      "seeds_per_dataset": 2,
+      "tabr_advanced": false
+    },
+    "stage_b": {
+      "datasets": 41,
+      "observational_datasets": 40,
+      "simulators": 1,
+      "seeds_per_dataset": 3,
+      "scheduled_native_cells": 615,
+      "complete_native_cells": 591,
+      "resource_censored_non_timeout": 15,
+      "timeouts": 6,
+      "attention_incompatibilities": 3,
+      "expected_observational_cells_per_model": 120
+    },
+    "comparisons": [
+      {
+        "model": "TabM",
+        "eligible_compute_control_cases": 102,
+        "mean_normalized_gain_vs_n0": 0.050712,
+        "mean_normalized_gain_vs_compute_control": 0.01094,
+        "formal_stage_b_pass": false,
+        "median_fit_wall_seconds": 37.9993,
+        "median_hot_batch_prediction_milliseconds": 52.8344
+      },
+      {
+        "model": "RealMLP-TD-S",
+        "eligible_compute_control_cases": 118,
+        "mean_normalized_gain_vs_n0": 0.035154,
+        "mean_normalized_gain_vs_compute_control": -0.004906,
+        "formal_stage_b_pass": false,
+        "median_fit_wall_seconds": 6.4658,
+        "median_hot_batch_prediction_milliseconds": 7.1741
+      },
+      {
+        "model": "FT-Transformer",
+        "eligible_compute_control_cases": 100,
+        "mean_normalized_gain_vs_n0": 0.038313,
+        "mean_normalized_gain_vs_compute_control": -0.003723,
+        "formal_stage_b_pass": false,
+        "median_fit_wall_seconds": 27.0062,
+        "median_hot_batch_prediction_milliseconds": 56.8448
+      }
+    ],
+    "n0_timing": {
+      "median_fit_wall_seconds": 0.271,
+      "median_hot_batch_prediction_milliseconds": 4.4358
+    },
+    "cost_scope": "Stage B completed development calls on differing coverage, including the separate simulator supplement; primary quality uses observational datasets. Batch latency is not single-row service throughput. Compute controls are phase-specific CPU work, not parameter or exact-FLOP matching.",
+    "interpretation": "All three Stage B survivors improved on the cheaper N0 in mean; stronger controls, robustness gates and incomplete matched coverage prevented general promotion. These normalized gains are not raw AUC differences."
+  }
+}
