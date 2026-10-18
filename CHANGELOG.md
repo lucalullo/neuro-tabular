@@ -3,6 +3,21 @@
 All notable public changes to NeuroTabular are recorded here. Published tags and
 release artifacts are immutable.
 
+## [1.0.3] - 2026-10-18
+
+- Finalize the maintenance release from the qualified RC2, preserving public
+  API, defaults, dependency bounds and exact same-runtime numerical behavior.
+- Retain measured categorical/schema preprocessing and CPU inference improvements,
+  LF source identity, source-manifest verification and private-file exclusions.
+- Record RC2 CI #17: all 17 jobs passed on the exact RC2 commit. The stable
+  version requires its own exact-commit CI before tag and registry publication.
+- Promote the original verified TestPyPI wheel and sdist to PyPI by immutable
+  run/artifact identity and SHA256, without rebuilding them for promotion.
+- Record the maintainer's release-specific waiver of the final professional
+  independent-attestation gate. This is not independent certification.
+- No general improvement in predictive accuracy, training time or process peak
+  RAM is claimed. Historical prerelease entries retain their freeze-time status.
+
 ## [1.0.3rc2] - 2026-10-18 (local release candidate; unpublished)
 
 - Normalize five Markdown documents to LF to match Git attributes and regenerate

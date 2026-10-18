@@ -1,30 +1,31 @@
-# NeuroTabular 1.0.3rc2 release checklist
+# NeuroTabular 1.0.3 release checklist
 
-- Freeze the exact local source snapshot and preexisting diff. Version, citation,
-  changelog, notes and package metadata must agree on `1.0.3rc2`.
-- Authenticate the certified Linux/Windows implementation. Reuse unaffected
-  certificates explicitly; renew version, installation and persistence checks.
-- Pass Ruff check/format, source manifest and same-runtime exact three-task
-  version-only comparisons. Retain the historical equivalence evidence.
-- Check trusted old and new persistence, including fresh processes. Do not infer
-  cross-OS or cross-dependency portability from these tests.
-- Review documentation, privacy/security/support/legal consistency and all
-  residual issues; no unresolved critical or HIGH supported-use defect.
-- Build wheel/sdist, Twine, member hygiene and complete source/sdist manifest.
-- Install the new wheel and sdist and check metadata, three tasks and affected
-  Pipeline/CV/version contracts. Certify the new wheel natively on Windows.
-- Retain the frozen performance comparisons; scope claims to measured inference
-  and temporary-array results. No general accuracy, training or peak-RAM gain.
-- Verify a clean Git checkout preserves every source-manifest hash under
-  different local EOL configurations; retain the Git tree identity.
-- Freeze final source and record artifact SHA256 values.
-- Obtain final review by another evaluator or a second approved physical host.
-  The earlier separate automated audit is not that review.
-- Before publication, require a separately authorized immutable release commit,
-  exact-release CI and maintainer approval; local dirty-tree preparation is not
-  a publishable tag. Retain the proposed expanded CI as unexecuted until run.
-- Disclose macOS and physical CUDA as unvalidated and Windows qualification as
-  native CPython 3.12 x64 only; no universal superiority or portability claims.
-- Review existing legal/naming notes and make a separate maintainer go/no-go.
-- Only after explicit authorization publish an immutable new version and assets.
-- Local preparation performs no push, tag, release, PR, upload or write API.
+- Match package, runtime version, citation, changelog and notes to 1.0.3.
+- Preserve RC1/RC2 archives and the 1.0.2 baseline; change no numerical algorithm,
+  public API, defaults or dependency bounds.
+- Verify LF source and the full source/sdist SHA256 manifest after final edits.
+- Pass Ruff, meaningful release-guard tests, package hygiene and strict Twine.
+- Build wheel/sdist; verify member allowlists, metadata, RECORD and runtime bytes.
+- Install both artifacts in clean environments; check pip, import origin, API,
+  sklearn, all three tasks, exact numerical equivalence and fresh persistence.
+- Preserve qualified compatibility/performance evidence and its limitations.
+  RC2 CI #17 passed all 17 jobs; the stable commit needs its own complete CI.
+- Record the maintainer waiver of final professional independent attestation for
+  1.0.3 without describing it as independent certification.
+- After separate authorization, commit/push the stable branch manually and
+  verify every required job against its full commit SHA.
+- After separate authorization, create v1.0.3 on that exact successful commit.
+  Never move, overwrite or force-push a published tag.
+- Verify the registry Trusted Publisher mappings for publish.yml and the exact
+  testpypi/pypi environments. OIDC uses no stored API token.
+- After separate authorization, dispatch target=testpypi on v1.0.3. Retain
+  its immutable run ID, artifact ID, manifest, logs and both file SHA256 values.
+- Download the files actually published on TestPyPI, check SHA256, install the
+  verified wheel in a clean environment and run the three-task smoke/persistence.
+- Only after that verification and a separate approval, dispatch target=pypi
+  using the successful TestPyPI run ID and both approved file hashes.
+  Promotion must consume the original immutable bundle, never rebuild it.
+- Verify the final PyPI file hashes and installation. Preserve receipts.
+- Retain documented CUDA, cross-runtime, notebook and performance limitations.
+  Existing legal/naming and final maintainer go/no-go remain separate decisions.
+- Local preparation performs no commit, push, merge, tag, dispatch or upload.

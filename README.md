@@ -6,10 +6,10 @@ DataFrames. It exposes a compact scikit-learn-style API, handles numerical and
 categorical columns automatically, and keeps preprocessing inside the estimator
 so training and inference share the same learned state.
 
-**NeuroTabular 1.0.2 is the public baseline for the stable 1.0 API.**
-This working tree identifies **1.0.3rc2**, an unpublished local release candidate
-with conservative preprocessing and CPU inference optimizations. They preserve the public
-API, defaults and numerical contracts; no new predictive architecture is included.
+**NeuroTabular 1.0.3 is a maintenance release for the stable 1.0 API.**
+It retains the conservative preprocessing and CPU inference optimizations qualified
+against the historical 1.0.2 baseline. Public API, defaults and numerical contracts
+are preserved; no new predictive architecture is included.
 The 1.0.2 compatibility patch removed the Python metadata restriction that rejected Python 3.13 installs.
 Conventional CPython 3.11–3.14 has executed Linux CPU coverage; Python 3.10
 remains legacy compatible. The optimizations preserve algorithms, defaults and valid-input
@@ -48,7 +48,7 @@ superiority claims over gradient-boosted trees.
 - pickle/joblib round trips validated in fresh processes for all three tasks;
 - conventional Python 3.11–3.14 coverage and Python 3.10 legacy compatibility;
 - Linux CPU checks, native Windows 11 / CPython 3.12 x64 qualification,
-  installed-artifact checks, and proposed expanded Windows/macOS CI.
+  installed-artifact checks, and executed RC2 Windows/macOS CI.
 
 The default configuration is intentionally conservative: scalar numerical
 representation, categorical frequency features enabled, no feature gate, and no
@@ -72,10 +72,10 @@ from neurotabular import NeuroTabularClassifier
 
 The historical 1.0.2 audit tested exact CPython 3.13.15, including normal
 PyPI dependency resolution. It has not been executed inside Kaggle or Colab.
-Installing the published package does not install this unpublished release candidate.
-The maintainer review packet provides the local wheel, source archive and SHA256
-checksums. After verifying those checksums, install the local wheel by filename
-and check that `neurotabular.__version__` is `1.0.3rc2`.
+Check that `neurotabular.__version__` is `1.0.3` when verifying this release.
+During staged release validation, install the exact verified wheel by filename.
+The package index serves 1.0.3 only after the separately approved upload completes;
+see the publishing guide for TestPyPI, checksum and clean-install checks.
 Check `neurotabular.__version__` after installation. Restart an existing notebook
 session if it already imported another version.
 
@@ -368,7 +368,7 @@ outside the core prediction contract.
 
 ## Status
 
-NeuroTabular 1.0.2 is the public baseline. This tree identifies the unpublished 1.0.3rc2 maintenance candidate for the stable 1.0 API; publication requires separate approval.
+NeuroTabular 1.0.3 is the maintenance release for the stable 1.0 API. The historical 1.0.2 baseline and frozen RC1/RC2 evidence remain distinct. Release publication follows separate maintainer approvals and exact-commit checks.
 It changes no algorithm, predictive default or public API. Linux and Windows
 seven-job CI evidence for the published 1.0.0 is historical evidence; each new
 release must pass CI on its own exact commit before publication. Independent

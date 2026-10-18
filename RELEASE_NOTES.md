@@ -1,58 +1,56 @@
-# NeuroTabular 1.0.3rc2 — local maintenance release candidate
+# NeuroTabular 1.0.3 maintenance release
 
-Prepared on 2026-10-18; unpublished. The historical 1.0.2 release and its
-artifacts remain immutable. This patch prerelease retains the stable API,
-defaults, architecture, dependency bounds and predictive algorithms.
-
-## RC2 source identity
-
-This candidate supersedes the frozen, unpublished 1.0.3rc1 for local review.
-Five Markdown documents now use LF as required by Git attributes, and source
-hashes are regenerated from repository bytes. RC1 artifacts and evidence remain
-immutable. RC2 changes no computational implementation, dependency bounds or
-performance claims; only the version diagnostic changes. Independent review
-and exact-commit CI remain open gates.
+Prepared on 2026-10-18 from the qualified 1.0.3rc2. The release preserves the
+stable API, defaults, architecture, dependency bounds and predictive algorithms.
+Historical 1.0.2 releases and RC1/RC2 artifacts remain immutable.
 
 ## Changes and measured scope
 
 Conservative categorical preprocessing, schema validation and numerical-buffer
 reuse reduce repeated work. CPU inference avoids unnecessary temporary output
 allocations. No persistent cache or new estimator state is introduced.
-Distribution hygiene explicitly excludes private workspace material.
+Distribution hygiene excludes private workspace material. LF source identity and
+a complete SHA256 manifest support reproducible Git checkouts.
 
 The frozen paired Linux CPU comparison against original 1.0.2 measured a
-14.14% median paired reduction for a 1,200-row multiclass `predict_proba`
-workload: six of six pairs were faster, with a median paired decrease of
-0.737 ms. This is a local workload result, not a universal inference speedup.
-Medium/large diagnostic array workloads used about 33–48% fewer temporary
-array bytes; a small-input case used about 1.9 KiB more. These measurements
-do not demonstrate a general reduction in process peak RAM.
+14.14% median paired reduction for a 1,200-row multiclass predict_proba workload:
+six of six pairs were faster, with a median paired decrease of 0.737 ms.
+This is a local workload result, not a universal inference speedup.
+Medium/large diagnostic arrays used about 33-48% fewer temporary array bytes;
+a small-input case used about 1.9 KiB more. No general process peak-RAM reduction
+is demonstrated.
 
-The complete-fit workloads did not meet the frozen general training improvement
-criterion. No general training acceleration, accuracy gain or ensemble/research
-architecture is claimed. Qualified same-runtime comparisons preserve exact
-predictions, probabilities and trained numerical state.
+Complete-fit workloads did not meet the frozen general training improvement
+criterion. No general training acceleration, accuracy gain or new research
+architecture is claimed. Same-runtime predictions, probabilities and trained
+numerical state remain equivalent in the qualified comparisons.
 
-## Qualification and remaining review
+## Qualification and release process
 
-Before version assignment, the identical computational implementation passed
-the nine-lane Linux CPU matrix (CPython 3.10–3.14; coherent minimum/current
-dependency stacks) and a native Windows 11 / CPython 3.12.10 x64 run with
-1,174 passed tests and 12 explained skips. A separate fresh-install automated
-Windows replay also passed; it is not an independent human review.
-The local maintainer packet binds the newly versioned source, wheel and sdist
-to renewed version, packaging, installation and numerical-equivalence receipts.
-Historical test counts are not presented as new runs of the versioned artifacts.
+RC2 commit d969836a63b0bacacc19ed8f1f04ee75581144ff passed CI #17:
+17 jobs, including Linux Python 3.10-3.14, Windows 3.11-3.14, macOS 15 /
+Python 3.14, PyTorch 2.0-family and useful binary dependency minima, Ruff and
+package builds/install-smokes. Full-suite jobs reported 1,174 passed and
+12 motivated skips; four minimum-dependency jobs reported 110 passed / 2 skips.
+These are RC2 results, not new executions of the stable version.
 
-Independent final review by another evaluator or a second approved physical
-host remains a separate prepublication gate. No GitHub or registry publication
-has been authorized. Broader Windows/Python CI, macOS and physical CUDA have
-the limits documented in [support scope](docs/policies/SUPPORT_SCOPE.md).
-Windows qualification used short environment/cache paths and the official
-Microsoft Visual C++ runtime; it required no security-policy changes.
+The stable 1.0.3 version has its own source/artifact hashes and qualification.
+Its exact new commit must pass CI before the immutable v1.0.3 tag is authorized.
+Publication is staged: TestPyPI, actual-file SHA256 download and clean-install
+verification, then separately authorized PyPI promotion of the same wheel/sdist.
+The promotion workflow does not rebuild those distributions.
 
-Trusted persistence is tested within pinned runtimes; cross-OS, dependency,
-Python and device portability remains unguaranteed.
+The maintainer explicitly waived final professional independent attestation for
+this release. This is a maintainer risk decision, not independent certification.
+Technical evidence, limitations and original protocols remain preserved.
+
+The computational implementation was also qualified in a nine-lane Linux
+matrix and native Windows 11 / CPython 3.12.10 x64 before version assignment;
+a separate fresh-install automated replay passed. Historical counts are not
+presented as runs of newly versioned artifacts. No protection was disabled.
+Trusted persistence is same-runtime; cross-OS, dependency, Python and device
+portability is not guaranteed. Physical CUDA and real notebook sessions remain
+outside the executed evidence.
 
 ## Historical 1.0.2 compatibility patch audit
 
@@ -60,7 +58,7 @@ The compatibility patch removed `Requires-Python <3.13`, which prevented install
 on an actual Kaggle CPython 3.13.15 notebook. Proposed metadata is `>=3.10`.
 Conventional CPython 3.11–3.14 is the preferred scope; 3.10 remains legacy compatible.
 These paragraphs describe the historical compatibility audit; they do not
-certify the current unreleased performance changes.
+certify later maintenance changes by themselves.
 
 Linux CPU validation covers ordinary PyPI dependency installation, full tests with
 warnings as errors, binary/multiclass/regression, mixed pandas dtypes, sklearn
@@ -93,11 +91,12 @@ comparisons pass bit for bit in the previously required pinned CPU runtime.
 
 Windows portable interpreters and native dependency imports encounter Application
 Control restrictions locally; these are retained as environment failures.
-Expanded Windows CI is proposed and unexecuted. macOS is NOT_LOCALLY_VALIDATED;
-Apple Silicon CI is proposed. Physical NVIDIA CUDA remains best effort with
+RC2 CI #17 subsequently executed Windows Python 3.11-3.14 and macOS 15 /
+Python 3.14 successfully. These historical results are not runs of the new stable commit. Physical NVIDIA CUDA remains best effort with
 validation pending. Free-threaded Python is not advertised.
 
 Same-runtime trusted persistence does not guarantee dependency, Python, OS or device
 portability. This patch makes no SOTA or universal superiority claim. Exact-commit
-remote CI, independent-user checks and package publication remain maintainer gates.
+stable-commit CI, optional independent-user checks and package publication remain
+separate maintainer decisions.
 Historical published tags/releases remain immutable.

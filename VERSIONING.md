@@ -1,30 +1,24 @@
 # Versioning policy
 
-NeuroTabular 1.0.0 establishes the reviewed stable public API scope in
-[API_BOUNDARY](docs/API_BOUNDARY.md). Semantic Versioning is the practical
-change-classification rule: compatible fixes are patches, compatible additions
-are minors, incompatible stable contracts require a major and notice.
-
-The canonical [versioning policy](docs/policies/VERSIONING_POLICY.md),
-[deprecation rules](docs/policies/DEPRECATION_POLICY.md) and
-[persistence policy](docs/policies/PERSISTENCE_POLICY.md) define the limits.
-Experimental and internal items retain their explicit classifications. API
-stability does not establish universal serialized-artifact portability.
+NeuroTabular follows Semantic Versioning for the stable public API described in
+docs/API_BOUNDARY.md: compatible fixes are patches, compatible additions minors,
+and incompatible contracts require a major version and notice. The canonical
+versioning, deprecation and persistence policies retain their scope.
 
 ## Release identity
 
-Package metadata, version module, CITATION, changelog, release notes, artifacts
-identify the same version. This local candidate is `1.0.3rc2` (the PEP 440
-spelling of a patch release candidate); a future approved tag would be
-`v1.0.3rc2`. This does not create a tag or authorize publication. Published tags/artifacts are
-immutable. Unpublished same-version development builds require source/artifact
-hashes. The published RC1 remains a separate immutable historical identity.
+The release version is 1.0.3; the matching immutable tag is v1.0.3.
+Package metadata, version module, CITATION, changelog, notes and artifacts must
+agree. Published releases and the frozen 1.0.3rc1/1.0.3rc2 evidence remain
+separate identities and must never be overwritten or retagged.
 
-Review README, API, USAGE, changelog and release notes before every release.
-Public behavior requires matching tests/documentation. Algorithm/performance
-changes require reproducible baseline evidence. This maintenance candidate
-uses frozen paired performance and exact same-runtime equivalence evidence;
-it claims no general predictive accuracy or training improvement.
-No roadmap version/date is promised. Every future publication requires a
-separate maintainer decision and exact-commit validation appropriate to that
-release.
+This patch retains the RC2 computational implementation. Only its version
+diagnostic changes. Source hashes are regenerated after final metadata and
+documentation changes. Stable-version CI must certify the exact new commit;
+the earlier RC2 CI is evidence for RC2, not a new run of the stable bytes.
+
+The maintainer explicitly waived final professional independent attestation
+for 1.0.3. The waiver is a maintainer decision, not third-party certification.
+Other technical, TestPyPI and authorization gates remain required. No universal
+accuracy, training, peak-RAM or serialized-artifact portability claim is added.
+No roadmap version or date is promised.
