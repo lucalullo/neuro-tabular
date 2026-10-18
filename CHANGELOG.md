@@ -3,7 +3,53 @@
 All notable public changes to NeuroTabular are recorded here. Published tags and
 release artifacts are immutable.
 
-## [1.0.2] - Unreleased compatibility candidate
+## [1.0.3] - 2026-10-18
+
+- Finalize the maintenance release from the qualified RC2, preserving public
+  API, defaults, dependency bounds and exact same-runtime numerical behavior.
+- Retain measured categorical/schema preprocessing and CPU inference improvements,
+  LF source identity, source-manifest verification and private-file exclusions.
+- Record RC2 CI #17: all 17 jobs passed on the exact RC2 commit. The stable
+  version requires its own exact-commit CI before tag and registry publication.
+- Promote the original verified TestPyPI wheel and sdist to PyPI by immutable
+  run/artifact identity and SHA256, without rebuilding them for promotion.
+- Record the maintainer's release-specific waiver of the final professional
+  independent-attestation gate. This is not independent certification.
+- No general improvement in predictive accuracy, training time or process peak
+  RAM is claimed. Historical prerelease entries retain their freeze-time status.
+
+## [1.0.3rc2] - 2026-10-18 (local release candidate; unpublished)
+
+- Normalize five Markdown documents to LF to match Git attributes and regenerate
+  the source manifest from repository bytes. This repairs source identity across
+  clean Git checkouts without changing the meaning of the normalized text.
+- Assign a distinct RC2 version to metadata and release documentation. Preserve
+  frozen RC1 artifacts, hashes and qualification evidence without alteration.
+- No computational implementation, API, defaults, dependency bounds or measured
+  performance claims change. Independent review and exact-commit CI remain open.
+
+## [1.0.3rc1] - 2026-10-18 (local release candidate; unpublished)
+
+- Preserve the stable 1.0 API/defaults while reducing categorical preprocessing,
+  schema validation and CPU inference overhead. Numerical and persistence
+  equivalence require qualification in the same runtime.
+- Reject `.local` and `.codex-context` in distribution content checks and
+  explicitly prune both from source distributions.
+- Reduce redundant categorical Index construction, schema work, numerical
+  matrix copies and CPU inference allocations without persistent caches.
+- In the frozen Linux CPU comparison with original 1.0.2, one 1,200-row multiclass
+  `predict_proba` workload improved by 14.14% (six paired comparisons, all faster).
+  Temporary array allocation reductions are workload-specific; small
+  inputs can allocate slightly more. No general peak-RAM saving is established.
+- Preserve exact predictions, trained state and persistence in the qualified
+  same-runtime comparisons. No accuracy or general full-training gain is claimed.
+- Record native Windows 11 / CPython 3.12 x64 qualification of the unchanged
+  computational implementation, in addition to the Linux compatibility matrix.
+- Assign a distinct patch prerelease identity and refresh public documentation,
+  source hashes and artifact metadata. Independent final review and publication
+  remain separate maintainer gates. No research prototype is promoted.
+
+## [1.0.2] - Compatibility patch (historical baseline)
 
 - Remove the unnecessary Python <3.13 metadata cap; retain Requires-Python >=3.10.
 - Validate conventional CPython 3.11–3.14 on Linux CPU, including exact 3.13.15,

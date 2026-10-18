@@ -11,12 +11,25 @@ on:
           - testpypi
           - pypi
       confirmation:
-        description: Type the exact tag matching the package version
+        description: Exact immutable version tag (v1.0.3)
         required: true
+        type: string
+      source_run_id:
+        description: Successful TestPyPI run ID (required only for PyPI)
+        required: false
+        type: string
+      wheel_sha256:
+        description: Verified TestPyPI wheel SHA256 (required only for PyPI)
+        required: false
+        type: string
+      sdist_sha256:
+        description: Verified TestPyPI sdist SHA256 (required only for PyPI)
+        required: false
         type: string
 
 permissions:
   contents: read
+  actions: read
 
 concurrency:
   group: manual-publish-${{ github.ref }}
@@ -24,8 +37,18 @@ concurrency:
 
 jobs:
   verify-and-build:
-    name: Verify tag and build
+    name: Verify exact tag and prepare artifacts
     runs-on: ubuntu-latest
+    env:
+      CONFIRMATION: ${{ inputs.confirmation }}
+      RELEASE_TARGET: ${{ inputs.target }}
+      SOURCE_RUN_ID: ${{ inputs.source_run_id }}
+      WHEEL_SHA256: ${{ inputs.wheel_sha256 }}
+      SDIST_SHA256: ${{ inputs.sdist_sha256 }}
+    outputs:
+      artifact_id: ${{ steps.upload.outputs.artifact-id || steps.source.outputs.artifact_id }}
+      source_run_id: ${{ inputs.target == 'testpypi' && github.run_id || inputs.source_run_id }}
+      source_attempt: ${{ inputs.target == 'testpypi' && github.run_attempt || steps.source.outputs.source_attempt }}
     steps:
       - uses: actions/checkout@v7
         with:
@@ -33,40 +56,58 @@ jobs:
       - uses: actions/setup-python@v7
         with:
           python-version: "3.12"
-      - run: python -m pip install -e ".[dev]"
-      - name: Require an exact version-tag checkout and confirmation
+      - name: Require exact version tag and successful exact-commit CI
         env:
-          CONFIRMATION: ${{ inputs.confirmation }}
-        run: |
-          python - <<'PY'
-          import os
-          import tomllib
-
-          with open("pyproject.toml", "rb") as stream:
-              version = tomllib.load(stream)["project"]["version"]
-          expected = f"v{version}"
-          actual = os.environ["GITHUB_REF_NAME"]
-          ref_type = os.environ.get("GITHUB_REF_TYPE")
-          confirmation = os.environ["CONFIRMATION"]
-          if ref_type != "tag" or actual != expected or confirmation != expected:
-              raise SystemExit(
-                  "Publication requires an actual Git tag and confirmation "
-                  f"both matching {expected!r}; got ref_type={ref_type!r}, "
-                  f"ref_name={actual!r}."
-              )
-          PY
-      - run: python -m ruff check .
-      - run: python -m ruff format --check .
-      - run: python -m pytest -W error
-      - run: python -m build
-      - name: Validate distribution hygiene
-        run: python tools/check_distribution.py dist/*.whl dist/*.tar.gz
-      - run: python -m twine check dist/*
-      - uses: actions/upload-artifact@v7
+          GH_TOKEN: ${{ github.token }}
+        run: python tools/release_artifacts.py guard
+      - name: Verify source manifest
+        run: python tools/release_artifacts.py source
+      - if: inputs.target == 'testpypi'
+        run: python -m pip install -e ".[dev]"
+      - if: inputs.target == 'testpypi'
+        run: python -m ruff check .
+      - if: inputs.target == 'testpypi'
+        run: python -m ruff format --check .
+      - if: inputs.target == 'testpypi'
+        run: python -m pytest -W error
+      - if: inputs.target == 'testpypi'
+        run: python -m build
+      - name: Lock first TestPyPI build
+        if: inputs.target == 'testpypi'
+        run: python tools/release_artifacts.py lock
+      - name: Resolve original successful TestPyPI artifact
+        id: source
+        if: inputs.target == 'pypi'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python tools/release_artifacts.py source-run
+      - name: Download immutable original bundle for promotion
+        if: inputs.target == 'pypi'
+        uses: actions/download-artifact@v7
         with:
-          name: python-package-distributions
-          path: dist/
+          artifact-ids: ${{ steps.source.outputs.artifact_id }}
+          run-id: ${{ inputs.source_run_id }}
+          github-token: ${{ github.token }}
+          path: release-bundle/
+      - name: Verify original hashes and actual TestPyPI files
+        if: inputs.target == 'pypi'
+        env:
+          EXPECTED_SOURCE_ATTEMPT: ${{ steps.source.outputs.source_attempt }}
+        run: python tools/release_artifacts.py testpypi
+      - if: inputs.target == 'pypi'
+        run: python -m pip install twine
+      - name: Validate distribution hygiene
+        run: python tools/check_distribution.py release-bundle/dist/*.whl release-bundle/dist/*.tar.gz
+      - run: python -m twine check --strict release-bundle/dist/*
+      - name: Retain immutable TestPyPI bundle
+        id: upload
+        if: inputs.target == 'testpypi'
+        uses: actions/upload-artifact@v7
+        with:
+          name: release-distributions-${{ github.run_id }}-${{ github.run_attempt }}
+          path: release-bundle/
           if-no-files-found: error
+          retention-days: 14
 
   publish-testpypi:
     name: Publish to TestPyPI
@@ -77,14 +118,31 @@ jobs:
       name: testpypi
       url: https://test.pypi.org/p/neurotabular
     permissions:
+      contents: read
+      actions: read
       id-token: write
+    env:
+      RELEASE_TARGET: testpypi
+      SOURCE_RUN_ID: ${{ needs.verify-and-build.outputs.source_run_id }}
+      EXPECTED_SOURCE_ATTEMPT: ${{ needs.verify-and-build.outputs.source_attempt }}
     steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
       - uses: actions/download-artifact@v7
         with:
-          name: python-package-distributions
-          path: dist/
+          artifact-ids: ${{ needs.verify-and-build.outputs.artifact_id }}
+          run-id: ${{ needs.verify-and-build.outputs.source_run_id }}
+          github-token: ${{ github.token }}
+          path: release-bundle/
+      - name: Verify locked bundle before TestPyPI
+        run: python tools/release_artifacts.py verify
       - uses: pypa/gh-action-pypi-publish@release/v1
         with:
+          packages-dir: release-bundle/dist/
           repository-url: https://test.pypi.org/legacy/
 
   publish-pypi:
@@ -96,10 +154,30 @@ jobs:
       name: pypi
       url: https://pypi.org/p/neurotabular
     permissions:
+      contents: read
+      actions: read
       id-token: write
+    env:
+      RELEASE_TARGET: pypi
+      SOURCE_RUN_ID: ${{ needs.verify-and-build.outputs.source_run_id }}
+      EXPECTED_SOURCE_ATTEMPT: ${{ needs.verify-and-build.outputs.source_attempt }}
+      WHEEL_SHA256: ${{ inputs.wheel_sha256 }}
+      SDIST_SHA256: ${{ inputs.sdist_sha256 }}
     steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
       - uses: actions/download-artifact@v7
         with:
-          name: python-package-distributions
-          path: dist/
+          artifact-ids: ${{ needs.verify-and-build.outputs.artifact_id }}
+          run-id: ${{ needs.verify-and-build.outputs.source_run_id }}
+          github-token: ${{ github.token }}
+          path: release-bundle/
+      - name: Verify identical TestPyPI distributions before PyPI
+        run: python tools/release_artifacts.py testpypi
       - uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          packages-dir: release-bundle/dist/

@@ -64,3 +64,11 @@ def test_public_distributions_reject_models_receipts_and_local_archives():
         for prefix, sdist in (("root/", True), ("", False)):
             with pytest.raises(ValueError):
                 check_member(prefix + name, b"synthetic payload", sdist=sdist)
+
+
+@pytest.mark.parametrize("private_root", [".local", ".codex-context"])
+@pytest.mark.parametrize("sdist", [True, False])
+def test_rejects_private_workspace_text(private_root, sdist):
+    prefix = "root/" if sdist else ""
+    with pytest.raises(ValueError, match="Forbidden distribution member"):
+        check_member(prefix + private_root + "/notes.md", b"private notes", sdist=sdist)

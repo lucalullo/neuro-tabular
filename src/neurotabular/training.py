@@ -336,11 +336,13 @@ def predict_outputs(
                 categorical[start:stop].to(device, non_blocking=True),
             )
             outputs.append(task.transform(logits).cpu().numpy())
-    probabilities = np.concatenate(outputs).astype(np.float64, copy=False)
+    probabilities = np.concatenate(outputs, dtype=np.float64)
     if not np.isfinite(probabilities).all():
         raise RuntimeError("The fitted model produced non-finite probabilities.")
     return (
-        probabilities if task.name == "regression" else np.clip(probabilities, 0.0, 1.0)
+        probabilities
+        if task.name == "regression"
+        else np.clip(probabilities, 0.0, 1.0, out=probabilities)
     )
 
 
