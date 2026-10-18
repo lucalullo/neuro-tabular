@@ -187,3 +187,150 @@ def test_cpu_training_never_constructs_autocast(
     model = NeuroTabularClassifier(**fast_model_kwargs).fit(X, y)
     assert model.device_ == "cpu"
     assert model.profile_["training"]["amp_enabled"] is False
+
+
+class _InferenceOutputModel(torch.nn.Module):
+    def __init__(self, logits):
+        super().__init__()
+        self.register_buffer("logits", logits)
+
+    def forward(self, numerical, categorical):
+        return self.logits[numerical[:, 0].long()]
+
+
+@pytest.mark.parametrize("task_name", ["binary", "multiclass", "regression"])
+@pytest.mark.parametrize("n_rows", [1, 32, 512, 1024, 1025, 2057])
+@pytest.mark.parametrize("batch_size", [1, 17, 1024])
+def test_inference_output_materialization_matches_batch_reference(
+    task_name, n_rows, batch_size
+):
+    from neurotabular.preprocessing import ProcessedTable
+    from neurotabular.tasks import TaskSpec
+    from neurotabular.training import predict_outputs
+
+    task = TaskSpec(task_name, 7 if task_name == "multiclass" else 1)
+    values = torch.linspace(-20, 20, n_rows * task.output_dim)
+    logits = values.reshape(n_rows, task.output_dim)
+    if task_name != "multiclass":
+        logits = logits[:, 0]
+    model = _InferenceOutputModel(logits)
+    numerical = np.arange(n_rows, dtype=np.float32)[:, None]
+    categorical = np.empty((n_rows, 0), dtype=np.int64)
+    data = ProcessedTable(numerical, categorical)
+    original = numerical.copy()
+    with torch.inference_mode():
+        pieces = [
+            task.transform(logits[start : start + batch_size]).cpu().numpy()
+            for start in range(0, n_rows, batch_size)
+        ]
+    expected = np.concatenate(pieces).astype(np.float64, copy=False)
+    if task_name != "regression":
+        expected = np.clip(expected, 0.0, 1.0)
+
+    result = predict_outputs(
+        model, data, device=torch.device("cpu"), batch_size=batch_size, task=task
+    )
+    assert result.dtype == np.float64
+    assert result.shape == expected.shape
+    assert result.tobytes() == expected.tobytes()
+    assert result.flags.writeable
+    assert np.array_equal(numerical, original)
+    assert not model.training
+    result[...] = -123
+    repeated = predict_outputs(
+        model, data, device=torch.device("cpu"), batch_size=batch_size, task=task
+    )
+    assert repeated.tobytes() == expected.tobytes()
+    assert not np.shares_memory(result, repeated)
+
+
+@pytest.mark.parametrize("task_name", ["binary", "multiclass", "regression"])
+@pytest.mark.parametrize("bad_value", [float("nan"), float("inf")])
+def test_inference_rejects_nonfinite_transformed_outputs(task_name, bad_value):
+    from neurotabular.preprocessing import ProcessedTable
+    from neurotabular.tasks import TaskSpec
+    from neurotabular.training import predict_outputs
+
+    task = TaskSpec(task_name, 3 if task_name == "multiclass" else 1)
+    logits = torch.full((5, task.output_dim), bad_value)
+    if task_name != "multiclass":
+        logits = logits[:, 0]
+    data = ProcessedTable(
+        np.arange(5, dtype=np.float32)[:, None], np.empty((5, 0), dtype=np.int64)
+    )
+    # Infinite logits are valid when sigmoid produces finite probabilities.
+    if task_name == "binary" and math.isinf(bad_value):
+        result = predict_outputs(
+            _InferenceOutputModel(logits),
+            data,
+            device=torch.device("cpu"),
+            batch_size=2,
+            task=task,
+        )
+        assert np.array_equal(result, np.ones(5, dtype=np.float64))
+        return
+    with pytest.raises(RuntimeError, match="non-finite probabilities"):
+        predict_outputs(
+            _InferenceOutputModel(logits),
+            data,
+            device=torch.device("cpu"),
+            batch_size=2,
+            task=task,
+        )
+
+
+@pytest.mark.parametrize("batch_size", [0, -1, 3])
+def test_inference_empty_or_invalid_batch_retains_error(batch_size):
+    from neurotabular.preprocessing import ProcessedTable
+    from neurotabular.training import predict_outputs
+
+    data = ProcessedTable(
+        np.empty((0, 1), dtype=np.float32), np.empty((0, 0), dtype=np.int64)
+    )
+    with pytest.raises(ValueError):
+        predict_outputs(
+            _InferenceOutputModel(torch.empty(0)),
+            data,
+            device=torch.device("cpu"),
+            batch_size=batch_size,
+        )
+
+
+@pytest.mark.parametrize("dtype", [torch.float32, torch.float64])
+def test_inference_noncontiguous_multiclass_and_signed_zero(dtype):
+    from neurotabular.preprocessing import ProcessedTable
+    from neurotabular.tasks import TaskSpec
+    from neurotabular.training import predict_outputs
+
+    source = torch.arange(42, dtype=dtype).reshape(7, 6)[:, ::2]
+    task = TaskSpec("multiclass", 3)
+    data = ProcessedTable(
+        np.arange(7, dtype=np.float32)[:, None], np.empty((7, 0), dtype=np.int64)
+    )
+
+    class StridedInferenceModel(_InferenceOutputModel):
+        def forward(self, numerical, categorical):
+            values = super().forward(numerical, categorical)
+            return torch.stack((values, values), dim=-1)[..., 0]
+
+    result = predict_outputs(
+        StridedInferenceModel(source),
+        data,
+        device=torch.device("cpu"),
+        batch_size=3,
+        task=task,
+    )
+    with torch.inference_mode():
+        expected = np.concatenate(
+            [task.transform(source[i : i + 3]).numpy() for i in range(0, 7, 3)]
+        ).astype(np.float64, copy=False)
+    assert result.tobytes() == expected.tobytes()
+    zeros = torch.tensor([-0.0, 0.0, -1.0, 1.0, -0.0, 0.0, 2.0], dtype=dtype)
+    result = predict_outputs(
+        _InferenceOutputModel(zeros),
+        data,
+        device=torch.device("cpu"),
+        batch_size=3,
+        task=TaskSpec("regression"),
+    )
+    assert result.tobytes() == zeros.numpy().astype(np.float64).tobytes()

@@ -198,6 +198,57 @@ def test_schema_is_reordered_and_changes_are_rejected():
         preprocessor.transform(train.assign(extra=1))
 
 
+@pytest.mark.parametrize(
+    "columns",
+    [
+        pd.Index(["a", "b", "c"], dtype=object),
+        pd.Index(["a", "b", "c"], dtype="string"),
+        pd.CategoricalIndex(["a", "b", "c"]),
+        pd.Index([1, 2, 3]),
+        pd.Index([7, "b", ("group", "c")], tupleize_cols=False),
+        pd.MultiIndex.from_tuples([("g", "a"), ("g", "b"), ("h", "c")]),
+    ],
+)
+def test_schema_alignment_preserves_column_index_variants(columns):
+    train = pd.DataFrame([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]], columns=columns)
+    preprocessor = TabularPreprocessor().fit(train)
+    expected = preprocessor.transform(train)
+    for query in [train.copy(), train.iloc[:, ::-1]]:
+        before = query.copy(deep=True)
+        actual = preprocessor.transform(query)
+        assert np.array_equal(actual.numerical, expected.numerical)
+        assert np.array_equal(actual.categorical, expected.categorical)
+        pd.testing.assert_frame_equal(query, before)
+
+
+@pytest.mark.parametrize("storage", [object, "string", "category"])
+def test_aligned_string_schema_keeps_missing_extra_and_duplicate_errors(storage):
+    train = pd.DataFrame({"a": [1.0, 2.0], "b": [3.0, 4.0]})
+    train.columns = pd.Index(train.columns, dtype=storage)
+    preprocessor = TabularPreprocessor().fit(train)
+    with pytest.raises(ValueError, match="missing columns.*unexpected columns"):
+        preprocessor.transform(train.rename(columns={"b": "other"}))
+    duplicate = train.copy()
+    duplicate.columns = ["a", "a"]
+    with pytest.raises(ValueError, match="unique column names"):
+        preprocessor.transform(duplicate)
+    with pytest.raises(ValueError, match="at least one row"):
+        preprocessor.transform(train.iloc[:0])
+
+
+def test_equal_indexes_keep_null_column_name_diagnostics():
+    train = pd.DataFrame(
+        [[1.0, 2.0], [3.0, 4.0]],
+        columns=pd.Index([float("nan"), "b"], dtype=object),
+    )
+    preprocessor = TabularPreprocessor().fit(train)
+    query = train.copy()
+    query.columns = pd.Index([float("nan"), "b"], dtype=object)
+    assert query.columns.equals(train.columns)
+    with pytest.raises(ValueError, match="unexpected columns"):
+        preprocessor.transform(query)
+
+
 def test_infinity_is_rejected_during_fit_and_transform():
     with pytest.raises(ValueError, match="infinite values"):
         TabularPreprocessor().fit(pd.DataFrame({"x": [1.0, np.inf]}))
@@ -269,3 +320,188 @@ def test_finite_float64_overflow_is_rejected_before_float32_conversion() -> None
     preprocessor = TabularPreprocessor().fit(pd.DataFrame({"x": [0.0, 0.0]}))
     with pytest.raises(ValueError, match="represented safely in float32"):
         preprocessor.transform(pd.DataFrame({"x": [np.finfo(np.float64).max]}))
+
+
+@pytest.mark.parametrize("storage", ["object", "string", "category"])
+def test_category_frequency_preserves_training_bucket_counts(storage):
+    values = ["z", "z", "z", "a", "a", "b", "c", None, None, None]
+    column = pd.Series(values, dtype=storage)
+    if storage == "category":
+        column = column.cat.add_categories(["unused"])
+    train = pd.DataFrame({"code": column})
+    before = train.copy(deep=True)
+    preprocessor = TabularPreprocessor(use_category_frequency=True).fit(train)
+    query = pd.DataFrame({"code": ["z", "a", "b", "c", "unused", None]})
+
+    transformed = preprocessor.transform(query)
+
+    # Both individually rare values share their combined training frequency.
+    counts = [3, 2, 2, 2, 0, 3]
+    expected = np.array(
+        [float(np.log1p(count) / np.log1p(len(train))) for count in counts],
+        dtype=np.float32,
+    )
+    np.testing.assert_array_equal(transformed.numerical[:, 0], expected)
+    assert transformed.categorical[4, 0] == UNKNOWN_CATEGORY_ID
+    pd.testing.assert_frame_equal(train, before)
+
+
+@pytest.mark.parametrize("threshold", [1, 2, 4])
+@pytest.mark.parametrize("cap", [None, 2])
+@pytest.mark.parametrize("hash_buckets", [0, 3])
+def test_overflow_frequency_equals_encoded_training_bucket_mass(
+    threshold, cap, hash_buckets
+):
+    train = pd.DataFrame(
+        {"code": ["z"] * 7 + ["a"] * 4 + ["b"] * 2 + ["c", "d", None, None]}
+    )
+    preprocessor = TabularPreprocessor(
+        min_category_count=threshold,
+        max_categories=cap,
+        hash_buckets=hash_buckets,
+        use_category_frequency=True,
+    ).fit(train)
+    transformed = preprocessor.transform(train)
+    ids = transformed.categorical[:, 0]
+    counts = np.bincount(ids, minlength=preprocessor.categorical_cardinalities_[0])
+    expected = np.array(
+        [float(np.log1p(int(count)) / np.log1p(len(train))) for count in counts],
+        dtype=np.float32,
+    )
+
+    np.testing.assert_array_equal(transformed.numerical[:, 0], expected[ids])
+    unknown = preprocessor.transform(pd.DataFrame({"code": ["unseen"]}))
+    assert unknown.categorical[0, 0] == UNKNOWN_CATEGORY_ID
+    assert unknown.numerical[0, 0] == 0.0
+
+
+@pytest.mark.parametrize("storage", ["object", "string", "category"])
+def test_category_mapping_preserves_query_dtype_and_missing_values(storage):
+    train = pd.DataFrame(
+        {"code": pd.Series(["a"] * 4 + ["b"] * 3 + ["rare", None, None], dtype=storage)}
+    )
+    values = ["b", None, "unknown", "rare", "a", np.nan, pd.NA, "unused"]
+    if storage == "category":
+        train["code"] = train["code"].cat.add_categories(["unused"])
+        column = pd.Series(
+            pd.Categorical(values, categories=["unknown", "unused", "rare", "b", "a"])
+        )
+    else:
+        column = pd.Series(values, dtype=storage)
+    query = pd.DataFrame({"code": column})
+    before = query.copy(deep=True)
+    preprocessor = TabularPreprocessor(use_category_frequency=True).fit(train)
+    vocabulary = preprocessor.category_vocabs_["code"].copy()
+
+    transformed = preprocessor.transform(query)
+
+    np.testing.assert_array_equal(
+        transformed.categorical[:, 0], [4, 0, 1, 2, 3, 0, 0, 1]
+    )
+    counts = [3, 2, 0, 1, 4, 2, 2, 0]
+    expected = np.array(
+        [float(np.log1p(count) / np.log1p(len(train))) for count in counts],
+        dtype=np.float32,
+    )
+    np.testing.assert_array_equal(transformed.numerical[:, 0], expected)
+    pd.testing.assert_frame_equal(query, before)
+    assert preprocessor.category_vocabs_["code"] == vocabulary
+
+
+@pytest.mark.parametrize("storage", ["object", "string", "category"])
+def test_empty_frequent_vocabulary_retains_rare_and_missing_codes(storage):
+    train = pd.DataFrame({"code": pd.Series(["r1", "r2", None], dtype=storage)})
+    if storage == "category":
+        train["code"] = train["code"].cat.add_categories(["unused"])
+    preprocessor = TabularPreprocessor(use_category_frequency=True).fit(train)
+    assert preprocessor.category_vocabs_["code"] == {}
+    query = pd.DataFrame(
+        {
+            "code": pd.Series(
+                ["unknown", "r1", "r2", None, np.nan, pd.NA, "unused"], dtype=storage
+            )
+        }
+    )
+
+    transformed = preprocessor.transform(query)
+
+    np.testing.assert_array_equal(transformed.categorical[:, 0], [1, 2, 2, 0, 0, 0, 1])
+    expected = np.array(
+        [
+            float(np.log1p(count) / np.log1p(len(train)))
+            for count in [0, 2, 2, 1, 1, 1, 0]
+        ],
+        dtype=np.float32,
+    )
+    np.testing.assert_array_equal(transformed.numerical[:, 0], expected)
+
+
+def test_large_nullable_integer_category_keys_remain_distinct():
+    first, second, rare, unknown = [2**53 + offset for offset in [1, 3, 5, 9]]
+    train = pd.DataFrame(
+        {"code": pd.Series([first] * 3 + [second] * 2 + [rare, None], dtype="Int64")}
+    )
+    preprocessor = TabularPreprocessor(
+        categorical_features=["code"], use_category_frequency=True
+    ).fit(train)
+    query = pd.DataFrame(
+        {"code": pd.Series([second, first, unknown, None], dtype="Int64")}
+    )
+
+    transformed = preprocessor.transform(query)
+
+    np.testing.assert_array_equal(transformed.categorical[:, 0], [4, 3, 1, 0])
+    expected = np.array(
+        [float(np.log1p(count) / np.log1p(len(train))) for count in [2, 3, 0, 1]],
+        dtype=np.float32,
+    )
+    np.testing.assert_array_equal(transformed.numerical[:, 0], expected)
+
+
+@pytest.mark.parametrize("numeric_strategy", ["standard", "robust"])
+@pytest.mark.parametrize("dtype", [np.float64, np.float32, np.int64])
+def test_numeric_transform_preserves_shared_read_only_input(numeric_strategy, dtype):
+    backing = np.arange(120, dtype=dtype).reshape(30, 4)
+    if np.issubdtype(dtype, np.floating):
+        backing[::3, 1] = np.nan
+    backing.flags.writeable = False
+    X = pd.DataFrame(backing, columns=list("abcd"), copy=False)
+    original = X.copy(deep=True)
+    preprocessor = TabularPreprocessor(numeric_strategy=numeric_strategy).fit(X)
+    first = preprocessor.transform(X.iloc[::2, ::-1])
+    expected = first.numerical.copy()
+    second = preprocessor.transform(X.iloc[1::2])
+    second.numerical[:] = 0.0
+    pd.testing.assert_frame_equal(X, original, check_exact=True)
+    np.testing.assert_array_equal(first.numerical, expected)
+    assert not np.shares_memory(first.numerical, backing)
+    assert not np.shares_memory(first.numerical, second.numerical)
+    assert first.numerical.flags.c_contiguous
+
+
+@pytest.mark.parametrize("numeric_strategy", ["standard", "robust"])
+def test_nullable_numeric_transform_is_stable_across_queries_and_refit(
+    numeric_strategy,
+):
+    X = pd.DataFrame(
+        {
+            "integer": pd.Series([1, None, 3, 4, 5, 6], dtype="Int64"),
+            "float": pd.Series([1.0, 2.0, None, 4.0, 5.0, 6.0], dtype="Float64"),
+            "category": pd.Series(["a", "a", "b", None, "b", "c"], dtype="string"),
+        }
+    )
+    original = X.copy(deep=True)
+    preprocessor = TabularPreprocessor(
+        numeric_strategy=numeric_strategy, use_category_frequency=True
+    ).fit(X)
+    expected = preprocessor.transform(X).numerical.copy()
+    preprocessor.transform(X.iloc[::-1, ::-1])
+    np.testing.assert_array_equal(preprocessor.transform(X).numerical, expected)
+    preprocessor.fit(X.iloc[::-1])
+    refitted = preprocessor.transform(X)
+    fresh = TabularPreprocessor(
+        numeric_strategy=numeric_strategy, use_category_frequency=True
+    ).fit_transform(X.iloc[::-1])
+    np.testing.assert_array_equal(refitted.numerical, fresh.numerical[::-1])
+    np.testing.assert_array_equal(refitted.categorical, fresh.categorical[::-1])
+    pd.testing.assert_frame_equal(X, original, check_exact=True)

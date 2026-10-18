@@ -14,13 +14,17 @@ stability does not establish universal serialized-artifact portability.
 ## Release identity
 
 Package metadata, version module, CITATION, changelog, release notes, artifacts
-and tag `v1.0.0` identify the same stable release. Published tags/artifacts are
+identify the same version. This local candidate is `1.0.3rc2` (the PEP 440
+spelling of a patch release candidate); a future approved tag would be
+`v1.0.3rc2`. This does not create a tag or authorize publication. Published tags/artifacts are
 immutable. Unpublished same-version development builds require source/artifact
 hashes. The published RC1 remains a separate immutable historical identity.
 
 Review README, API, USAGE, changelog and release notes before every release.
 Public behavior requires matching tests/documentation. Algorithm/performance
-changes require reproducible baseline evidence; this promotion makes neither.
+changes require reproducible baseline evidence. This maintenance candidate
+uses frozen paired performance and exact same-runtime equivalence evidence;
+it claims no general predictive accuracy or training improvement.
 No roadmap version/date is promised. Every future publication requires a
 separate maintainer decision and exact-commit validation appropriate to that
 release.

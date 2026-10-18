@@ -148,7 +148,10 @@ def test_lifecycle_refit_schema_rng_and_set_params(task):
 
 
 @pytest.mark.parametrize("task", ["binary", "multiclass", "regression"])
-def test_late_failed_refit_preserves_internal_version_and_schema(task, monkeypatch):
+@pytest.mark.parametrize("failure_type", [RuntimeError, KeyboardInterrupt])
+def test_late_failed_refit_preserves_internal_version_and_schema(
+    task, failure_type, monkeypatch
+):
     X, y = data(task)
     model = cls(task)(**kwargs()).fit(X, y)
     before_prediction = model.predict(X)
@@ -165,10 +168,10 @@ def test_late_failed_refit_preserves_internal_version_and_schema(task, monkeypat
         random.random()
         np.random.random()
         torch.rand(1)
-        raise RuntimeError("controlled P40 late failure")
+        raise failure_type("controlled P40 late failure")
 
     monkeypatch.setattr("neurotabular._base.train_model", late_failure)
-    with pytest.raises(RuntimeError, match="controlled P40 late failure"):
+    with pytest.raises(failure_type, match="controlled P40 late failure"):
         model.fit(X.rename(columns={"value": "new"}), y)
     assert_rng_same(before)
     assert model._model_ is old_network and model._preprocessor_ is old_encoder

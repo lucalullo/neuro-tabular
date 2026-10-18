@@ -11,6 +11,8 @@ import zipfile
 from pathlib import Path, PurePosixPath
 
 FORBIDDEN = {
+    ".local",
+    ".codex-context",
     ".p35-local",
     ".p36-local",
     ".p35-product",

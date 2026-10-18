@@ -1,6 +1,9 @@
 # NeuroTabular publishing guide
 
-The published NeuroTabular 1.0.0 is immutable; this tree prepares compatibility patch 1.0.2. Published tags
+Published NeuroTabular versions, including the 1.0.2 baseline, are immutable.
+This tree identifies the unpublished local maintenance candidate **1.0.3rc2**.
+The local review packet supplies artifact hashes and version-specific receipts.
+Independent final review remains required before publication. Published tags
 and release artifacts are immutable: do not move, overwrite or reuse them for
 changed source. The same rule applies to 0.3.1 and 1.0.0rc1.
 
@@ -34,7 +37,8 @@ its sorted path list and two-space SHA256 format; exclude the manifest itself an
 existing Git/workflow-only exclusions. Verify every entry in source and sdist.
 Repeat affected validation if any covered file changes after freeze.
 
-Independent human/other-machine pilots remain a disclosed soft risk; macOS has
+Independent final release review is required. Broader independent user pilots
+remain a disclosed soft risk; macOS has
 no validated support claim; physical CUDA remains optional/best-effort and
 physically unvalidated. Review support, security and existing legal/naming notes
 before each publication decision. No local validation creates professional legal
@@ -45,12 +49,16 @@ exact-commit CI, then an immutable annotated tag and GitHub release with verifie
 assets. Package-index publication requires separate authorization. Never force
 replace a published tag or artifact.
 
-## Future Trusted Publishing for 1.0.2
+## Future Trusted Publishing for a separately approved version
 
 The existing manual `.github/workflows/publish.yml` is retained unchanged.
-Dispatch it against the immutable `v1.0.2` tag, after reviewing the exact tagged
+The assigned prerelease version is `1.0.3rc2`; a future approved tag would be
+`v1.0.3rc2`. Creating that tag or dispatching publication is not authorized by
+local RC preparation. Dispatch only against a separately approved immutable tag,
+after reviewing the exact tagged
 commit and all required successful CI jobs. Select `target=testpypi` and enter
-`confirmation=v1.0.2`. Dispatching from `main` fails the existing tag guard.
+the same `v<version>` as confirmation. Never reuse `v1.0.2` for changed code.
+Dispatching from `main` fails the existing tag guard.
 The workflow checks that the Git tag, confirmation and package version agree,
 then tests and builds from that tag before publishing its new distributions.
 It does not consume prebuilt GitHub release assets or accept artifact SHA256

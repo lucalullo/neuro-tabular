@@ -31,3 +31,5 @@ prune .p37-product
 prune product_validation
 prune docs/research
 prune tests/fixtures
+prune .local
+prune .codex-context

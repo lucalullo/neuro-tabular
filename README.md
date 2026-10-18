@@ -6,11 +6,14 @@ DataFrames. It exposes a compact scikit-learn-style API, handles numerical and
 categorical columns automatically, and keeps preprocessing inside the estimator
 so training and inference share the same learned state.
 
-**NeuroTabular 1.0.2 is a compatibility patch candidate for the stable 1.0 API.**
-It removes the Python metadata restriction that rejected Python 3.13 installs.
+**NeuroTabular 1.0.2 is the public baseline for the stable 1.0 API.**
+This working tree identifies **1.0.3rc2**, an unpublished local release candidate
+with conservative preprocessing and CPU inference optimizations. They preserve the public
+API, defaults and numerical contracts; no new predictive architecture is included.
+The 1.0.2 compatibility patch removed the Python metadata restriction that rejected Python 3.13 installs.
 Conventional CPython 3.11–3.14 has executed Linux CPU coverage; Python 3.10
-remains legacy compatible. Runtime algorithms, defaults and valid-input
-predictions are unchanged. See the [release notes](https://github.com/lucalullo/neuro-tabular/blob/main/RELEASE_NOTES.md),
+remains legacy compatible. The optimizations preserve algorithms, defaults and valid-input
+predictions in the qualified comparisons. See the [release notes](https://github.com/lucalullo/neuro-tabular/blob/main/RELEASE_NOTES.md),
 [support scope](https://github.com/lucalullo/neuro-tabular/blob/main/docs/policies/SUPPORT_SCOPE.md),
 [API boundary](https://github.com/lucalullo/neuro-tabular/blob/main/docs/API_BOUNDARY.md)
 and [target contract](https://github.com/lucalullo/neuro-tabular/blob/main/docs/TARGET_CONTRACT.md).
@@ -44,7 +47,8 @@ superiority claims over gradient-boosted trees.
 - scikit-learn cloning, pipelines, and cross-validation compatibility;
 - pickle/joblib round trips validated in fresh processes for all three tasks;
 - conventional Python 3.11–3.14 coverage and Python 3.10 legacy compatibility;
-- Linux CPU checks, proposed expanded Windows/macOS CI, and installed-artifact checks.
+- Linux CPU checks, native Windows 11 / CPython 3.12 x64 qualification,
+  installed-artifact checks, and proposed expanded Windows/macOS CI.
 
 The default configuration is intentionally conservative: scalar numerical
 representation, categorical frequency features enabled, no feature gate, and no
@@ -53,7 +57,7 @@ broader evidence.
 
 ## Installation
 
-Use conventional CPython 3.11–3.14. After 1.0.2 is published to production PyPI:
+Use conventional CPython 3.11–3.14 for the documented installation path:
 
 ```bash
 python -m pip install neurotabular
@@ -66,9 +70,12 @@ In a fresh Kaggle or Colab notebook using a supported Python runtime:
 from neurotabular import NeuroTabularClassifier
 ```
 
-This candidate has been tested locally on exact CPython 3.13.15, including normal
+The historical 1.0.2 audit tested exact CPython 3.13.15, including normal
 PyPI dependency resolution. It has not been executed inside Kaggle or Colab.
-TestPyPI publication alone does not make the ordinary PyPI command install 1.0.2.
+Installing the published package does not install this unpublished release candidate.
+The maintainer review packet provides the local wheel, source archive and SHA256
+checksums. After verifying those checksums, install the local wheel by filename
+and check that `neurotabular.__version__` is `1.0.3rc2`.
 Check `neurotabular.__version__` after installation. Restart an existing notebook
 session if it already imported another version.
 
@@ -86,7 +93,7 @@ This is an explicit alternative installation path. CPython 3.11–3.14 is prefer
 for the ordinary one-command experience. The upstream distribution gap has no
 promised resolution date. See the [PyTorch 2.14 announcement](https://pytorch.org/blog/pytorch-2-14-release-blog/).
 
-Native Windows execution of this candidate is locally blocked by Application
+Native Windows execution in the historical compatibility audit was locally blocked by Application
 Control, with no bypass attempted. macOS is not locally validated; current Torch
 wheels on Apple Silicon and older Intel support differ. Physical NVIDIA CUDA
 remains best effort and unvalidated. The support scope distinguishes these
@@ -361,7 +368,7 @@ outside the core prediction contract.
 
 ## Status
 
-NeuroTabular 1.0.2 is a local Python compatibility patch candidate for the stable 1.0 API.
+NeuroTabular 1.0.2 is the public baseline. This tree identifies the unpublished 1.0.3rc2 maintenance candidate for the stable 1.0 API; publication requires separate approval.
 It changes no algorithm, predictive default or public API. Linux and Windows
 seven-job CI evidence for the published 1.0.0 is historical evidence; each new
 release must pass CI on its own exact commit before publication. Independent

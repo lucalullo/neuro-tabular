@@ -108,7 +108,9 @@ class TabularPreprocessor:
                 # pandas.Categorical preserves declared-but-unobserved levels and
                 # value_counts() reports them with count zero. Treat only values
                 # actually observed in training as known categories.
-                counts = counts[counts > 0]
+                # Subsequent lookups are scalar. Preserve observed order and
+                # counts without repeating pandas indexing for every category.
+                counts = counts[counts > 0].to_dict()
                 eligible = [
                     value
                     for value, count in counts.items()
@@ -196,8 +198,15 @@ class TabularPreprocessor:
             raise RuntimeError("TabularPreprocessor must be fitted before transform().")
         started = perf_counter()
         X = self._validate_dataframe(X, fitting=False)
-        self._validate_schema(X)
-        if not X.columns.equals(pd.Index(self.feature_names_, tupleize_cols=False)):
+        feature_index = pd.Index(self.feature_names_, tupleize_cols=False)
+        aligned = X.columns.equals(feature_index)
+        # Equal string labels need no membership scans. Other labels retain
+        # the existing diagnostics, including null-name membership semantics.
+        if not aligned or not all(
+            isinstance(column, str) for column in self.feature_names_
+        ):
+            self._validate_schema(X)
+        if not aligned:
             X = X.loc[:, self.feature_names_]
         schema_finished = perf_counter()
 
@@ -266,21 +275,27 @@ class TabularPreprocessor:
         self.numeric_knots_ = self._stabilize_knots(knots)
 
     def _transform_numeric(self, X: pd.DataFrame) -> np.ndarray:
-        n_samples = len(X)
         if not self.numeric_features_:
-            return np.empty((n_samples, 0), dtype=np.float32)
+            return np.empty((len(X), 0), dtype=np.float32)
+        # _numeric_matrix returns a private copy, safe to reuse in place.
         values = self._numeric_matrix(X)
         missing = np.isnan(values)
-        imputed = np.where(missing, self.numeric_medians_, values)
+        np.copyto(values, self.numeric_medians_, where=missing)
         with np.errstate(over="ignore", invalid="ignore"):
-            scaled = (imputed - self.numeric_centers_) / self.numeric_scales_
+            np.subtract(values, self.numeric_centers_, out=values)
+            np.divide(values, self.numeric_scales_, out=values)
             if self.numeric_strategy == "robust":
                 limit = self.smooth_clip_limit
-                scaled = limit * np.tanh(scaled / limit)
-        if not np.isfinite(scaled).all():
+                np.divide(values, limit, out=values)
+                np.tanh(values, out=values)
+                np.multiply(values, limit, out=values)
+        if not np.isfinite(values).all():
             raise ValueError("Numerical preprocessing produced non-finite values.")
-        scaled_float32 = self._safe_float32(scaled, "Numerical preprocessing")
-        return np.concatenate((scaled_float32, missing.astype(np.float32)), axis=1)
+        scaled_float32 = self._safe_float32(values, "Numerical preprocessing")
+        result = np.empty((len(X), 2 * len(self.numeric_features_)), dtype=np.float32)
+        result[:, : len(self.numeric_features_)] = scaled_float32
+        result[:, len(self.numeric_features_) :] = missing
+        return result
 
     def _transform_categorical(self, X: pd.DataFrame) -> tuple[np.ndarray, np.ndarray]:
         n_samples = len(X)
@@ -301,13 +316,19 @@ class TabularPreprocessor:
             series = X[column]
             missing = series.isna().to_numpy(dtype=bool)
             try:
-                mapped = series.map(self.category_vocabs_[column])
+                mapped = series.map(
+                    self._category_mapping_series(self.category_vocabs_[column])
+                )
                 encoded = mapped.to_numpy(dtype=np.float64, na_value=np.nan)
                 encoded = np.where(np.isnan(encoded), UNKNOWN_CATEGORY_ID, encoded)
                 rare = self.rare_categories_[column]
                 if rare:
                     if self.hash_buckets:
-                        mapped_rare = series.map(self.rare_category_ids_[column])
+                        mapped_rare = series.map(
+                            self._category_mapping_series(
+                                self.rare_category_ids_[column]
+                            )
+                        )
                         rare_ids = mapped_rare.to_numpy(
                             dtype=np.float64, na_value=np.nan
                         )
@@ -329,6 +350,18 @@ class TabularPreprocessor:
                     encoded_ids
                 ]
         return categorical, frequencies
+
+    @staticmethod
+    def _category_mapping_series(mapping: dict[Hashable, int]) -> pd.Series:
+        # IDs are converted to float64 by the caller. Prepare that dtype directly
+        # while retaining pandas' dictionary-key indexing and empty-map behavior.
+        if not mapping:
+            return pd.Series(mapping, dtype=np.float64)
+        return pd.Series(
+            np.fromiter(mapping.values(), dtype=np.float64, count=len(mapping)),
+            index=pd.Index(mapping.keys(), tupleize_cols=False),
+            copy=False,
+        )
 
     @staticmethod
     def _stabilize_knots(knots: np.ndarray) -> np.ndarray:
