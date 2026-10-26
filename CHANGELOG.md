@@ -1,7 +1,48 @@
 # Changelog
 
+## [2.0.0] â€” release sources, publication controlled separately
+
+- Consolidate the stable neural library under the maintainer-designated 2.0
+  maturity milestone, preserving the 1.x estimator API, defaults and valid-input
+  numerical behavior. No new predictive architecture or general accuracy gain.
+- Reject complex numerical columns reliably beside nullable pandas columns,
+  before conversion can discard imaginary values. Reuse the existing real-dtype
+  predicate; preserve valid conversions, error family and refit/persistence state.
+- Reject complex sample weights before conversion can discard their imaginary
+  values. Convert overflow/invalid floating-point training statistics into an
+  explicit ValueError while restoring the caller's NumPy error policy. Ordinary
+  preprocessing retains exact outputs in the qualified comparisons.
+- Retain versioned private-folder exclusions, source-manifest/Git roundtrip
+  coverage, historical baselines and already shipped inference optimizations.
+- Add adversarial dtype/estimator/persistence coverage and release-specific
+  dependency qualification. Hardware/runtime evidence is limited to executed
+  environments; no universal CUDA, macOS, calibration or pickle guarantee.
+- Adopt selective, benefit-driven future releases, with prompt exceptions for
+  critical security, correctness, compatibility and regression fixes.
+- Record the explicit 2.0.0 maintainer decision to defer dedicated native
+  performance qualification as a publication prerequisite. Historical results
+  remain inconclusive or unexecuted; no new speed/RAM benefit is claimed.
+  Functional integrity, critical-defect checks and exact-commit CI remain required.
+
+
 All notable public changes to NeuroTabular are recorded here. Published tags and
 release artifacts are immutable.
+
+## [1.0.4rc1] - 2026-10-24 (local candidate; unpublished)
+
+- Version the root `.local/` and `.codex-context/` exclusions in `.gitignore`,
+  protecting new checkouts without relying on machine-local Git exclusions.
+  No actual private-data disclosure or distributed payload leak was observed.
+- Add a clean-repository regression test and include `.gitignore` in the
+  source archive and source manifest so its rules can be verified from sdist.
+- Carry the canonical project vision and operating instructions into the public
+  source documentation, keeping experimental evidence outside distributions.
+- Consolidate release metadata and instructions from the official 1.0.3 source.
+  Reuse its immutable-artifact promotion safeguards; no workflow is executed.
+- Preserve API, defaults, dependencies and all computational module bytes from
+  1.0.3. No new accuracy, speed, allocation or process-RAM benefit is claimed.
+- Do not integrate the unqualified nullable fast path or complex+nullable guard.
+  Their historical decisions and remaining requirements are unchanged.
 
 ## [1.0.3] - 2026-10-18
 
@@ -52,7 +93,7 @@ release artifacts are immutable.
 ## [1.0.2] - Compatibility patch (historical baseline)
 
 - Remove the unnecessary Python <3.13 metadata cap; retain Requires-Python >=3.10.
-- Validate conventional CPython 3.11–3.14 on Linux CPU, including exact 3.13.15,
+- Validate conventional CPython 3.11â€“3.14 on Linux CPU, including exact 3.13.15,
   ordinary PyPI dependency installs, minimum/current stacks and warnings as errors.
 - Retain Python 3.10 legacy compatibility; distinguish Python 3.15 code compatibility
   on the official Torch CPU channel from its ordinary PyPI distribution limitation.
@@ -119,7 +160,7 @@ release artifacts are immutable.
 
 - Reconcile the public-0.3.1-based local stabilization candidate and canonical
   policy/support scope; classify the intended 1.0 boundary without enacting a freeze.
-- Preserve Python 3.10–3.12 intent, scope CUDA to optional best effort and prepare
+- Preserve Python 3.10â€“3.12 intent, scope CUDA to optional best effort and prepare
   independent acceptance evidence. These earlier changes did not alter algorithm or dependency bounds.
 
 - Adopt local-development API maintenance, deprecation, warning, persistence and
@@ -169,7 +210,7 @@ quality. Physical CUDA validation remains pending.
 - Automatic multiclass classification with ordered labels, cross entropy,
   normalized softmax probabilities, weights and loss/accuracy stopping.
 - `NeuroTabularRegressor` with train-only weighted target standardization,
-  inverse transformation and loss/RMSE/MAE/R² evaluation.
+  inverse transformation and loss/RMSE/MAE/RÂ² evaluation.
 - Shared preprocessing, neural backbone and multi-task training core.
 - Pickle/joblib validation in fresh processes for all three tasks.
 - Expanded schema, weighting, target, device, sklearn and packaging validation,

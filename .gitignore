@@ -58,3 +58,7 @@ product_validation/
 .p37-local/
 .p37-product/
 /product_validation/p37/P37_FINAL_REPORT.md
+
+# Canonical private research and operational evidence (all checkouts)
+/.local/
+/.codex-context/

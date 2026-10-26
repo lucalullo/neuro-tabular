@@ -31,5 +31,10 @@ features remain available with explicit limits and notice discipline. Technical
 validation and public release decisions remain separate.
 
 No default/architecture/preprocessing/optimization change is authorized by this
-policy. Release/tag/publication decisions remain separate, and research remains
-frozen under D37/R38.
+policy. Release/tag/publication decisions remain separate. Historical D37/R38
+research and its reserved data remain frozen; separately authorized prospective
+research requires its own governance, protocol and formal admission. The
+[canonical vision](../NEUROTABULAR_VISION.md) defines its direction without changing
+this stable product contract or admitting experiments by itself.
+
+The 2.0 release line retains the tested 1.x API/default contracts. Earlier qualification counts above are historical. Exact 2.0 local/CI receipts and the release readiness matrix determine current executed coverage; do not infer untested platforms or independent certification from a major version.

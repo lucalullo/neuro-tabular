@@ -93,7 +93,12 @@ class TabularPreprocessor:
         schema_finished = perf_counter()
 
         numeric_started = perf_counter()
-        self._fit_numeric(X)
+        try:
+            self._fit_numeric(X)
+        except FloatingPointError as exc:
+            raise ValueError(
+                "Numerical features exceed the safe range for training statistics."
+            ) from exc
         numeric_finished = perf_counter()
 
         self.category_vocabs_: dict[Hashable, dict[object, int]] = {}
@@ -235,6 +240,7 @@ class TabularPreprocessor:
 
         return self.fit(X).transform(X)
 
+    @np.errstate(over="raise", invalid="raise")
     def _fit_numeric(self, X: pd.DataFrame) -> None:
         if not self.numeric_features_:
             self.numeric_medians_ = np.empty(0, dtype=np.float64)
@@ -412,9 +418,10 @@ class TabularPreprocessor:
             # Already real numeric columns need no per-column conversion or
             # DataFrame reconstruction. Keep the ownership copy below, and the
             # original conversion/error path for other dtypes at prediction.
+            real_numeric = all(dtype.kind in "iuf" for dtype in numeric.dtypes)
             converted = (
                 numeric
-                if all(dtype.kind in "iuf" for dtype in numeric.dtypes)
+                if real_numeric
                 else numeric.apply(pd.to_numeric, errors="raise")
             )
         except (TypeError, ValueError) as exc:
@@ -429,7 +436,9 @@ class TabularPreprocessor:
                 "Clean the values, or declare these columns in categorical_features "
                 "and refit if they represent categories."
             ) from exc
-        if np.iscomplexobj(converted.to_numpy(copy=False)):
+        # A common object array can hide complex columns next to nullable ones.
+        # The real-dtype predicate above already proves the ordinary path safe.
+        if not real_numeric and any(dtype.kind == "c" for dtype in converted.dtypes):
             bad_columns = [
                 column
                 for column in self.numeric_features_

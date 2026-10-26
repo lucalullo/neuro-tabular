@@ -472,6 +472,8 @@ class _BaseNeuroTabularEstimator(BaseEstimator):
         if sample_weight is None:
             return None
         try:
+            if np.iscomplexobj(sample_weight):
+                raise ValueError("Complex sample weights are not supported.")
             weights = np.asarray(sample_weight, dtype=np.float64)
         except (TypeError, ValueError) as exc:
             raise ValueError("sample_weight must contain numeric values.") from exc
