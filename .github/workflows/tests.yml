@@ -184,7 +184,13 @@ jobs:
           for artifact in dist/*.whl dist/*.tar.gz; do
             scratch="$(mktemp -d)"
             python -m venv "$scratch/venv"
-            "$scratch/venv/bin/python" -m pip install "$artifact"
+            # Preinstall CPU-only PyTorch for package smoke testing. The default
+            # Linux torch resolver also installs several GB of CUDA wheels.
+            "$scratch/venv/bin/python" -m pip install --no-cache-dir \
+              "torch==2.12.1" --index-url https://download.pytorch.org/whl/cpu
+            "$scratch/venv/bin/python" -m pip install --no-cache-dir "$artifact"
+            "$scratch/venv/bin/python" -m pip check
+            "$scratch/venv/bin/python" -c 'import torch; assert torch.version.cuda is None, "Expected CPU-only PyTorch"'
             cat > "$scratch/smoke.py" <<'PY'
           import numpy as np
           import pandas as pd
