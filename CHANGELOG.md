@@ -1,6 +1,6 @@
 # Changelog
 
-## [2.0.0] â€” release sources, publication controlled separately
+## [2.0.0] — release sources, publication controlled separately
 
 - Consolidate the stable neural library under the maintainer-designated 2.0
   maturity milestone, preserving the 1.x estimator API, defaults and valid-input
@@ -12,6 +12,9 @@
   values. Convert overflow/invalid floating-point training statistics into an
   explicit ValueError while restoring the caller's NumPy error policy. Ordinary
   preprocessing retains exact outputs in the qualified comparisons.
+- Reject non-representable float64 conversions consistently for regression
+  targets, sample weights and numerical features, without warning-filter-dependent
+  overflow errors. Preserve ordinary conversions and the caller error policy.
 - Retain versioned private-folder exclusions, source-manifest/Git roundtrip
   coverage, historical baselines and already shipped inference optimizations.
 - Add adversarial dtype/estimator/persistence coverage and release-specific
@@ -93,7 +96,7 @@ release artifacts are immutable.
 ## [1.0.2] - Compatibility patch (historical baseline)
 
 - Remove the unnecessary Python <3.13 metadata cap; retain Requires-Python >=3.10.
-- Validate conventional CPython 3.11â€“3.14 on Linux CPU, including exact 3.13.15,
+- Validate conventional CPython 3.11–3.14 on Linux CPU, including exact 3.13.15,
   ordinary PyPI dependency installs, minimum/current stacks and warnings as errors.
 - Retain Python 3.10 legacy compatibility; distinguish Python 3.15 code compatibility
   on the official Torch CPU channel from its ordinary PyPI distribution limitation.
@@ -160,7 +163,7 @@ release artifacts are immutable.
 
 - Reconcile the public-0.3.1-based local stabilization candidate and canonical
   policy/support scope; classify the intended 1.0 boundary without enacting a freeze.
-- Preserve Python 3.10â€“3.12 intent, scope CUDA to optional best effort and prepare
+- Preserve Python 3.10–3.12 intent, scope CUDA to optional best effort and prepare
   independent acceptance evidence. These earlier changes did not alter algorithm or dependency bounds.
 
 - Adopt local-development API maintenance, deprecation, warning, persistence and
@@ -210,7 +213,7 @@ quality. Physical CUDA validation remains pending.
 - Automatic multiclass classification with ordered labels, cross entropy,
   normalized softmax probabilities, weights and loss/accuracy stopping.
 - `NeuroTabularRegressor` with train-only weighted target standardization,
-  inverse transformation and loss/RMSE/MAE/RÂ² evaluation.
+  inverse transformation and loss/RMSE/MAE/R² evaluation.
 - Shared preprocessing, neural backbone and multi-task training core.
 - Pickle/joblib validation in fresh processes for all three tasks.
 - Expanded schema, weighting, target, device, sklearn and packaging validation,

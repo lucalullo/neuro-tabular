@@ -96,7 +96,13 @@ class NeuroTabularRegressor(RegressorMixin, _BaseNeuroTabularEstimator):
             raise ValueError(
                 f"{name} must contain real numeric values (no complex targets)."
             )
-        values = values.astype(np.float64)
+        try:
+            with np.errstate(over="ignore", invalid="ignore"):
+                values = values.astype(np.float64)
+        except (TypeError, ValueError, OverflowError) as exc:
+            raise ValueError(
+                f"{name} cannot be represented as float64 numeric values."
+            ) from exc
         if not np.isfinite(values).all():
             raise ValueError(f"{name} must contain only finite values.")
         return values

@@ -1,4 +1,4 @@
-# NeuroTabular 2.0
+# NeuroTabular
 
 NeuroTabular is a PyTorch library for binary classification,
 multiclass classification, and single-output regression on heterogeneous pandas
@@ -57,7 +57,7 @@ instructions. Research prototypes remain separate from the stable product.
   on compatible CUDA hardware;
 - scikit-learn cloning, pipelines, and cross-validation compatibility;
 - pickle/joblib round trips validated in fresh processes for all three tasks;
-- conventional Python 3.11â€“3.14 coverage and Python 3.10 legacy compatibility;
+- conventional Python 3.11–3.14 coverage and Python 3.10 legacy compatibility;
 - Linux CPU software checks, historical Windows 11 Sandbox qualification,
   installed-artifact checks, and exact-version CI requirements; see the support scope.
 
@@ -68,7 +68,7 @@ broader evidence.
 
 ## Installation
 
-Use conventional CPython 3.11â€“3.14 for the documented installation path:
+Use conventional CPython 3.11–3.14 for the documented installation path:
 
 ```bash
 python -m pip install neurotabular
@@ -99,7 +99,7 @@ python -m pip install torch --index-url https://download.pytorch.org/whl/cpu
 python -m pip install neurotabular
 ```
 
-This is an explicit alternative installation path. CPython 3.11â€“3.14 is preferred
+This is an explicit alternative installation path. CPython 3.11–3.14 is preferred
 for the ordinary one-command experience. The upstream distribution gap has no
 promised resolution date. See the [PyTorch 2.14 announcement](https://pytorch.org/blog/pytorch-2-14-release-blog/).
 
@@ -279,7 +279,7 @@ figures are hardware- and workload-specific; see
 
 The frozen 0.3 development benchmark contains 330 fits across 22 task/dataset
 cases and three seeds, comparing NeuroTabular with four fixed tree recipes. Mean
-binary ROC-AUC is `0.8461`, multiclass accuracy is `0.8275`, and regression RÂ² is
+binary ROC-AUC is `0.8461`, multiclass accuracy is `0.8275`, and regression R² is
 `0.5320`. These are workload-specific engineering measurements, not a claim of
 universal superiority. See [0.3 benchmark evidence](https://github.com/lucalullo/neuro-tabular/blob/main/docs/BENCHMARK_0_3.md) for
 scope, exact aggregates, comparisons, and known failure cases. Historical 0.2
@@ -319,7 +319,7 @@ The stable 1.0 API follows the [API maintenance](https://github.com/lucalullo/ne
 [1.0 API boundary](https://github.com/lucalullo/neuro-tabular/blob/main/docs/API_BOUNDARY.md) is the stable public contract; items
 explicitly classified as experimental or internal remain outside that guarantee.
 [Support scope](https://github.com/lucalullo/neuro-tabular/blob/main/docs/policies/SUPPORT_SCOPE.md) documents the validated
-Linux Python 3.11â€“3.14 CPU matrix, 3.10 legacy support and remaining evidence limits. CUDA remains optional
+Linux Python 3.11–3.14 CPU matrix, 3.10 legacy support and remaining evidence limits. CUDA remains optional
 best effort with physical NVIDIA validation pending; macOS remains outside the
 validated support scope. Historical reference models and private validation
 evidence are not packaged. See the [canonical policy index](https://github.com/lucalullo/neuro-tabular/blob/main/docs/policies/README.md)
@@ -364,7 +364,7 @@ outside the core prediction contract.
 * multiclass ROC-AUC is not an early-stopping metric; use loss or accuracy;
 * credit-g and Titanic show weaker binary results and split sensitivity;
 * car can collapse to its majority class; yeast/glass have weak rare-class coverage;
-* quake has negative RÂ² and triazines is weak and split-sensitive; see the
+* quake has negative R² and triazines is weak and split-sensitive; see the
   [benchmark limitations](https://github.com/lucalullo/neuro-tabular/blob/main/docs/BENCHMARK_0_3.md#known-limitations);
 * no claim of state-of-the-art accuracy or tree-model superiority;
 * internal validation reduces the rows used for the selected model unless

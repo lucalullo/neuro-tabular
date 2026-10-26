@@ -449,8 +449,11 @@ class TabularPreprocessor:
                 f"not supported in columns: {bad_columns!r}."
             )
         try:
-            values = converted.to_numpy(dtype=np.float64, na_value=np.nan, copy=True)
-        except (TypeError, ValueError) as exc:
+            with np.errstate(over="ignore", invalid="ignore"):
+                values = converted.to_numpy(
+                    dtype=np.float64, na_value=np.nan, copy=True
+                )
+        except (TypeError, ValueError, OverflowError) as exc:
             raise ValueError(
                 "A feature treated as numerical could not be converted to float64."
             ) from exc

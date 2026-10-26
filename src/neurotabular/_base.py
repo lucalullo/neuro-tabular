@@ -474,8 +474,9 @@ class _BaseNeuroTabularEstimator(BaseEstimator):
         try:
             if np.iscomplexobj(sample_weight):
                 raise ValueError("Complex sample weights are not supported.")
-            weights = np.asarray(sample_weight, dtype=np.float64)
-        except (TypeError, ValueError) as exc:
+            with np.errstate(over="ignore", invalid="ignore"):
+                weights = np.asarray(sample_weight, dtype=np.float64)
+        except (TypeError, ValueError, OverflowError) as exc:
             raise ValueError("sample_weight must contain numeric values.") from exc
         if weights.ndim != 1:
             raise ValueError("sample_weight must be one-dimensional.")

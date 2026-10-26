@@ -25,6 +25,12 @@ before any conversion can discard imaginary values. These are input-safety
 corrections; they do not change the predictive architecture or establish a
 generalization or speed benefit.
 
+Non-representable numeric conversions, including oversized Python integers
+and wider floating-point values outside float64 range, are rejected explicitly
+for targets, weights and numerical features. Overflow during conversion does
+not leak a RuntimeWarning or an uncaught OverflowError. Ordinary values retain
+the same conversions; no new precision or performance guarantee is implied.
+
 ## Compatibility and security boundaries
 
 Numerical/predictive equivalence, dtype/error/refit/RNG contracts and trusted
