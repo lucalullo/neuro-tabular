@@ -6,19 +6,29 @@ DataFrames. It exposes a compact scikit-learn-style API, handles numerical and
 categorical columns automatically, and keeps preprocessing inside the estimator
 so training and inference share the same learned state.
 
-**NeuroTabular 1.0.3 is a maintenance release for the stable 1.0 API.**
-It retains the conservative preprocessing and CPU inference optimizations qualified
-against the historical 1.0.2 baseline. Public API, defaults and numerical contracts
-are preserved; no new predictive architecture is included.
-The 1.0.2 compatibility patch removed the Python metadata restriction that rejected Python 3.13 installs.
-Conventional CPython 3.11–3.14 has executed Linux CPU coverage; Python 3.10
-remains legacy compatible. The optimizations preserve algorithms, defaults and valid-input
-predictions in the qualified comparisons. See the [release notes](https://github.com/lucalullo/neuro-tabular/blob/main/RELEASE_NOTES.md),
-[support scope](https://github.com/lucalullo/neuro-tabular/blob/main/docs/policies/SUPPORT_SCOPE.md),
-[API boundary](https://github.com/lucalullo/neuro-tabular/blob/main/docs/API_BOUNDARY.md)
-and [target contract](https://github.com/lucalullo/neuro-tabular/blob/main/docs/TARGET_CONTRACT.md).
-It targets small or medium in-memory tabular datasets, without SOTA or universal
-superiority claims over gradient-boosted trees.
+**Version 2.0.0 consolidates the stable neural product and its maintenance policies.**
+The major number is an explicit maintainer choice for project maturity; it does
+not denote a newly validated predictive architecture or a general accuracy gain.
+The public estimator API and defaults retain the 1.x behavior. Complex numerical
+columns are rejected before lossy conversion, including beside pandas nullable
+columns. Conservative preprocessing/inference optimizations already present in
+1.0.3 are retained. Their qualified local benefits are not new 2.0 speedups or a
+general training/RAM advantage. See the [release notes](RELEASE_NOTES.md),
+[support scope](docs/policies/SUPPORT_SCOPE.md), [API boundary](docs/API_BOUNDARY.md)
+and [target contract](docs/TARGET_CONTRACT.md).
+
+PyPI availability and publication approval are separate from the source version.
+Use `python -m pip install neurotabular` for the published package; an explicit
+`neurotabular==2.0.0` pin requires that the maintainer has published that version.
+Previous releases remain historical reproducibility references rather than
+alternative recommended release lines after 2.0 publication.
+
+The long-term research mission is an original neural tabular algorithm that
+learns more accurately, generalizes reliably, and reduces complete training,
+inference and memory costs. These are objectives, not implemented or demonstrated
+advantages of the current release. The [canonical vision](docs/NEUROTABULAR_VISION.md)
+defines that direction; [AGENTS.md](AGENTS.md) provides contributor-agent working
+instructions. Research prototypes remain separate from the stable product.
 
 ## Highlights
 
@@ -41,14 +51,15 @@ superiority claims over gradient-boosted trees.
   splitting, and preprocessing;
 - transactional re-fitting: a failed refit preserves a previously fitted model;
 - caller Python, NumPy, and PyTorch CPU RNG states are restored after fitting;
-- explicit checks for unsafe float32 conversion and complex-valued inputs;
+- explicit checks for unsafe float32 conversion, overflowing numerical training
+  statistics, complex-valued inputs and complex sample weights;
 - CPU/CUDA device diagnostics, synchronized CUDA usability probing, and AMP only
   on compatible CUDA hardware;
 - scikit-learn cloning, pipelines, and cross-validation compatibility;
 - pickle/joblib round trips validated in fresh processes for all three tasks;
 - conventional Python 3.11–3.14 coverage and Python 3.10 legacy compatibility;
-- Linux CPU checks, native Windows 11 / CPython 3.12 x64 qualification,
-  installed-artifact checks, and executed RC2 Windows/macOS CI.
+- Linux CPU software checks, historical Windows 11 Sandbox qualification,
+  installed-artifact checks, and exact-version CI requirements; see the support scope.
 
 The default configuration is intentionally conservative: scalar numerical
 representation, categorical frequency features enabled, no feature gate, and no
@@ -72,10 +83,9 @@ from neurotabular import NeuroTabularClassifier
 
 The historical 1.0.2 audit tested exact CPython 3.13.15, including normal
 PyPI dependency resolution. It has not been executed inside Kaggle or Colab.
-Check that `neurotabular.__version__` is `1.0.3` when verifying this release.
-During staged release validation, install the exact verified wheel by filename.
-The package index serves 1.0.3 only after the separately approved upload completes;
-see the publishing guide for TestPyPI, checksum and clean-install checks.
+When reproducing the published baseline, install `neurotabular==1.0.3` and check
+that `neurotabular.__version__` is `1.0.3`. A development checkout can retain
+different version metadata; see [Status](#status) before installing from source.
 Check `neurotabular.__version__` after installation. Restart an existing notebook
 session if it already imported another version.
 
@@ -93,11 +103,12 @@ This is an explicit alternative installation path. CPython 3.11–3.14 is prefer
 for the ordinary one-command experience. The upstream distribution gap has no
 promised resolution date. See the [PyTorch 2.14 announcement](https://pytorch.org/blog/pytorch-2-14-release-blog/).
 
-Native Windows execution in the historical compatibility audit was locally blocked by Application
-Control, with no bypass attempted. macOS is not locally validated; current Torch
-wheels on Apple Silicon and older Intel support differ. Physical NVIDIA CUDA
-remains best effort and unvalidated. The support scope distinguishes these
-platform limits from executed Linux evidence.
+An initial host Windows audit was blocked by Application Control; subsequent
+native Windows 11 Sandbox qualification passed in its pinned CPython 3.12 x64
+environment without disabling protections. That does not certify every Windows
+configuration. CI coverage and local-host validation are distinct; macOS is not
+locally validated. Physical NVIDIA CUDA remains best effort and unvalidated.
+The support scope records the environments and limits of executed evidence.
 
 From a local checkout:
 
@@ -300,7 +311,7 @@ unexpected columns are rejected rather than guessed.
 
 ### Maintenance policies and stable scope
 
-NeuroTabular 1.0.2 follows the [API maintenance](https://github.com/lucalullo/neuro-tabular/blob/main/docs/policies/API_STABILITY_POLICY.md),
+The stable 1.0 API follows the [API maintenance](https://github.com/lucalullo/neuro-tabular/blob/main/docs/policies/API_STABILITY_POLICY.md),
 [deprecation](https://github.com/lucalullo/neuro-tabular/blob/main/docs/policies/DEPRECATION_POLICY.md),
 [persistence](https://github.com/lucalullo/neuro-tabular/blob/main/docs/policies/PERSISTENCE_POLICY.md),
 [warning](https://github.com/lucalullo/neuro-tabular/blob/main/docs/policies/WARNING_POLICY.md) and
@@ -368,11 +379,23 @@ outside the core prediction contract.
 
 ## Status
 
-NeuroTabular 1.0.3 is the maintenance release for the stable 1.0 API. The historical 1.0.2 baseline and frozen RC1/RC2 evidence remain distinct. Release publication follows separate maintainer approvals and exact-commit checks.
-It changes no algorithm, predictive default or public API. Linux and Windows
-seven-job CI evidence for the published 1.0.0 is historical evidence; each new
-release must pass CI on its own exact commit before publication. Independent
-human pilots remain unavailable and are disclosed as a soft risk.
+These are the NeuroTabular 2.0.0 release sources. Published 1.0.3 artifacts and
+earlier tags remain immutable historical baselines. Version 2.0 consolidates
+the product and its validation; it does not introduce a new predictive
+architecture or establish general accuracy, training-speed or RAM gains.
+
+Dedicated native Linux/Windows performance qualification of the additional
+complex-plus-nullable validation remains incomplete. The maintainer explicitly
+approved proceeding without making that qualification a prerequisite for this
+release, accepting the unquantified performance risk. Historical inconclusive
+results remain unchanged; this decision is not a performance PASS or independent
+certification. Functional tests and exact-commit release CI remain mandatory.
+
+Registry availability is determined by the actual published artifacts, not this
+source version. Release actions require separate maintainer authorization and
+the exact-source checks described in [publishing](PUBLISHING.md).
+Current capabilities and [limitations](#limitations) remain distinct from the
+[research vision](docs/NEUROTABULAR_VISION.md).
 
 ## License
 
