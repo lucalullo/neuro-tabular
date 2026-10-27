@@ -1,4 +1,6 @@
+include .gitignore
 include ABLATION_REPORT.md
+include AGENTS.md
 include BENCHMARK_REPORT.md
 include CHANGELOG.md
 include CITATION.cff

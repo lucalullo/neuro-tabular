@@ -1,8 +1,10 @@
 # Contributing to NeuroTabular
 
-Thank you for considering a contribution. NeuroTabular is experimental, so
-focused issues, synthetic reproductions, and measured changes are especially
-valuable. Participation is governed by [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md).
+Thank you for considering a contribution. NeuroTabular has a stable public API
+and a separate research track. Focused issues, synthetic reproductions and
+measured changes are especially valuable. Read the
+[canonical vision](docs/NEUROTABULAR_VISION.md) and, for coding agents,
+[AGENTS.md](AGENTS.md). Participation is governed by [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md).
 Report vulnerabilities through [SECURITY.md](SECURITY.md), not a public issue.
 
 ## Development setup

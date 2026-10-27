@@ -1,34 +1,85 @@
 # NeuroTabular
 
-NeuroTabular is a PyTorch library for binary classification,
-multiclass classification, and single-output regression on heterogeneous pandas
-DataFrames. It exposes a compact scikit-learn-style API, handles numerical and
-categorical columns automatically, and keeps preprocessing inside the estimator
-so training and inference share the same learned state.
+**Neural networks for tabular data, with automatic preprocessing and a scikit-learn-style API.**
 
-**Version 2.0.0 consolidates the stable neural product and its maintenance policies.**
-The major number is an explicit maintainer choice for project maturity; it does
-not denote a newly validated predictive architecture or a general accuracy gain.
-The public estimator API and defaults retain the 1.x behavior. Complex numerical
-columns are rejected before lossy conversion, including beside pandas nullable
-columns. Conservative preprocessing/inference optimizations already present in
-1.0.3 are retained. Their qualified local benefits are not new 2.0 speedups or a
-general training/RAM advantage. See the [release notes](RELEASE_NOTES.md),
-[support scope](docs/policies/SUPPORT_SCOPE.md), [API boundary](docs/API_BOUNDARY.md)
-and [target contract](docs/TARGET_CONTRACT.md).
+NeuroTabular uses PyTorch to train neural models for binary classification,
+multiclass classification, and single-output regression on pandas DataFrames.
+It handles numerical and categorical columns, missing values, and reusable
+training-only preprocessing inside the estimator.
 
-PyPI availability and publication approval are separate from the source version.
-Use `python -m pip install neurotabular` for the published package; an explicit
-`neurotabular==2.0.0` pin requires that the maintainer has published that version.
-Previous releases remain historical reproducibility references rather than
-alternative recommended release lines after 2.0 publication.
+## Install
 
-The long-term research mission is an original neural tabular algorithm that
-learns more accurately, generalizes reliably, and reduces complete training,
-inference and memory costs. These are objectives, not implemented or demonstrated
-advantages of the current release. The [canonical vision](docs/NEUROTABULAR_VISION.md)
-defines that direction; [AGENTS.md](AGENTS.md) provides contributor-agent working
-instructions. Research prototypes remain separate from the stable product.
+```bash
+python -m pip install neurotabular
+```
+
+Use a supported Python 3.11–3.14 environment for the usual installation path.
+This command installs the version currently available on PyPI; release source
+version `2.0.0` is not proof that `2.0.0` has already been published.
+See [installation details](#environments-development-and-dependencies) for
+supported runtime combinations and alternatives.
+
+## Quick start
+
+Binary classification with a real dataset:
+
+```python
+from sklearn.datasets import load_breast_cancer
+from neurotabular import NeuroTabularClassifier
+
+X, y = load_breast_cancer(return_X_y=True, as_frame=True)
+model = NeuroTabularClassifier(random_state=42, max_epochs=10)
+model.fit(X, y)
+
+labels = model.predict(X.iloc[:5])
+probabilities = model.predict_proba(X.iloc[:5])
+```
+
+For mixed numeric/categorical data, missing values, and unseen categories,
+see the [complete mixed-data example](https://github.com/lucalullo/neuro-tabular/blob/v2.0.0/examples/mixed_dataframe_workflow.py).
+These snippets demonstrate usage, not model quality; evaluate on a separate
+held-out test set.
+
+Multiclass classification uses the same estimator, without a task parameter:
+
+```python
+from sklearn.datasets import load_iris
+from neurotabular import NeuroTabularClassifier
+
+X, y = load_iris(return_X_y=True, as_frame=True)
+clf = NeuroTabularClassifier().fit(X, y)
+probabilities = clf.predict_proba(X)  # shape (150, 3), columns follow clf.classes_
+labels = clf.predict(X)
+```
+
+Regression:
+
+```python
+from sklearn.datasets import load_diabetes
+from neurotabular import NeuroTabularRegressor
+
+X, y = load_diabetes(return_X_y=True, as_frame=True)
+reg = NeuroTabularRegressor().fit(X, y)
+prediction = reg.predict(X)  # original target units, shape (442,)
+```
+
+These examples demonstrate the API; evaluate quality on a separate test set.
+
+Integer-coded categorical columns should be named explicitly:
+
+```python
+model = NeuroTabularClassifier(categorical_features=["postal_code"])
+```
+
+For a user-controlled holdout:
+
+```python
+model.fit(X_train, y_train, eval_set=(X_valid, y_valid))
+```
+
+Preprocessing is fitted only on the training rows. Categories and numerical
+statistics from an external validation frame never enter the learned training
+preprocessor.
 
 ## Highlights
 
@@ -66,13 +117,11 @@ representation, categorical frequency features enabled, no feature gate, and no
 full-data refit. Experimental research ideas are not enabled by default without
 broader evidence.
 
-## Installation
+## Environments, development and dependencies
 
-Use conventional CPython 3.11–3.14 for the documented installation path:
-
-```bash
-python -m pip install neurotabular
-```
+The installation command above uses the currently published PyPI release.
+For notebooks, pinned legacy versions, development checkouts, and nonstandard
+Python environments, use the following guidance.
 
 In a fresh Kaggle or Colab notebook using a supported Python runtime:
 
@@ -150,71 +199,6 @@ Runtime requirements are NumPy 1.24+, pandas 2.0+, scikit-learn 1.3+, and
 PyTorch 2.0+. Pip also resolves Python-specific joblib floors for stdlib, caching and
 parallel-worker compatibility. LightGBM and CatBoost are optional benchmark-only comparisons and
 are not runtime dependencies.
-
-## Quick start
-
-Binary classification:
-
-```python
-import pandas as pd
-from neurotabular import NeuroTabularClassifier
-
-X = pd.DataFrame(
-    {
-        "age": [22, 45, 31, 54, 28, 61],
-        "income": [32_000, 78_000, None, 91_000, 46_000, 105_000],
-        "city": ["Rome", "Milan", "Rome", "Turin", None, "Milan"],
-    }
-)
-y = [0, 1, 0, 1, 0, 1]
-
-model = NeuroTabularClassifier()
-model.fit(X, y)
-
-labels = model.predict(X)
-probabilities = model.predict_proba(X)[:, 1]
-```
-
-Multiclass classification uses the same estimator, without a task parameter:
-
-```python
-from sklearn.datasets import load_iris
-from neurotabular import NeuroTabularClassifier
-
-X, y = load_iris(return_X_y=True, as_frame=True)
-clf = NeuroTabularClassifier().fit(X, y)
-probabilities = clf.predict_proba(X)  # shape (150, 3), columns follow clf.classes_
-labels = clf.predict(X)
-```
-
-Regression:
-
-```python
-from sklearn.datasets import load_diabetes
-from neurotabular import NeuroTabularRegressor
-
-X, y = load_diabetes(return_X_y=True, as_frame=True)
-reg = NeuroTabularRegressor().fit(X, y)
-prediction = reg.predict(X)  # original target units, shape (442,)
-```
-
-These examples demonstrate the API; evaluate quality on a separate test set.
-
-Integer-coded categorical columns should be named explicitly:
-
-```python
-model = NeuroTabularClassifier(categorical_features=["postal_code"])
-```
-
-For a user-controlled holdout:
-
-```python
-model.fit(X_train, y_train, eval_set=(X_valid, y_valid))
-```
-
-Preprocessing is fitted only on the training rows. Categories and numerical
-statistics from an external validation frame never enter the learned training
-preprocessor.
 
 ## Optional representations
 
@@ -357,6 +341,14 @@ outside the core prediction contract.
 * [Release notes](https://github.com/lucalullo/neuro-tabular/blob/main/RELEASE_NOTES.md)
 * [Publishing guide](https://github.com/lucalullo/neuro-tabular/blob/main/PUBLISHING.md)
 
+## Other tabular research
+
+NeuroTabular is an independent **neural** approach. The author's separate
+[CodAdapt project](https://github.com/lucalullo/codadapt) investigates
+adaptive coded memory and compact lookup-based inference; **MorphTree**
+investigates the evolution of tree-learning rules. They are separate research
+lines, not NeuroTabular dependencies or evidence of its predictive performance.
+
 ## Limitations
 
 * pandas DataFrame input only;
@@ -379,6 +371,26 @@ outside the core prediction contract.
 
 ## Status
 
+**Version 2.0.0 consolidates the stable neural product and its maintenance
+policies.** The major number reflects the maintainer's maturity milestone;
+it does not establish a new predictive architecture, a general accuracy gain,
+or a universal training-speed or RAM improvement. The public API and defaults
+retain their 1.x behavior. Invalid complex-valued numerical inputs are rejected
+before lossy conversion, including when mixed with pandas nullable columns.
+Conservative preprocessing and inference optimizations already present in
+1.0.3 are retained; those historical gains must not be presented as newly
+measured 2.0 accelerations. See [release notes](https://github.com/lucalullo/neuro-tabular/blob/v2.0.0/RELEASE_NOTES.md),
+[support scope](https://github.com/lucalullo/neuro-tabular/blob/v2.0.0/docs/policies/SUPPORT_SCOPE.md),
+[API boundary](https://github.com/lucalullo/neuro-tabular/blob/v2.0.0/docs/API_BOUNDARY.md), and
+[target contract](https://github.com/lucalullo/neuro-tabular/blob/v2.0.0/docs/TARGET_CONTRACT.md).
+
+The longer-term scientific goal is a distinct neural tabular method with
+stronger accuracy and generalization at lower end-to-end training, inference,
+and memory costs. These are research objectives, not demonstrated advantages
+of this release. The [canonical vision](https://github.com/lucalullo/neuro-tabular/blob/v2.0.0/docs/NEUROTABULAR_VISION.md) and
+[contributor-agent instructions](https://github.com/lucalullo/neuro-tabular/blob/v2.0.0/AGENTS.md) document that direction; private
+research prototypes are not included in the stable distribution.
+
 These are the NeuroTabular 2.0.0 release sources. Published 1.0.3 artifacts and
 earlier tags remain immutable historical baselines. Version 2.0 consolidates
 the product and its validation; it does not introduce a new predictive
@@ -393,9 +405,9 @@ certification. Functional tests and exact-commit release CI remain mandatory.
 
 Registry availability is determined by the actual published artifacts, not this
 source version. Release actions require separate maintainer authorization and
-the exact-source checks described in [publishing](PUBLISHING.md).
+the exact-source checks described in [publishing](https://github.com/lucalullo/neuro-tabular/blob/v2.0.0/PUBLISHING.md).
 Current capabilities and [limitations](#limitations) remain distinct from the
-[research vision](docs/NEUROTABULAR_VISION.md).
+[research vision](https://github.com/lucalullo/neuro-tabular/blob/v2.0.0/docs/NEUROTABULAR_VISION.md).
 
 ## License
 

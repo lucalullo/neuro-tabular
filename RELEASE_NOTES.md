@@ -1,102 +1,73 @@
-# NeuroTabular 1.0.3 maintenance release
+# NeuroTabular 2.0.0
 
-Prepared on 2026-10-18 from the qualified 1.0.3rc2. The release preserves the
-stable API, defaults, architecture, dependency bounds and predictive algorithms.
-Historical 1.0.2 releases and RC1/RC2 artifacts remain immutable.
+## Scope
 
-## Changes and measured scope
+This is the maintainer-designated major maturity/consolidation release. The
+number does not imply a new architecture, state-of-the-art accuracy, or a general
+speed/RAM improvement. Binary classification, multiclass classification and
+single-output regression retain the public 1.x estimator API and defaults.
 
-Conservative categorical preprocessing, schema validation and numerical-buffer
-reuse reduce repeated work. CPU inference avoids unnecessary temporary output
-allocations. No persistent cache or new estimator state is introduced.
-Distribution hygiene excludes private workspace material. LF source identity and
-a complete SHA256 manifest support reproducible Git checkouts.
+The numerical-input validation defect involving complex columns beside nullable
+pandas columns is corrected before a real conversion can discard information.
+The correction reuses the already established real-dtype predicate and inspects
+converted column dtypes where needed. Valid imputation, scaling, categories,
+tensor preparation, losses, threshold, scheduler and network calculations stay
+unchanged. No persistent cache or dependency on an experimental fast path.
 
-The frozen paired Linux CPU comparison against original 1.0.2 measured a
-14.14% median paired reduction for a 1,200-row multiclass predict_proba workload:
-six of six pairs were faster, with a median paired decrease of 0.737 ms.
-This is a local workload result, not a universal inference speedup.
-Medium/large diagnostic arrays used about 33-48% fewer temporary array bytes;
-a small-input case used about 1.9 KiB more. No general process peak-RAM reduction
-is demonstrated.
+Versioned private-folder exclusions, manifest/Git newline reproducibility and
+the public packaging safeguards are retained. Prior 1.0.3 local inference and
+temporary-array benefits are inherited, not counted as new 2.0 gains.
 
-Complete-fit workloads did not meet the frozen general training improvement
-criterion. No general training acceleration, accuracy gain or new research
-architecture is claimed. Same-runtime predictions, probabilities and trained
-numerical state remain equivalent in the qualified comparisons.
+Extreme finite float64 inputs whose training-statistic calculation overflows
+are rejected with a controlled ValueError. The numerical error-policy context
+is restored on both success and failure. Complex sample weights are rejected
+before any conversion can discard imaginary values. These are input-safety
+corrections; they do not change the predictive architecture or establish a
+generalization or speed benefit.
 
-## Qualification and release process
+Non-representable numeric conversions, including oversized Python integers
+and wider floating-point values outside float64 range, are rejected explicitly
+for targets, weights and numerical features. Overflow during conversion does
+not leak a RuntimeWarning or an uncaught OverflowError. Ordinary values retain
+the same conversions; no new precision or performance guarantee is implied.
 
-RC2 commit d969836a63b0bacacc19ed8f1f04ee75581144ff passed CI #17:
-17 jobs, including Linux Python 3.10-3.14, Windows 3.11-3.14, macOS 15 /
-Python 3.14, PyTorch 2.0-family and useful binary dependency minima, Ruff and
-package builds/install-smokes. Full-suite jobs reported 1,174 passed and
-12 motivated skips; four minimum-dependency jobs reported 110 passed / 2 skips.
-These are RC2 results, not new executions of the stable version.
+## Compatibility and security boundaries
 
-The stable 1.0.3 version has its own source/artifact hashes and qualification.
-Its exact new commit must pass CI before the immutable v1.0.3 tag is authorized.
-Publication is staged: TestPyPI, actual-file SHA256 download and clean-install
-verification, then separately authorized PyPI promotion of the same wheel/sdist.
-The promotion workflow does not rebuild those distributions.
+Numerical/predictive equivalence, dtype/error/refit/RNG contracts and trusted
+pickle/joblib boundaries require the exact-release validation receipts. Loading
+untrusted pickle/joblib is unsafe. A successful tested 1.0.3 artifact replay does
+not establish general major-version, dependency, device or OS portability.
 
-The maintainer explicitly waived final professional independent attestation for
-this release. This is a maintainer risk decision, not independent certification.
-Technical evidence, limitations and original protocols remain preserved.
+The old pinned Windows qualification stack is historical and is not reused as a
+security certificate. The new native qualification resolves and hash-locks
+patched dependencies and audits their actual versions, including transitive
+filelock and build tooling. Package audits are not exhaustive OS/security proof.
+See the support policy for tested platforms and explicit unverified hardware.
 
-The computational implementation was also qualified in a nine-lane Linux
-matrix and native Windows 11 / CPython 3.12.10 x64 before version assignment;
-a separate fresh-install automated replay passed. Historical counts are not
-presented as runs of newly versioned artifacts. No protection was disabled.
-Trusted persistence is same-runtime; cross-OS, dependency, Python and device
-portability is not guaranteed. Physical CUDA and real notebook sessions remain
-outside the executed evidence.
+## Performance evidence and release decision
 
-## Historical 1.0.2 compatibility patch audit
+Dedicated native Linux/Windows A/A, A/B and process-RSS qualification is not
+complete. Inconclusive metrology does not establish either a slowdown or a
+speedup. The maintainer explicitly accepts this residual performance risk for
+2.0.0 publication while retaining the functional guard. Frozen protocols,
+thresholds and historical outcomes are unchanged; native qualification remains
+future work. This is a release-policy decision, not a performance PASS or an
+independent certification. No general new training, inference, accuracy or RAM
+benefit is claimed for 2.0.0.
 
-The compatibility patch removed `Requires-Python <3.13`, which prevented installation
-on an actual Kaggle CPython 3.13.15 notebook. Proposed metadata is `>=3.10`.
-Conventional CPython 3.11–3.14 is the preferred scope; 3.10 remains legacy compatible.
-These paragraphs describe the historical compatibility audit; they do not
-certify later maintenance changes by themselves.
+The local Windows Smart App Control denial concerns an exact unsigned pandas
+extension in one host configuration. It is recorded separately from library
+correctness; no protection was disabled. Windows CI on the exact release commit
+remains mandatory and must not be replaced by WSL performance evidence.
 
-Linux CPU validation covers ordinary PyPI dependency installation, full tests with
-warnings as errors, binary/multiclass/regression, mixed pandas dtypes, sklearn
-Pipeline/CV/clone/tags, persistence and builds. Useful minimum and current mutually
-compatible dependency stacks are tested. Exact 3.13.15 is reproduced on Ubuntu 24.04
-WSL2, not inside Kaggle. Notebook handoffs require a real post-publication check.
+## Publication and future releases
 
-Python 3.15 passes full code tests using the official PyTorch CPU index. Standard
-PyPI has no compatible Torch distribution at this audit snapshot, classified as
-UPSTREAM_DISTRIBUTION_LIMITATION. No arbitrary Python upper bound is added.
-Older Torch/NumPy ABI combinations need coherent versions; the metadata is not a
-promise that every independent dependency version pairing works.
+These release sources and local artifacts do not authorize publication. Exact
+commit CI, required release review/decision and the maintainer's separate
+publication actions remain mandatory. No preliminary public releases are planned.
+The published 1.0.3 artifacts and all earlier history remain immutable.
 
-The Python 3.13 minimum stack with Torch 2.5 also emits an upstream
-TemporaryDirectory ResourceWarning during process shutdown under `-W error`.
-It is reproduced without importing NeuroTabular. Functional checks pass; the
-current Torch stack has no such observed shutdown warning. The audit retains
-this warning explicitly rather than treating exit status alone as warning-free.
-
-At the historical compatibility audit, runtime implementation bytes matched
-public 1.0.1 except the version constant. The present performance changes are
-qualified separately. The original four runtime bounds are retained. Python-specific joblib
-bounds prevent stdlib distutils, cached-Pipeline hashing and parallel resource
-tracker failures: >=1.5 on 3.12; >=1.4.2 excluding 1.5.0/1.5.1 on 3.13;
->=1.5.2 on 3.14; >=1.6 on >=3.15. Cached Pipeline and parallel CV have
-permanent regression tests. API,
-architecture, training, predictive defaults and valid-input behavior are unchanged.
-Frozen 30/30 binary and 4/4 representative
-comparisons pass bit for bit in the previously required pinned CPU runtime.
-
-Windows portable interpreters and native dependency imports encounter Application
-Control restrictions locally; these are retained as environment failures.
-RC2 CI #17 subsequently executed Windows Python 3.11-3.14 and macOS 15 /
-Python 3.14 successfully. These historical results are not runs of the new stable commit. Physical NVIDIA CUDA remains best effort with
-validation pending. Free-threaded Python is not advertised.
-
-Same-runtime trusted persistence does not guarantee dependency, Python, OS or device
-portability. This patch makes no SOTA or universal superiority claim. Exact-commit
-stable-commit CI, optional independent-user checks and package publication remain
-separate maintainer decisions.
-Historical published tags/releases remain immutable.
+After publication, 2.0 is the recommended current line. Ordinary later releases
+must bring concrete validated benefits; critical fixes are not delayed merely
+to reduce release frequency. Historical releases are preserved by default;
+deletion/yanking requires a separate justified maintainer decision.

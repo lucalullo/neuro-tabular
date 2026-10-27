@@ -11,7 +11,7 @@ on:
           - testpypi
           - pypi
       confirmation:
-        description: Exact immutable version tag (v1.0.3)
+        description: Exact immutable version tag matching package metadata
         required: true
         type: string
       source_run_id:

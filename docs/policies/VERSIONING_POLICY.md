@@ -32,3 +32,25 @@ Review README, API, USAGE, changelog and release notes for every release. Obtain
 exact integrated-source CI/platform evidence, inspect distributions, run Twine
 and fresh installs before a separately authorized publication. No P-phase
 completion automatically creates a version or releases software.
+
+
+## Maintainer decision for the 2.0 release line
+
+On 24 October 2026 the maintainer explicitly selected `2.0.0` / `v2.0.0` as a
+major maturity/consolidation milestone. This choice is not evidence of an API
+break, a new predictive architecture or superior accuracy. Preserve the tested
+1.x contracts unless a deliberate reviewed migration is separately documented.
+Private validation builds may be hash-identified; no public rc/alpha/beta/dev
+release is planned for this consolidation. Publish only after mandatory gates
+and explicit maintainer authorization, with one exact final artifact identity.
+
+After 2.0 publication, ordinary releases require concrete validated predictive,
+performance, memory, stable-feature, compatibility or usability value. Do not
+release for every private experiment. Security, correctness, compatibility and
+critical regression fixes must not be delayed for release-frequency targets.
+Every release still needs tests, documentation and comparison with its baseline.
+
+Recommend the current stable line; preserve older working versions, tags and
+assets for reproducibility. Never delete or yank history for cosmetic reasons.
+Any justified destructive cleanup or security yank needs its own explicit
+maintainer decision, affected-item inventory and non-destructive alternative.
