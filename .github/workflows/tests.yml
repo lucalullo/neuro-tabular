@@ -101,7 +101,12 @@ jobs:
         with:
           python-version: "3.14"
       - run: python -m pip install ".[dev]"
-      - run: python -m pytest -W error
+      - name: Run macOS tests
+        env:
+          PYTHONWARNINGS: "ignore:Skipping device Apple Paravirtual device that does not support Metal 2.0:UserWarning"
+        run: >-
+          python -m pytest -W error
+          -W "ignore:Skipping device Apple Paravirtual device that does not support Metal 2.0:UserWarning"
 
   dependency-minimum:
     name: Lowest binary dependencies Python ${{ matrix.python-version }}
