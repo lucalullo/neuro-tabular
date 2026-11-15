@@ -11,7 +11,7 @@ name **NeuroTabular** is not represented or guaranteed to be legally available.
 - The implementation calls public APIs from NumPy, pandas, PyTorch, and
   scikit-learn. It does not vendor or modify their source.
 - Public scientific papers and official performance documentation informed
-  independently written design decisions recorded in `RESEARCH_NOTES.md`.
+  independently written design decisions.
 - No source implementation was copied from external tabular-learning projects.
 - Software validation uses synthetic fixtures. Some executable examples use
   demo datasets bundled with scikit-learn; historical benchmark reports describe

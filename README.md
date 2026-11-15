@@ -266,8 +266,7 @@ cases and three seeds, comparing NeuroTabular with four fixed tree recipes. Mean
 binary ROC-AUC is `0.8461`, multiclass accuracy is `0.8275`, and regression R² is
 `0.5320`. These are workload-specific engineering measurements, not a claim of
 universal superiority. See [0.3 benchmark evidence](https://github.com/lucalullo/neuro-tabular/blob/main/docs/BENCHMARK_0_3.md) for
-scope, exact aggregates, comparisons, and known failure cases. Historical 0.2
-binary measurements remain in [BENCHMARK_REPORT.md](https://github.com/lucalullo/neuro-tabular/blob/main/BENCHMARK_REPORT.md).
+scope, exact aggregates, comparisons, and known failure cases.
 
 ## scikit-learn use
 
@@ -334,12 +333,7 @@ outside the core prediction contract.
 * [0.3 benchmark evidence](https://github.com/lucalullo/neuro-tabular/blob/main/docs/BENCHMARK_0_3.md)
 * [0.3.1 performance validation](https://github.com/lucalullo/neuro-tabular/blob/main/docs/PERFORMANCE_0_3_1.md)
 * [0.3 architecture overview](https://github.com/lucalullo/neuro-tabular/blob/main/docs/architecture_0_3.md)
-* [Historical 0.2 benchmark report](https://github.com/lucalullo/neuro-tabular/blob/main/BENCHMARK_REPORT.md)
-* [Historical 0.2 performance profile](https://github.com/lucalullo/neuro-tabular/blob/main/PERFORMANCE_PROFILE.md)
-* [Historical 0.2 ablation report](https://github.com/lucalullo/neuro-tabular/blob/main/ABLATION_REPORT.md)
-* [Research notes](https://github.com/lucalullo/neuro-tabular/blob/main/RESEARCH_NOTES.md)
 * [Release notes](https://github.com/lucalullo/neuro-tabular/blob/main/RELEASE_NOTES.md)
-* [Publishing guide](https://github.com/lucalullo/neuro-tabular/blob/main/PUBLISHING.md)
 
 ## Other tabular research
 
