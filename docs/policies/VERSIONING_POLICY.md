@@ -54,3 +54,21 @@ Recommend the current stable line; preserve older working versions, tags and
 assets for reproducibility. Never delete or yank history for cosmetic reasons.
 Any justified destructive cleanup or security yank needs its own explicit
 maintainer decision, affected-item inventory and non-destructive alternative.
+
+## Maintainer-directed 2.1.0 exception
+
+For 2.1.0, the maintainer explicitly selects the qualified regression default
+of eight early-stopping checks, with the existing maximum of 30 epochs.
+This intentionally changes the default behavior of new regression fits and
+refits; it is not described as an unchanged numerical or training contract.
+The existing four-check rule remains available with
+`NeuroTabularRegressor(patience=4)`.
+
+The maintainer accepts this specific default transition in 2.1.0 without an
+intervening warning release or a new per-fit FutureWarning. This is a scoped
+release decision, not an urgent security claim or a general waiver of the
+versioning and deprecation rules. Classifier defaults remain unchanged.
+The regression evidence is bounded to the qualified comparison; no universal
+accuracy or speed benefit is implied. Exact-commit CI and separate maintainer
+approval remain necessary before publication. See the release notes for the
+behavior change and migration.

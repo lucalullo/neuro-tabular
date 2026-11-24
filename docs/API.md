@@ -1,7 +1,6 @@
-# NeuroTabular 1.0.0 API reference
+# NeuroTabular 2.1.0 API reference
 
-This document describes the public API for NeuroTabular 1.0.0. The stable and experimental scopes
-are defined in [API_BOUNDARY.md](API_BOUNDARY.md).
+The public API scope is defined in [API_BOUNDARY.md](API_BOUNDARY.md).
 
 The supported public package surface is:
 
@@ -38,6 +37,7 @@ NeuroTabularClassifier(
     device="auto",
     random_state=42,
     verbose=0,
+    cv=None,
 )
 ```
 
@@ -75,7 +75,11 @@ Categorical embedding dimensions are calculated automatically. They are
 bounded and adapt to training sample count, cardinality, number of categorical
 features, and a compact aggregate embedding-width budget. This is not a
 byte-level RAM/VRAM limit; large cardinalities can still allocate large tables.
-The learned dimensions are available as `embedding_dimensions_` after fitting.
+The default aggregate width budget is 128, with at least one dimension per
+categorical column, so the delivered estimator accepts at most 128 categorical
+columns. This does not limit numeric or total column count. Extended support
+is not included in this release. The learned dimensions are available as
+`embedding_dimensions_` after fitting.
 
 ### Optimization
 
@@ -120,7 +124,8 @@ shared rare ID. Missing, unknown, and rare IDs are distinct.
 from the training target: N / (C × count_of_class), using positive-weight rows
 and unweighted class counts. They multiply any `sample_weight` passed to `fit`.
 Weights are normalized to mean one before float32 training. Class weights affect
-training only; validation uses internal sample weights or uniform external weights.
+training only; validation uses internal sample weights or, for an explicit
+external validation set, `eval_sample_weight` if supplied (uniform weights otherwise).
 
 ### Validation, device, and reproducibility
 
@@ -143,7 +148,7 @@ splitting, and batch order. `verbose` accepts `0` or `1`.
 ## `fit`
 
 ```python
-model.fit(X, y, sample_weight=None, eval_set=None)
+model.fit(X, y, sample_weight=None, eval_set=None, *, groups=None, eval_sample_weight=None)
 ```
 
 `X` must be a non-empty pandas DataFrame with unique column names. Classifier `y`
@@ -161,9 +166,22 @@ targets belong in `NeuroTabularRegressor`. See the
 with at least one positive value. Rows with zero weight are ignored completely:
 they cannot affect target classes, preprocessing statistics, vocabularies, or
 validation splitting. `eval_set` is either `None` or `(X_valid, y_valid)`.
-Validation weights are not accepted separately. Validation targets use the same
-classification type/finite-value checks before class membership is checked; an
-eval target may contain a single known class, subject to the selected metric.
+The optional keyword-only `eval_sample_weight` is supported with an explicit
+`eval_set` and `cv=None`. Validation weights must be finite, non-negative and
+contain at least one positive value. Zero-weight validation rows are removed
+before preprocessing and target checks. These weights affect the validation
+objective and checkpoint selection, not training class weights. Validation
+targets use the same classification type/finite-value checks before class
+membership is checked; an eval target may contain a single known class, subject
+to the selected metric.
+
+With `cv=K` (integer K >= 2), internal K-fold diagnostics use separate FIT, STOP
+and fold-validation roles. `groups` is an optional keyword-only argument for
+internal CV; supplying it with `cv=None` is rejected. Internal CV cannot be
+combined with an external `eval_set` or `eval_sample_weight`. It requires K+1
+training passes, or 2(K+1) with `full_data_refit=True`, and retains one final
+network. The diagnostic scores do not select a model recipe or guarantee higher
+accuracy. See [Internal CV](INTERNAL_CV.md).
 
 The method returns `self`. Fitting is transactional: if a re-fit fails, a
 previously fitted model remains usable. Caller Python, NumPy, and PyTorch CPU RNG
@@ -209,6 +227,8 @@ original target units, shape `(n_samples,)`.
   zero-weight row counts;
 - `history_`: one dictionary per validation check;
 - `full_data_refit_`: whether the optional refit actually ran;
+- `cv_results_`: diagnostic fold scores, counts, timing and split identity when
+  internal CV is enabled; see [Internal CV](INTERNAL_CV.md);
 - `preprocessing_time_`, `training_time_`, `validation_time_`, `fit_time_`;
 - `last_prediction_time_`: most recent end-to-end prediction duration;
 - `profile_`: nested preprocessing, transfer, training, validation, optimizer,
@@ -254,16 +274,20 @@ they are not deterministic fitted metadata. Prediction updates
 
 The estimator raises clear `TypeError` or `ValueError` exceptions for invalid
 hyperparameters, targets, weights, frames, non-finite values, or schema changes.
+For default numerical standardization, extreme finite training columns can use
+overflow-safe statistics. Transformed values that cannot be represented safely
+in float32 still raise an error.
 An automatic CUDA compatibility failure emits `RuntimeWarning` and records the
 reason in `device_info_`; an explicit CUDA request raises instead.
 
 ## `NeuroTabularRegressor`
 
 The regressor accepts the same constructor parameters and defaults listed above,
-except `class_weight`, which is not a regressor parameter. It is a separate
-sklearn regressor with `fit`, `predict`, `score`, `get_params` and `set_params`;
-it has neither `predict_proba` nor `classes_`. `score` is sklearn R² on original
-units and accepts sample weights.
+except that `patience` defaults to 8 and `class_weight` is classifier-only.
+The default `max_epochs` is 30. Pass `patience=4` to use the 2.0.0 stopping rule.
+The regressor implements `fit`, `predict`, `score`, `get_params` and
+`set_params`. Its `score` method returns sklearn R² on original units and
+accepts sample weights.
 
 Target y must be one-dimensional, real numeric, finite and aligned with X.
 Integer-valued continuous outcomes are supported. Strings, complex targets and
@@ -382,7 +406,7 @@ Missing provenance means unknown; loading does not invent the current version
 as the training version. Successful refit replaces the value, failed refit
 preserves it with the old model. A version string cannot distinguish unpublished
 builds sharing a version; keep source/environment hashes outside the artifact.
-Package `__version__` remains coherent with pyproject metadata and identifies this 1.0.0 source build.
+Package `__version__` remains coherent with pyproject metadata and identifies this 2.1.0 source build.
 
 ## Persistence compatibility scope
 
@@ -414,3 +438,36 @@ Current behavior above is unchanged. See [the policy index](policies/README.md),
 The reviewed boundary is the stable 1.0 public contract; experimental
 routing/schema/timing/optional mechanisms remain explicitly bounded outside that
 guarantee.
+
+
+## Optional validation weights
+
+Both estimators accept keyword-only `eval_sample_weight=None` in `fit`.
+Explicit validation weights require `eval_set` and `cv=None`, must be finite
+and nonnegative, and must include positive mass. Zero-weight validation rows
+are excluded before target validation and transformation. Remaining weights
+are normalized with the existing numerical safety checks; `class_weight`
+affects training only. Weights affect the validation metric and checkpoint;
+they do not train preprocessing on validation rows or add another neural fit.
+Omitting them preserves the ordinary validation path.
+
+```python
+model.fit(X_train, y_train, eval_set=(X_valid, y_valid),
+          eval_sample_weight=validation_weights)
+```
+
+## Optional internal cross-validation
+
+`cv=None` preserves the native single-holdout training procedure. `cv=K`
+performs K TRAIN-only diagnostic folds followed by one final fit. The cost is
+K+1 training passes, doubled when `full_data_refit=True`; only one network is
+retained for prediction. Fold scores do not select recipes or the final
+checkpoint and do not imply improved accuracy. `groups` is keyword-only in
+`fit` and is supported only with internal CV. `cv` and `eval_set` are mutually
+exclusive. See [INTERNAL_CV.md](INTERNAL_CV.md) for FIT/STOP/validation roles,
+stratification, weights, group boundaries, persistence and cost.
+
+External sklearn CV still fits clones and multiplies training cost. Pipeline
+does not automatically transform `eval_set`. Group, duplicate and temporal
+independence remain explicit caller responsibilities. No automatic recipe
+selection, HPO, ensemble or calibration is introduced.

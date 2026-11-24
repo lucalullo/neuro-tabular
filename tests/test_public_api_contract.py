@@ -41,7 +41,7 @@ def test_constructor_repr_clone_and_selective_sklearn_checks(estimator_class):
     assert estimator_class.__name__ in repr(model)
     parameters = model.get_params()
     assert set(parameters) == set(inspect.signature(estimator_class).parameters)
-    assert len(parameters) == (21 if estimator_class is NeuroTabularRegressor else 22)
+    assert len(parameters) == (22 if estimator_class is NeuroTabularRegressor else 23)
     assert clone(model).get_params() == parameters
     assert model.set_params(hidden_dim=10) is model
     assert model.hidden_dim == 10

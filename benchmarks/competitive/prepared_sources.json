@@ -1,0 +1,1050 @@
+{
+  "schema": "NT_PUBLIC_PREPARED_SOURCES/1",
+  "sources": [
+    {
+      "id": "bank_marketing",
+      "source_identity": "UCI:222:bank-full",
+      "source_sha256": "e0bf5f5de5b846e2f18e9d90606637267d46dfa260e0f17bb12e605db5efbeb4",
+      "source_rows": 45211,
+      "features": [
+        "age",
+        "job",
+        "marital",
+        "education",
+        "default",
+        "balance",
+        "housing",
+        "loan",
+        "contact",
+        "campaign",
+        "pdays",
+        "previous",
+        "poutcome"
+      ],
+      "categorical": [
+        "job",
+        "marital",
+        "education",
+        "default",
+        "housing",
+        "loan",
+        "contact",
+        "poutcome"
+      ],
+      "classes": 2,
+      "task": "binary",
+      "license": "CC-BY-4.0",
+      "citation_url": "https://doi.org/10.24432/C5K306",
+      "splits": {
+        "42": {
+          "roles": {
+            "fit": {
+              "sha256": "5b06253258f81b8d7ac9870bd955819abe13b19785e59af2f9fb1f2bfc3f67ac",
+              "rows": 27024,
+              "missing_feature_values": 0,
+              "class_counts": {
+                "no": 25664,
+                "yes": 1360
+              }
+            },
+            "validation": {
+              "sha256": "2862e3fdf2a7a78a31d8956f750af5bc4688185ea99c974e9d407b94502f1464",
+              "rows": 9033,
+              "missing_feature_values": 0,
+              "class_counts": {
+                "no": 7969,
+                "yes": 1064
+              }
+            },
+            "test": {
+              "sha256": "e36cc564403369fb0bd6e876ef1a2d8928c8f44d3034903b83677197f89774f3",
+              "rows": 9043,
+              "missing_feature_values": 0,
+              "class_counts": {
+                "no": 6187,
+                "yes": 2856
+              }
+            },
+            "pool": {
+              "sha256": "faf2701c4edcfe122166d5780003a0270547069089ffface65cd7be62944eae4",
+              "rows": 36057,
+              "missing_feature_values": 0,
+              "class_counts": {
+                "no": 33633,
+                "yes": 2424
+              }
+            }
+          },
+          "official": null,
+          "purged_earlier_duplicates_count": 111
+        },
+        "2026": {
+          "roles": {
+            "fit": {
+              "sha256": "5b06253258f81b8d7ac9870bd955819abe13b19785e59af2f9fb1f2bfc3f67ac",
+              "rows": 27024,
+              "missing_feature_values": 0,
+              "class_counts": {
+                "no": 25664,
+                "yes": 1360
+              }
+            },
+            "validation": {
+              "sha256": "2862e3fdf2a7a78a31d8956f750af5bc4688185ea99c974e9d407b94502f1464",
+              "rows": 9033,
+              "missing_feature_values": 0,
+              "class_counts": {
+                "no": 7969,
+                "yes": 1064
+              }
+            },
+            "test": {
+              "sha256": "e36cc564403369fb0bd6e876ef1a2d8928c8f44d3034903b83677197f89774f3",
+              "rows": 9043,
+              "missing_feature_values": 0,
+              "class_counts": {
+                "no": 6187,
+                "yes": 2856
+              }
+            },
+            "pool": {
+              "sha256": "faf2701c4edcfe122166d5780003a0270547069089ffface65cd7be62944eae4",
+              "rows": 36057,
+              "missing_feature_values": 0,
+              "class_counts": {
+                "no": 33633,
+                "yes": 2424
+              }
+            }
+          },
+          "official": null,
+          "purged_earlier_duplicates_count": 111
+        },
+        "1947": {
+          "roles": {
+            "fit": {
+              "sha256": "5b06253258f81b8d7ac9870bd955819abe13b19785e59af2f9fb1f2bfc3f67ac",
+              "rows": 27024,
+              "missing_feature_values": 0,
+              "class_counts": {
+                "no": 25664,
+                "yes": 1360
+              }
+            },
+            "validation": {
+              "sha256": "2862e3fdf2a7a78a31d8956f750af5bc4688185ea99c974e9d407b94502f1464",
+              "rows": 9033,
+              "missing_feature_values": 0,
+              "class_counts": {
+                "no": 7969,
+                "yes": 1064
+              }
+            },
+            "test": {
+              "sha256": "e36cc564403369fb0bd6e876ef1a2d8928c8f44d3034903b83677197f89774f3",
+              "rows": 9043,
+              "missing_feature_values": 0,
+              "class_counts": {
+                "no": 6187,
+                "yes": 2856
+              }
+            },
+            "pool": {
+              "sha256": "faf2701c4edcfe122166d5780003a0270547069089ffface65cd7be62944eae4",
+              "rows": 36057,
+              "missing_feature_values": 0,
+              "class_counts": {
+                "no": 33633,
+                "yes": 2424
+              }
+            }
+          },
+          "official": null,
+          "purged_earlier_duplicates_count": 111
+        }
+      },
+      "source_history_scope": "No known predictive tuning exposure in reconciled corpus; legacy coverage is partial. Not a global NEVER_USED assertion.",
+      "independent_recipe_confirmation": false
+    },
+    {
+      "id": "climate_crashes",
+      "source_identity": "UCI:252:POP2-LHS",
+      "source_sha256": "fe8c0c2b79d1beedf31fbca2db8a97cec3c1b773ee29ed3357a2ff1dc8dd12d0",
+      "source_rows": 540,
+      "features": [
+        "parameter_00",
+        "parameter_01",
+        "parameter_02",
+        "parameter_03",
+        "parameter_04",
+        "parameter_05",
+        "parameter_06",
+        "parameter_07",
+        "parameter_08",
+        "parameter_09",
+        "parameter_10",
+        "parameter_11",
+        "parameter_12",
+        "parameter_13",
+        "parameter_14",
+        "parameter_15",
+        "parameter_16",
+        "parameter_17"
+      ],
+      "categorical": [],
+      "classes": 2,
+      "task": "binary",
+      "license": "CC-BY-4.0",
+      "citation_url": "https://doi.org/10.24432/C5HG71",
+      "splits": {
+        "42": {
+          "roles": {
+            "fit": {
+              "sha256": "996732f70622cf57d14b4714025dd01416ffcbcdd39ff7781ee35dcd70300bb2",
+              "rows": 180,
+              "missing_feature_values": 0,
+              "class_counts": {
+                "0": 20,
+                "1": 160
+              }
+            },
+            "validation": {
+              "sha256": "e6b2a6d790531ecc955a3bca6590e2e654f14a3d04ad14ae34d7b88066c5abcb",
+              "rows": 180,
+              "missing_feature_values": 0,
+              "class_counts": {
+                "0": 12,
+                "1": 168
+              }
+            },
+            "test": {
+              "sha256": "ad660589c988aa5ae4f69cc24316e8dd8045adcc34e97e0687e2b729b7d6ebb9",
+              "rows": 180,
+              "missing_feature_values": 0,
+              "class_counts": {
+                "0": 14,
+                "1": 166
+              }
+            },
+            "pool": {
+              "sha256": "f733753ce9703eee00d54b09c1affd8f06c3918c92d4daf9f2715214ab84c6e1",
+              "rows": 360,
+              "missing_feature_values": 0,
+              "class_counts": {
+                "0": 32,
+                "1": 328
+              }
+            }
+          },
+          "official": null,
+          "purged_earlier_duplicates_count": 0
+        },
+        "2026": {
+          "roles": {
+            "fit": {
+              "sha256": "996732f70622cf57d14b4714025dd01416ffcbcdd39ff7781ee35dcd70300bb2",
+              "rows": 180,
+              "missing_feature_values": 0,
+              "class_counts": {
+                "0": 20,
+                "1": 160
+              }
+            },
+            "validation": {
+              "sha256": "e6b2a6d790531ecc955a3bca6590e2e654f14a3d04ad14ae34d7b88066c5abcb",
+              "rows": 180,
+              "missing_feature_values": 0,
+              "class_counts": {
+                "0": 12,
+                "1": 168
+              }
+            },
+            "test": {
+              "sha256": "ad660589c988aa5ae4f69cc24316e8dd8045adcc34e97e0687e2b729b7d6ebb9",
+              "rows": 180,
+              "missing_feature_values": 0,
+              "class_counts": {
+                "0": 14,
+                "1": 166
+              }
+            },
+            "pool": {
+              "sha256": "f733753ce9703eee00d54b09c1affd8f06c3918c92d4daf9f2715214ab84c6e1",
+              "rows": 360,
+              "missing_feature_values": 0,
+              "class_counts": {
+                "0": 32,
+                "1": 328
+              }
+            }
+          },
+          "official": null,
+          "purged_earlier_duplicates_count": 0
+        },
+        "1947": {
+          "roles": {
+            "fit": {
+              "sha256": "996732f70622cf57d14b4714025dd01416ffcbcdd39ff7781ee35dcd70300bb2",
+              "rows": 180,
+              "missing_feature_values": 0,
+              "class_counts": {
+                "0": 20,
+                "1": 160
+              }
+            },
+            "validation": {
+              "sha256": "e6b2a6d790531ecc955a3bca6590e2e654f14a3d04ad14ae34d7b88066c5abcb",
+              "rows": 180,
+              "missing_feature_values": 0,
+              "class_counts": {
+                "0": 12,
+                "1": 168
+              }
+            },
+            "test": {
+              "sha256": "ad660589c988aa5ae4f69cc24316e8dd8045adcc34e97e0687e2b729b7d6ebb9",
+              "rows": 180,
+              "missing_feature_values": 0,
+              "class_counts": {
+                "0": 14,
+                "1": 166
+              }
+            },
+            "pool": {
+              "sha256": "f733753ce9703eee00d54b09c1affd8f06c3918c92d4daf9f2715214ab84c6e1",
+              "rows": 360,
+              "missing_feature_values": 0,
+              "class_counts": {
+                "0": 32,
+                "1": 328
+              }
+            }
+          },
+          "official": null,
+          "purged_earlier_duplicates_count": 0
+        }
+      },
+      "source_history_scope": "No known predictive tuning exposure in reconciled corpus; legacy coverage is partial. Not a global NEVER_USED assertion.",
+      "independent_recipe_confirmation": false
+    },
+    {
+      "id": "anneal",
+      "source_identity": "UCI:3:OpenML:46906:v18",
+      "source_sha256": "bc080e5b0de2b18a9e7cda6e1c0841a2ca1822b38ef06257028dcb3cf7cd6a47",
+      "source_rows": 898,
+      "features": [
+        "family",
+        "product-type",
+        "steel",
+        "carbon",
+        "hardness",
+        "temper_rolling",
+        "condition",
+        "formability",
+        "strength",
+        "non-ageing",
+        "surface-finish",
+        "surface-quality",
+        "enamelability",
+        "bc",
+        "bf",
+        "bt",
+        "bw_me",
+        "bl",
+        "m",
+        "chrom",
+        "phos",
+        "cbond",
+        "marvi",
+        "exptl",
+        "ferro",
+        "corr",
+        "blue_bright_varn_clean",
+        "lustre",
+        "jurofm",
+        "s",
+        "p",
+        "shape",
+        "thick",
+        "width",
+        "len",
+        "oil",
+        "bore",
+        "packing"
+      ],
+      "categorical": [
+        "family",
+        "product-type",
+        "steel",
+        "temper_rolling",
+        "condition",
+        "formability",
+        "non-ageing",
+        "surface-finish",
+        "surface-quality",
+        "enamelability",
+        "bc",
+        "bf",
+        "bt",
+        "bw_me",
+        "bl",
+        "m",
+        "chrom",
+        "phos",
+        "cbond",
+        "marvi",
+        "exptl",
+        "ferro",
+        "corr",
+        "blue_bright_varn_clean",
+        "lustre",
+        "jurofm",
+        "s",
+        "p",
+        "shape",
+        "oil",
+        "bore",
+        "packing"
+      ],
+      "classes": 5,
+      "task": "multiclass",
+      "license": "CC BY 4.0",
+      "citation_url": "https://doi.org/10.24432/C5RW2F",
+      "splits": {
+        "42": {
+          "roles": {
+            "fit": {
+              "sha256": "b2dbd7a186b7f424d8aea7ebb73428cd15681f6ab5f0edfb315d8856893e07f5",
+              "rows": 537,
+              "missing_feature_values": 0,
+              "class_counts": {
+                "1": 6,
+                "2": 57,
+                "3": 405,
+                "5": 47,
+                "U": 22
+              }
+            },
+            "validation": {
+              "sha256": "25e76d401487814df1677fdaa77c8873c0d2e18877c9f0a542dacdb8adc32382",
+              "rows": 180,
+              "missing_feature_values": 0,
+              "class_counts": {
+                "1": 1,
+                "2": 23,
+                "3": 138,
+                "5": 9,
+                "U": 9
+              }
+            },
+            "test": {
+              "sha256": "e47c15f34b06cc8c556dea37188ef828cc905ba42e2e01ecce9939cc619edee7",
+              "rows": 181,
+              "missing_feature_values": 0,
+              "class_counts": {
+                "1": 1,
+                "2": 19,
+                "3": 141,
+                "5": 11,
+                "U": 9
+              }
+            },
+            "pool": {
+              "sha256": "dadc7567cc7d7a37c6337bdcdddfc091bb15e750206eb961cf2f053b2f320486",
+              "rows": 717,
+              "missing_feature_values": 0,
+              "class_counts": {
+                "1": 7,
+                "2": 80,
+                "3": 543,
+                "5": 56,
+                "U": 31
+              }
+            }
+          },
+          "official": {
+            "repeat": 0,
+            "fold": 0,
+            "sample": 0,
+            "group_compatible": false,
+            "decision": "predeclared_group_fallback_due_to_overlap"
+          },
+          "purged_earlier_duplicates_count": 0
+        },
+        "2026": {
+          "roles": {
+            "fit": {
+              "sha256": "8ab6426863daac311d9104ae9ae8965fe63f036bf490319dee293363a9ea0069",
+              "rows": 541,
+              "missing_feature_values": 0,
+              "class_counts": {
+                "1": 4,
+                "2": 61,
+                "3": 419,
+                "5": 43,
+                "U": 14
+              }
+            },
+            "validation": {
+              "sha256": "9aa5ba9fad972ea0aa667965f109a61564162ede90f4416038b0f77253cd1cde",
+              "rows": 179,
+              "missing_feature_values": 0,
+              "class_counts": {
+                "1": 1,
+                "2": 19,
+                "3": 138,
+                "5": 11,
+                "U": 10
+              }
+            },
+            "test": {
+              "sha256": "1c699a7b8370b41fab72a2b5db1f081bd2a0289922711e54a163121d0405c1d7",
+              "rows": 178,
+              "missing_feature_values": 0,
+              "class_counts": {
+                "1": 3,
+                "2": 19,
+                "3": 127,
+                "5": 13,
+                "U": 16
+              }
+            },
+            "pool": {
+              "sha256": "3b8df24dafd52e0d31ae82520a179fd96fa7be0b4e6572f6af2e5e607161dab6",
+              "rows": 720,
+              "missing_feature_values": 0,
+              "class_counts": {
+                "1": 5,
+                "2": 80,
+                "3": 557,
+                "5": 54,
+                "U": 24
+              }
+            }
+          },
+          "official": {
+            "repeat": 0,
+            "fold": 1,
+            "sample": 0,
+            "group_compatible": false,
+            "decision": "predeclared_group_fallback_due_to_overlap"
+          },
+          "purged_earlier_duplicates_count": 0
+        },
+        "1947": {
+          "roles": {
+            "fit": {
+              "sha256": "c372690bdec4465866c36cc95378152fabf1ed6218f7841968d43fc669ec176d",
+              "rows": 541,
+              "missing_feature_values": 0,
+              "class_counts": {
+                "1": 6,
+                "2": 62,
+                "3": 403,
+                "5": 41,
+                "U": 29
+              }
+            },
+            "validation": {
+              "sha256": "0e39e0a8d7c6491376148a0394fe7a242c831b5ca6a2a5219dde63d98cfab352",
+              "rows": 180,
+              "missing_feature_values": 0,
+              "class_counts": {
+                "1": 1,
+                "2": 16,
+                "3": 150,
+                "5": 7,
+                "U": 6
+              }
+            },
+            "test": {
+              "sha256": "25ee671ed0d92b40bd3729d49c5f72caa8d83e4a0fd968ba64febc54c861c034",
+              "rows": 177,
+              "missing_feature_values": 0,
+              "class_counts": {
+                "1": 1,
+                "2": 21,
+                "3": 131,
+                "5": 19,
+                "U": 5
+              }
+            },
+            "pool": {
+              "sha256": "466c75a1e71f46617baa114b85293d6496089aee32fabefc70a3e4ed0ab5988a",
+              "rows": 721,
+              "missing_feature_values": 0,
+              "class_counts": {
+                "1": 7,
+                "2": 78,
+                "3": 553,
+                "5": 48,
+                "U": 35
+              }
+            }
+          },
+          "official": {
+            "repeat": 0,
+            "fold": 2,
+            "sample": 0,
+            "group_compatible": false,
+            "decision": "predeclared_group_fallback_due_to_overlap"
+          },
+          "purged_earlier_duplicates_count": 0
+        }
+      },
+      "source_history_scope": "No known predictive tuning exposure in reconciled corpus; legacy coverage is partial. Not a global NEVER_USED assertion.",
+      "independent_recipe_confirmation": false
+    },
+    {
+      "id": "glass",
+      "source_identity": "UCI:42:glass",
+      "source_sha256": "84e7e49a57bbd4cc46b2b9a5498a91ac8ea890e2adb988f3641e4a63ee079cb9",
+      "source_rows": 214,
+      "features": [
+        "RI",
+        "Na",
+        "Mg",
+        "Al",
+        "Si",
+        "K",
+        "Ca",
+        "Ba",
+        "Fe"
+      ],
+      "categorical": [],
+      "classes": 6,
+      "task": "multiclass",
+      "license": "CC-BY-4.0",
+      "citation_url": "https://doi.org/10.24432/C5WW2P",
+      "splits": {
+        "42": {
+          "roles": {
+            "fit": {
+              "sha256": "a74f891812c3e26150bc578f69f8c612636fd321c6f17ddfc8a6978c0f1474f8",
+              "rows": 128,
+              "missing_feature_values": 0,
+              "class_counts": {
+                "1": 41,
+                "2": 46,
+                "3": 10,
+                "5": 7,
+                "6": 5,
+                "7": 19
+              }
+            },
+            "validation": {
+              "sha256": "f899da5c831d44e549dcbe12a4f30593c8369df359519d5bf58b5643f74ba78b",
+              "rows": 43,
+              "missing_feature_values": 0,
+              "class_counts": {
+                "1": 14,
+                "2": 15,
+                "3": 3,
+                "5": 4,
+                "6": 2,
+                "7": 5
+              }
+            },
+            "test": {
+              "sha256": "b9d2f469e5109ad9090087cd3e06c6e849f3f4d49a7c70750fae79edbd52d0a3",
+              "rows": 43,
+              "missing_feature_values": 0,
+              "class_counts": {
+                "1": 15,
+                "2": 15,
+                "3": 4,
+                "5": 2,
+                "6": 2,
+                "7": 5
+              }
+            },
+            "pool": {
+              "sha256": "30137ac7941f6789b92722ee6ad64f7d898ae1fb0fd7c991bd18f609681d2d1f",
+              "rows": 171,
+              "missing_feature_values": 0,
+              "class_counts": {
+                "1": 55,
+                "2": 61,
+                "3": 13,
+                "5": 11,
+                "6": 7,
+                "7": 24
+              }
+            }
+          },
+          "official": null,
+          "purged_earlier_duplicates_count": 0
+        },
+        "2026": {
+          "roles": {
+            "fit": {
+              "sha256": "43a434e3bd39e5cb513ccc2aa2952467f420cd275de83bf3381464405faaa9ae",
+              "rows": 128,
+              "missing_feature_values": 0,
+              "class_counts": {
+                "1": 42,
+                "2": 46,
+                "3": 10,
+                "5": 8,
+                "6": 5,
+                "7": 17
+              }
+            },
+            "validation": {
+              "sha256": "bb4bf20dac97c4705d7f9922a60c5909bf19a64a9c310816a4ec0d2e83abbd68",
+              "rows": 44,
+              "missing_feature_values": 0,
+              "class_counts": {
+                "1": 15,
+                "2": 15,
+                "3": 4,
+                "5": 2,
+                "6": 2,
+                "7": 6
+              }
+            },
+            "test": {
+              "sha256": "c223bfef85e7b0981ffad707f95ad39a195ab75a680a39fbe96f4c95bd1c4f6b",
+              "rows": 42,
+              "missing_feature_values": 0,
+              "class_counts": {
+                "1": 13,
+                "2": 15,
+                "3": 3,
+                "5": 3,
+                "6": 2,
+                "7": 6
+              }
+            },
+            "pool": {
+              "sha256": "12b50d83628de8e592f2559e07c852b87882a41a09347bc5394f9e3bb411fc42",
+              "rows": 172,
+              "missing_feature_values": 0,
+              "class_counts": {
+                "1": 57,
+                "2": 61,
+                "3": 14,
+                "5": 10,
+                "6": 7,
+                "7": 23
+              }
+            }
+          },
+          "official": null,
+          "purged_earlier_duplicates_count": 0
+        },
+        "1947": {
+          "roles": {
+            "fit": {
+              "sha256": "c28a63a6ed72e02a328beabe117e24cde48b96eb5e5ee283d6d75f0f56d24246",
+              "rows": 128,
+              "missing_feature_values": 0,
+              "class_counts": {
+                "1": 41,
+                "2": 46,
+                "3": 10,
+                "5": 7,
+                "6": 5,
+                "7": 19
+              }
+            },
+            "validation": {
+              "sha256": "6513300a20e7ff8f75263f9230b7f0c23bf9ff0aaa6eca1e8445d5f71bf61717",
+              "rows": 43,
+              "missing_feature_values": 0,
+              "class_counts": {
+                "1": 14,
+                "2": 15,
+                "3": 3,
+                "5": 4,
+                "6": 2,
+                "7": 5
+              }
+            },
+            "test": {
+              "sha256": "583e1c6a79eb23577d72da83a2f6cc8cb98b29e9592e6ba78f91386afe59d507",
+              "rows": 43,
+              "missing_feature_values": 0,
+              "class_counts": {
+                "1": 15,
+                "2": 15,
+                "3": 4,
+                "5": 2,
+                "6": 2,
+                "7": 5
+              }
+            },
+            "pool": {
+              "sha256": "d3713df5b2082e325a99a11192a9d785b8b2674acd3e7e6ec09d47c347a0b76c",
+              "rows": 171,
+              "missing_feature_values": 0,
+              "class_counts": {
+                "1": 55,
+                "2": 61,
+                "3": 13,
+                "5": 11,
+                "6": 7,
+                "7": 24
+              }
+            }
+          },
+          "official": null,
+          "purged_earlier_duplicates_count": 0
+        }
+      },
+      "source_history_scope": "No known predictive tuning exposure in reconciled corpus; legacy coverage is partial. Not a global NEVER_USED assertion.",
+      "independent_recipe_confirmation": false
+    },
+    {
+      "id": "gas_nox",
+      "source_identity": "UCI:551:2011-2015-NOX",
+      "source_sha256": "33cbb8c68e24e3782547ccf0ed60d9ec0cc10732c3f84b08ed08fea08bfdaa6a",
+      "source_rows": 36733,
+      "features": [
+        "AT",
+        "AP",
+        "AH",
+        "AFDP",
+        "GTEP",
+        "TIT",
+        "TAT",
+        "TEY",
+        "CDP"
+      ],
+      "categorical": [],
+      "classes": 0,
+      "task": "regression",
+      "license": "CC-BY-4.0",
+      "citation_url": "https://doi.org/10.24432/C5WC95",
+      "splits": {
+        "42": {
+          "roles": {
+            "fit": {
+              "sha256": "52e0c62968f04ba3fcc45b69de356cea4d9bc63fac7c18535c452064ddb74ae3",
+              "rows": 15039,
+              "missing_feature_values": 0,
+              "class_counts": null
+            },
+            "validation": {
+              "sha256": "991cfc2747abf94668c2168fb8ccbaa6cbd86748303c76ac390d3c08be7ceb7a",
+              "rows": 7152,
+              "missing_feature_values": 0,
+              "class_counts": null
+            },
+            "test": {
+              "sha256": "b658e9a01bb86df8033fae44926d06d7293f8d0d6dc7606217a02fc560af20c6",
+              "rows": 14542,
+              "missing_feature_values": 0,
+              "class_counts": null
+            },
+            "pool": {
+              "sha256": "5e42e79c959492f4d8380df9bf1da028301c60ce682cbe67a569bf79dc4bad79",
+              "rows": 22191,
+              "missing_feature_values": 0,
+              "class_counts": null
+            }
+          },
+          "official": null,
+          "purged_earlier_duplicates_count": 0
+        },
+        "2026": {
+          "roles": {
+            "fit": {
+              "sha256": "52e0c62968f04ba3fcc45b69de356cea4d9bc63fac7c18535c452064ddb74ae3",
+              "rows": 15039,
+              "missing_feature_values": 0,
+              "class_counts": null
+            },
+            "validation": {
+              "sha256": "991cfc2747abf94668c2168fb8ccbaa6cbd86748303c76ac390d3c08be7ceb7a",
+              "rows": 7152,
+              "missing_feature_values": 0,
+              "class_counts": null
+            },
+            "test": {
+              "sha256": "b658e9a01bb86df8033fae44926d06d7293f8d0d6dc7606217a02fc560af20c6",
+              "rows": 14542,
+              "missing_feature_values": 0,
+              "class_counts": null
+            },
+            "pool": {
+              "sha256": "5e42e79c959492f4d8380df9bf1da028301c60ce682cbe67a569bf79dc4bad79",
+              "rows": 22191,
+              "missing_feature_values": 0,
+              "class_counts": null
+            }
+          },
+          "official": null,
+          "purged_earlier_duplicates_count": 0
+        },
+        "1947": {
+          "roles": {
+            "fit": {
+              "sha256": "52e0c62968f04ba3fcc45b69de356cea4d9bc63fac7c18535c452064ddb74ae3",
+              "rows": 15039,
+              "missing_feature_values": 0,
+              "class_counts": null
+            },
+            "validation": {
+              "sha256": "991cfc2747abf94668c2168fb8ccbaa6cbd86748303c76ac390d3c08be7ceb7a",
+              "rows": 7152,
+              "missing_feature_values": 0,
+              "class_counts": null
+            },
+            "test": {
+              "sha256": "b658e9a01bb86df8033fae44926d06d7293f8d0d6dc7606217a02fc560af20c6",
+              "rows": 14542,
+              "missing_feature_values": 0,
+              "class_counts": null
+            },
+            "pool": {
+              "sha256": "5e42e79c959492f4d8380df9bf1da028301c60ce682cbe67a569bf79dc4bad79",
+              "rows": 22191,
+              "missing_feature_values": 0,
+              "class_counts": null
+            }
+          },
+          "official": null,
+          "purged_earlier_duplicates_count": 0
+        }
+      },
+      "source_history_scope": "No known predictive tuning exposure in reconciled corpus; legacy coverage is partial. Not a global NEVER_USED assertion.",
+      "independent_recipe_confirmation": false
+    },
+    {
+      "id": "fiat500",
+      "source_identity": "Kaggle:paolocons:used-fiat500:OpenML46907v1",
+      "source_sha256": "0302b2efcdb5cb359c2cdec34c4630264f26857599fbbe19082fe349b863783b",
+      "source_rows": 1538,
+      "features": [
+        "model",
+        "engine_power",
+        "age_in_days",
+        "km",
+        "previous_owners",
+        "lat",
+        "lon"
+      ],
+      "categorical": [
+        "model"
+      ],
+      "classes": 0,
+      "task": "regression",
+      "license": "CC0: Public Domain",
+      "citation_url": "https://www.kaggle.com/datasets/paolocons/another-fiat-500-dataset-1538-rows",
+      "splits": {
+        "42": {
+          "roles": {
+            "fit": {
+              "sha256": "2ae951d09f3b3e5a01b1000b1d6a1483ac1729b1c270704c7022987de4995252",
+              "rows": 923,
+              "missing_feature_values": 0,
+              "class_counts": null
+            },
+            "validation": {
+              "sha256": "63b92febef0a8862790fb6fda51e93b105568f2dcb3bf25b948b65190d8d6536",
+              "rows": 307,
+              "missing_feature_values": 0,
+              "class_counts": null
+            },
+            "test": {
+              "sha256": "f194b420d989b6c5a812016e6869e4a43a0c9b8ecd9ca5f289c97c53ab58f70e",
+              "rows": 308,
+              "missing_feature_values": 0,
+              "class_counts": null
+            },
+            "pool": {
+              "sha256": "81d1cbcef5217ea7f675d38996c16514fe5490238cfb881813b77cff7b9c0331",
+              "rows": 1230,
+              "missing_feature_values": 0,
+              "class_counts": null
+            }
+          },
+          "official": {
+            "repeat": 0,
+            "fold": 0,
+            "sample": 0,
+            "group_compatible": false,
+            "decision": "predeclared_group_fallback_due_to_overlap"
+          },
+          "purged_earlier_duplicates_count": 0
+        },
+        "2026": {
+          "roles": {
+            "fit": {
+              "sha256": "4e74864529cfe7aaf24e23d5acbd46f253ecb67f686f5dc1d5504262ed35b38c",
+              "rows": 919,
+              "missing_feature_values": 0,
+              "class_counts": null
+            },
+            "validation": {
+              "sha256": "9455b49802e5e4bab8a55562fa15ca6d08e9e72d717aadc3b751370231a2e227",
+              "rows": 308,
+              "missing_feature_values": 0,
+              "class_counts": null
+            },
+            "test": {
+              "sha256": "9b9ae65fd8c4dd326b49ec72f3347b9ffcb882bcf44c68188ed8a70197a13e49",
+              "rows": 311,
+              "missing_feature_values": 0,
+              "class_counts": null
+            },
+            "pool": {
+              "sha256": "0ddbca179d2eedde82c166188b89f0c85e364d6e48041c0385f5163980e3e0f9",
+              "rows": 1227,
+              "missing_feature_values": 0,
+              "class_counts": null
+            }
+          },
+          "official": {
+            "repeat": 0,
+            "fold": 1,
+            "sample": 0,
+            "group_compatible": false,
+            "decision": "predeclared_group_fallback_due_to_overlap"
+          },
+          "purged_earlier_duplicates_count": 0
+        },
+        "1947": {
+          "roles": {
+            "fit": {
+              "sha256": "ebcf6130ece0e4c6604e97722bda489f7ba011dc5ba68d532e8fb8622f4950e7",
+              "rows": 924,
+              "missing_feature_values": 0,
+              "class_counts": null
+            },
+            "validation": {
+              "sha256": "16e6a5b2c8fee3d81758ee22d61f4a7126a98aed729ee757334758c2d190f62d",
+              "rows": 306,
+              "missing_feature_values": 0,
+              "class_counts": null
+            },
+            "test": {
+              "sha256": "2ea5fd73c8376ddf71de037be0e19d936900cbf6de2a354f8b99b5d2321e23e4",
+              "rows": 308,
+              "missing_feature_values": 0,
+              "class_counts": null
+            },
+            "pool": {
+              "sha256": "eee5402f22917ea45eadab46bddda8c7abb35e29b13c62f2477c3e6df324c40c",
+              "rows": 1230,
+              "missing_feature_values": 0,
+              "class_counts": null
+            }
+          },
+          "official": {
+            "repeat": 0,
+            "fold": 2,
+            "sample": 0,
+            "group_compatible": false,
+            "decision": "predeclared_group_fallback_due_to_overlap"
+          },
+          "purged_earlier_duplicates_count": 0
+        }
+      },
+      "source_history_scope": "No known predictive tuning exposure in reconciled corpus; legacy coverage is partial. Not a global NEVER_USED assertion.",
+      "independent_recipe_confirmation": false
+    }
+  ],
+  "model_predictions_used": 0
+}

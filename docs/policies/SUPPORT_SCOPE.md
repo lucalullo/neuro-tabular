@@ -1,5 +1,19 @@
 # Support scope and qualification evidence
 
+NeuroTabular 2.1.0 preserves the classifier defaults and estimator API.
+Regression uses patience=8 with at most 30 epochs; use patience=4 for the
+previous stopping rule. Numerical standardization and weighted loss reduction
+include qualified correctness fixes. The local integration evidence is CPU
+only, including native Windows CPython 3.13 with the pinned dependency stack.
+The weighted-loss build passed the prescribed CPU end-to-end controls; this
+does not establish a general speed or RAM improvement.
+
+The complete CI matrix must pass on the exact transferred release commit.
+Physical NVIDIA CUDA qualification remains pending. Existing persistence and
+same-process concurrency limits remain in force. The paragraphs and platform
+table below preserve older qualification evidence and do not claim that every
+listed combination has been retested for 2.1.0.
+
 NeuroTabular 2.0.0 retains the 1.x estimator API and default numerical behavior.
 The table below preserves historical 1.0.2/1.0.3 qualification boundaries; it is
 not a claim that all those tests have been repeated on every 2.0.0 platform.
@@ -29,7 +43,7 @@ Linux CPU evidence, not every OS, hardware configuration or dependency pairing.
 | Linux CPU / CPython 3.10 | LEGACY_COMPATIBLE in its executed current mutually compatible stack. Python 3.10 is upstream EOL and is not preferred. |
 | Linux CPU / CPython 3.15 | UPSTREAM_LIMITED: ordinary PyPI lacks Torch wheels. CODE_COMPATIBLE with full tests on the official Torch CPU channel. No one-command PyPI guarantee. |
 | Windows CPU / CPython 3.12 x64 | Executed native Windows 11 Sandbox, CPython 3.12.10, pinned dependency stack: 1,174 passed / 12 explained skips before version assignment, plus separate fresh-install automated replay. Short environment/test-cache paths and official Microsoft Visual C++ runtime required. Local host Application Control failures are preserved separately; no protection was disabled. |
-| Windows CPU / CPython 3.11, 3.13–3.14 | Expanded CI proposed; not newly executed for this candidate. Native 3.12 success does not certify all Windows/Python/dependency combinations. |
+| Windows CPU / CPython 3.11, 3.13–3.14 | Historical expanded CI scope; the 2.1.0 exact-commit run remains required. Native 3.12 success does not certify all Windows/Python/dependency combinations. |
 | macOS CPU | NOT_LOCALLY_VALIDATED. Apple Silicon wheel availability audited through 3.14 and CI proposed. Intel Torch wheels stop at 2.2.2 / Python 3.12; old stacks require coherent NumPy ABI versions. |
 | CUDA Linux / Windows | BEST_EFFORT, physical NVIDIA validation PENDING. CPU tests, mocks and CUDA dependency installation do not prove hardware operation. |
 | NumPy >=1.24 / pandas >=2.0 / sklearn >=1.3 / Torch >=2.0 | Bounds retained. Python-specific binary minima and current stacks are recorded in the compatibility report. NumPy 1.x/2.x and pandas 2.x/3.x are exercised in coherent combinations, not all Cartesian pairings. |
@@ -60,4 +74,23 @@ DataFrame-only, single-output, comparable classification labels and the
 date, metadata routing, complete sklearn, calibrated probabilities/intervals or
 parallel same-process fit guarantee is made.
 
-The 2.0 release line retains the tested 1.x API/default contracts. Earlier qualification counts above are historical. Exact 2.0 local/CI receipts and the release readiness matrix determine current executed coverage; do not infer untested platforms or independent certification from a major version.
+The 2.0 release line retained the tested 1.x API/default contracts. Earlier
+qualification counts above are historical. Exact-release local and CI receipts
+determine current coverage; do not infer untested platforms or independent
+certification from a version number.
+
+
+## NeuroTabular 2.1.0 delivery limits
+
+The delivered runtime retains the qualified regression stopping rule, robust
+standardization, weighted reduction on CPU, optional internal K-fold diagnostics
+and validation weights. General classifier defaults remain unchanged.
+The current estimator supports at most 128 categorical columns; the extended
+categorical prototype is not included. Numeric and total column counts are not
+subject to that categorical width bound.
+
+Physical NVIDIA CUDA and formal end-to-end no-network certification remain
+unqualified. Successful local installation, fit, refit and persistence checks do
+not convert the outstanding no-network security verdict into a PASS. Advanced
+automatic tuning, experimental calibration and refit-memory changes are excluded.
+The competitive evidence is bounded by its [six-family CPU protocol](../../benchmarks/competitive/README.md).

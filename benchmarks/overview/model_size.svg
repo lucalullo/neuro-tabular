@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="920" height="355" viewBox="0 0 920 355" role="img">
+<title>NeuroTabular 2.1.0 | Serialized model size</title>
+<desc>Project bytes / bytes of the same quality-selected comparator; not loaded RAM. Lower ratios indicate a favorable numerical direction; not a significance test.</desc>
+<rect width="100%" height="100%" fill="#ffffff"/>
+<g font-family="Arial, Helvetica, sans-serif" fill="#172638">
+<text x="24" y="32" font-size="21" font-weight="bold">NeuroTabular 2.1.0 | Serialized model size</text>
+<text x="24" y="55" font-size="12" fill="#475569">Project bytes / bytes of the same quality-selected comparator; not loaded RAM.</text>
+<text x="24" y="83" font-size="12" font-weight="bold">Dataset / metric</text>
+<text x="295" y="83" font-size="11" fill="#246b83">Lower ratio</text>
+<text x="715" y="83" font-size="11" text-anchor="end" fill="#9b5622">Higher ratio</text>
+<text x="896" y="83" font-size="12" font-weight="bold" text-anchor="end">Ratio</text>
+<rect x="18" y="93" width="884" height="35" fill="#f3f6f9"/>
+<text x="24" y="116" font-size="12">Bank Marketing</text>
+<line x1="505" y1="93" x2="505" y2="128" stroke="#94a3b8" stroke-dasharray="3 3"/>
+<line x1="505" y1="110" x2="379.60" y2="110" stroke="#246b83" stroke-width="8" stroke-linecap="round"/>
+<circle cx="379.60" cy="110" r="5" fill="#246b83"/>
+<text x="896" y="115" font-size="12" text-anchor="end">0.1262x</text>
+<text x="24" y="151" font-size="12">Climate Crashes</text>
+<line x1="505" y1="128" x2="505" y2="163" stroke="#94a3b8" stroke-dasharray="3 3"/>
+<line x1="505" y1="145" x2="386.70" y2="145" stroke="#246b83" stroke-width="8" stroke-linecap="round"/>
+<circle cx="386.70" cy="145" r="5" fill="#246b83"/>
+<text x="896" y="150" font-size="12" text-anchor="end">0.1419x</text>
+<rect x="18" y="163" width="884" height="35" fill="#f3f6f9"/>
+<text x="24" y="186" font-size="12">Anneal</text>
+<line x1="505" y1="163" x2="505" y2="198" stroke="#94a3b8" stroke-dasharray="3 3"/>
+<line x1="505" y1="180" x2="462.77" y2="180" stroke="#246b83" stroke-width="8" stroke-linecap="round"/>
+<circle cx="462.77" cy="180" r="5" fill="#246b83"/>
+<text x="896" y="185" font-size="12" text-anchor="end">0.4981x</text>
+<text x="24" y="221" font-size="12">Glass</text>
+<line x1="505" y1="198" x2="505" y2="233" stroke="#94a3b8" stroke-dasharray="3 3"/>
+<line x1="505" y1="215" x2="313.90" y2="215" stroke="#246b83" stroke-width="8" stroke-linecap="round"/>
+<circle cx="313.90" cy="215" r="5" fill="#246b83"/>
+<text x="896" y="220" font-size="12" text-anchor="end">0.04269x</text>
+<rect x="18" y="233" width="884" height="35" fill="#f3f6f9"/>
+<text x="24" y="256" font-size="12">Fiat 500</text>
+<line x1="505" y1="233" x2="505" y2="268" stroke="#94a3b8" stroke-dasharray="3 3"/>
+<line x1="505" y1="250" x2="386.51" y2="250" stroke="#246b83" stroke-width="8" stroke-linecap="round"/>
+<circle cx="386.51" cy="250" r="5" fill="#246b83"/>
+<text x="896" y="255" font-size="12" text-anchor="end">0.1415x</text>
+<text x="24" y="291" font-size="12">Gas Turbine NOx</text>
+<line x1="505" y1="268" x2="505" y2="303" stroke="#94a3b8" stroke-dasharray="3 3"/>
+<line x1="505" y1="285" x2="468.71" y2="285" stroke="#246b83" stroke-width="8" stroke-linecap="round"/>
+<circle cx="468.71" cy="285" r="5" fill="#246b83"/>
+<text x="896" y="290" font-size="12" text-anchor="end">0.5494x</text>
+<text x="295.00" y="320" font-size="11" text-anchor="middle">0.03125x</text>
+<text x="505.00" y="320" font-size="11" text-anchor="middle">1x</text>
+<text x="715.00" y="320" font-size="11" text-anchor="middle">32x</text>
+<text x="505" y="339" font-size="11" text-anchor="middle" fill="#475569">Log-ratio axis | 1x = same recorded value | descriptive, not a statistical test</text>
+</g></svg>

@@ -38,3 +38,7 @@ documented scope, disclosure and recovery instructions. Do not hide a breaking
 change in a performance patch. Unchanged documented behavior remains the default
 for compatible fixes. See [versioning](VERSIONING_POLICY.md) and
 [warning categories](WARNING_POLICY.md).
+
+For the specific 2.1.0 regression default transition, see the documented
+[maintainer-directed exception](VERSIONING_POLICY.md#maintainer-directed-210-exception).
+The four-check stopping rule remains available explicitly; no parameter is removed.

@@ -4,3 +4,19 @@
 *.toml text eol=lf
 *.yml text eol=lf
 *.yaml text eol=lf
+
+# Hash-bound benchmark files retain their original byte-level line endings.
+/benchmarks/competitive/control.py -text !eol
+/benchmarks/competitive/metrology.py -text !eol
+/benchmarks/competitive/protocol.json -text !eol
+/benchmarks/competitive/report.py -text !eol
+/benchmarks/competitive/results/REPORT.md -text !eol
+/benchmarks/competitive/results/WHEN_TO_CHOOSE.md -text !eol
+/benchmarks/competitive/results/results.csv -text !eol
+/benchmarks/competitive/results/tables/FAMILY_SUMMARY.csv -text !eol
+/benchmarks/competitive/results/tables/PAIRED_COMPARISONS.csv -text !eol
+/benchmarks/competitive/results/tables/PER_SEED.csv -text !eol
+/benchmarks/competitive/results/tables/TIMING_CONTROLS.csv -text !eol
+/benchmarks/competitive/run.py -text !eol
+/benchmarks/competitive/runtimes.json -text !eol
+/benchmarks/competitive/worker.py -text !eol

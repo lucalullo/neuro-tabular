@@ -62,3 +62,11 @@ product_validation/
 # Canonical private research and operational evidence (all checkouts)
 /.local/
 /.codex-context/
+
+# Maintainer-only documents and benchmark working data
+Non caricare su GitHub/
+**/Non caricare su GitHub/
+/benchmark-data/
+/benchmark-work/
+/nt-imports/
+/benchmark-environment.json

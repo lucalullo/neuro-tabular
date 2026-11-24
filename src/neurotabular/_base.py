@@ -57,6 +57,8 @@ class _BaseNeuroTabularEstimator(BaseEstimator):
         device: str = "auto",
         random_state: int = 42,
         verbose: int = 0,
+        *,
+        cv: int | None = None,
     ) -> None:
         self.hidden_dim = hidden_dim
         self.n_blocks = n_blocks
@@ -80,6 +82,13 @@ class _BaseNeuroTabularEstimator(BaseEstimator):
         self.device = device
         self.random_state = random_state
         self.verbose = verbose
+        self.cv = cv
+
+    def __setstate__(self, state):
+        """Old states have no optional CV setting; loading never enables it."""
+        restored = dict(state)
+        restored.setdefault("cv", None)
+        super().__setstate__(restored)
 
     def fit(
         self,
@@ -87,6 +96,9 @@ class _BaseNeuroTabularEstimator(BaseEstimator):
         y: object,
         sample_weight: object | None = None,
         eval_set: tuple[pd.DataFrame, object] | None = None,
+        *,
+        groups: object | None = None,
+        eval_sample_weight: object | None = None,
     ) -> _BaseNeuroTabularEstimator:
         """Fit the estimator transactionally and restore caller RNG state.
 
@@ -106,7 +118,23 @@ class _BaseNeuroTabularEstimator(BaseEstimator):
         candidate = copy(self)
         candidate._clear_fitted_state()
         try:
-            candidate._fit_impl(X, y, sample_weight=sample_weight, eval_set=eval_set)
+            if eval_sample_weight is not None:
+                candidate._fit_impl(
+                    X,
+                    y,
+                    sample_weight=sample_weight,
+                    eval_set=eval_set,
+                    groups=groups,
+                    eval_sample_weight=eval_sample_weight,
+                )
+            elif groups is None:
+                candidate._fit_impl(
+                    X, y, sample_weight=sample_weight, eval_set=eval_set
+                )
+            else:
+                candidate._fit_impl(
+                    X, y, sample_weight=sample_weight, eval_set=eval_set, groups=groups
+                )
         finally:
             random.setstate(python_random_state)
             np.random.set_state(numpy_random_state)
@@ -123,11 +151,55 @@ class _BaseNeuroTabularEstimator(BaseEstimator):
         y: object,
         sample_weight: object | None = None,
         eval_set: tuple[pd.DataFrame, object] | None = None,
+        *,
+        groups: object | None = None,
+        eval_sample_weight: object | None = None,
+    ) -> None:
+        if self.cv is None:
+            if groups is not None:
+                raise ValueError(
+                    "groups requires enabled internal cv; it is never silently ignored."
+                )
+            if eval_sample_weight is None:
+                return self._fit_single_impl(
+                    X, y, sample_weight=sample_weight, eval_set=eval_set
+                )
+            return self._fit_single_impl(
+                X,
+                y,
+                sample_weight=sample_weight,
+                eval_set=eval_set,
+                eval_sample_weight=eval_sample_weight,
+            )
+        if eval_set is not None:
+            raise ValueError(
+                "Internal cv and an external eval_set are mutually exclusive."
+            )
+        if eval_sample_weight is not None:
+            raise ValueError(
+                "eval_sample_weight requires explicit eval_set and cv=None."
+            )
+        from ._cross_validation import fit_internal_cv
+
+        return fit_internal_cv(self, X, y, sample_weight, groups)
+
+    def _fit_single_impl(
+        self,
+        X: pd.DataFrame,
+        y: object,
+        sample_weight: object | None = None,
+        eval_set: tuple[pd.DataFrame, object] | None = None,
+        *,
+        eval_sample_weight: object | None = None,
     ) -> None:
         """Build a complete fitted candidate before :meth:`fit` commits it."""
 
         fit_started = perf_counter()
         self._validate_hyperparameters()
+        if eval_sample_weight is not None:
+            eval_set, eval_sample_weight = self._prepare_weighted_eval_set(
+                eval_set, eval_sample_weight
+            )
         X = self._validate_X(X)
         original_sample_count = len(X)
         raw_target = self._target_array(y, original_sample_count, allow_missing=True)
@@ -149,13 +221,24 @@ class _BaseNeuroTabularEstimator(BaseEstimator):
         if eval_set is None:
             indices = np.arange(len(X))
             try:
-                train_indices, validation_indices = train_test_split(
-                    indices,
-                    test_size=self.validation_fraction,
-                    random_state=self.random_state,
-                    shuffle=True,
-                    stratify=None if self._task_.name == "regression" else y_array,
-                )
+                override = self.__dict__.pop("_cv_inner_split", None)
+                if override is None:
+                    train_indices, validation_indices = train_test_split(
+                        indices,
+                        test_size=self.validation_fraction,
+                        random_state=self.random_state,
+                        shuffle=True,
+                        stratify=None if self._task_.name == "regression" else y_array,
+                    )
+                else:
+                    train_indices, validation_indices = override
+                    joined = np.concatenate((train_indices, validation_indices))
+                    if (
+                        not len(train_indices)
+                        or not len(validation_indices)
+                        or not np.array_equal(np.sort(joined), indices)
+                    ):
+                        raise ValueError("Invalid internal CV FIT/STOP plan.")
             except ValueError as exc:
                 if self._task_.name == "regression":
                     raise ValueError(
@@ -185,7 +268,11 @@ class _BaseNeuroTabularEstimator(BaseEstimator):
             X_train = X
             y_train = y_array
             train_sample_weight = all_sample_weight
-            validation_weight = np.ones(len(X_validation), dtype=np.float64)
+            validation_weight = (
+                np.ones(len(X_validation), dtype=np.float64)
+                if eval_sample_weight is None
+                else eval_sample_weight
+            )
         if (
             self._task_.name == "regression"
             and self.eval_metric == "r2"
@@ -491,6 +578,33 @@ class _BaseNeuroTabularEstimator(BaseEstimator):
         if not np.any(weights > 0.0):
             raise ValueError("sample_weight must contain at least one positive value.")
         return weights
+
+    def _prepare_weighted_eval_set(
+        self, eval_set: object, eval_sample_weight: object
+    ) -> tuple[tuple[pd.DataFrame, np.ndarray], np.ndarray]:
+        """Private prototype: positive-weight external rows, before preprocessing.
+
+        Class weights never enter this validation objective. This optional path
+        does not fit an extra model or change the optimizer. The normal public
+        release does not contain this prototype.
+        """
+        if eval_set is None:
+            raise ValueError("eval_sample_weight requires an explicit eval_set.")
+        frame, target = self._validate_eval_set(eval_set)
+        raw_target = self._target_array(
+            target, len(frame), name="eval y", allow_missing=True
+        )
+        try:
+            weight = self._validate_sample_weight(eval_sample_weight, len(frame))
+        except ValueError as exc:
+            raise ValueError(f"Invalid eval_sample_weight: {exc}") from exc
+        if weight is None:
+            raise ValueError("Explicit eval_sample_weight must contain weights.")
+        keep = np.flatnonzero(weight > 0.0)
+        weight = weight[keep]
+        # Validate representability before any allocation/model construction.
+        self._normalize_weight(weight, name="eval_sample_weight")
+        return (frame.iloc[keep], raw_target[keep]), weight
 
     def _validate_eval_set(self, eval_set: object) -> tuple[pd.DataFrame, object]:
         if not isinstance(eval_set, (tuple, list)) or len(eval_set) != 2:

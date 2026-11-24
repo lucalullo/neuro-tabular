@@ -1,9 +1,11 @@
-# Stable and experimental API boundary for NeuroTabular 1.0.0
+# Stable and experimental API boundary for NeuroTabular 2.1.0
 
 FREEZE_SAFE defines the reviewed stable scope; EXPERIMENTAL and INTERNAL retain
 their explicit limits. Publication remains a separate maintainer decision.
-RC1 target hardening is retained; valid-input training/prediction math and
-constructor defaults are unchanged.
+The reviewed 1.0.0 API boundary and subsequent target hardening are retained.
+The 2.1.0 regression patience transition, numerical correctness fixes and
+optional validation features are documented exceptions/additions; see the
+[release notes](../RELEASE_NOTES.md). Classifier defaults remain unchanged.
 
 ## Export and method contract
 
@@ -12,7 +14,7 @@ constructor defaults are unchanged.
 | NeuroTabularClassifier | FREEZE_SAFE | DataFrame-only binary/multiclass; sklearn binary/multiclass single-output finite labels, sorted original labels, same self from fit; classifier/Pipeline/clone/persistence tests. |
 | NeuroTabularRegressor | FREEZE_SAFE | Separate single-output finite real target, original-unit float64 predictions; no predict_proba/class_weight parameter. |
 | __version__ | FREEZE_SAFE | Version string matches package metadata; unpublished same-version builds require source identity. |
-| fit(X,y,sample_weight=None,eval_set=None) | FREEZE_SAFE | Positional 1-D y/weights; task target validation shared with eval_set/score; nonnegative finite weights with positive total, zero rows excluded; train-only preprocessing; new eval target classes rejected; transactional committed state. |
+| fit(X,y,sample_weight=None,eval_set=None,*,groups=None,eval_sample_weight=None) | FREEZE_SAFE (existing contract); documented 2.1.0 optional additions | Positional 1-D y/weights; task target validation shared with eval_set/score; nonnegative finite weights with positive total, zero rows excluded; train-only preprocessing; new eval target classes rejected; transactional committed state. groups requires internal CV; eval_sample_weight requires explicit eval_set and cv=None. |
 | predict(X) | FREEZE_SAFE | Shape(n,), classifier original-label dtype/threshold0.5 or argmax; regression float64 original units/constant path; schema names aligned, row order preserved. |
 | predict_proba(X), classifier only | FREEZE_SAFE | float64(n,C), sorted classes_ columns, normalized finite probabilities; no calibration guarantee. |
 | score(X,y,sample_weight=None) | FREEZE_SAFE | Sklearn accuracy/R2 with existing weights, after the shared task target validation; signature unchanged. |
@@ -42,7 +44,7 @@ No names removed/renamed; no redundant knob established by current evidence.
 | `batch_size` | positive integer or auto | `'auto'` | Explicit training batch or current automatic resolution; heuristic not frozen | U | FREEZE_SAFE |
 | `max_epochs` | positive integer | `30` | Training epoch limit | U | FREEZE_SAFE |
 | `validation_fraction` | finite real (0,1) | `0.2` | Internal stratified classifier/random regression split; external eval_set bypasses split | U | FREEZE_SAFE |
-| `patience` | positive integer | `4` | Validation checks without min_delta improvement | U | FREEZE_SAFE |
+| `patience` | positive integer | `4` classifier / `8` regressor | Validation checks without min_delta improvement | U | FREEZE_SAFE |
 | `min_delta` | finite nonnegative real | `0.0001` | Patience reset threshold; strict best checkpoint still restored | U | FREEZE_SAFE |
 | `eval_frequency` | positive integer | `1` | Validation interval, with existing first/final checks | U | FREEZE_SAFE |
 | `eval_metric` | classifier loss/accuracy/binary roc_auc; regressor loss/rmse/mae/r2 | `'loss'` | Existing task-specific metric direction/scale | U | FREEZE_SAFE |
@@ -56,8 +58,9 @@ No names removed/renamed; no redundant knob established by current evidence.
 | `device` | auto, cpu, cuda, cuda:N | `'auto'` | Selection/fallback interface; physical CUDA remains optional best effort | U | FREEZE_SAFE |
 | `random_state` | integer accepted by NumPy seed (0..2**32-1), excluding bool | `42` | Fixed-runtime split/initialization/shuffle and caller RNG restoration | U | FREEZE_SAFE |
 | `verbose` | 0 or 1 | `0` | Progress control; exact console text not frozen | U | FREEZE_SAFE |
+| `cv` | None or integer >= 2 | `None` | Optional internal K-fold diagnostics; one final network, K+1 training passes (doubled with refit) | U | Documented 2.1.0 optional feature; see [Internal CV](INTERNAL_CV.md) |
 
-Classifier has all 22 rows; regressor has 21, omitting class_weight. Numerical
+Classifier has all 23 rows; regressor has 22, omitting class_weight. Numerical
 embedding's parameter/default scalar interface stays stable; non-scalar behavior
 is explicitly experimental. device selection interface is stable; actual CUDA
 hardware/portability remains outside validated support. Exact signatures are in
@@ -97,6 +100,7 @@ common lifetime/mutability/serialization rules apply to **each listed attribute*
 | `n_ignored_samples_` | int | both; L | M | S | FREEZE_SAFE | Excluded zero-weight primary rows |
 | `history_` | list of dict | both; L | M | S | FREEZE_SAFE documented fields | Validation checkpoint metrics only; unspecified new keys not frozen |
 | `full_data_refit_` | bool | both; L | M | S | FREEZE_SAFE | Whether final fresh refit occurred |
+| `cv_results_` | dict | both, after successful fit with internal CV; L | M | S | Documented diagnostic report | Fold scores, split identity, counts and cost; not a tuning result or independent confirmation |
 | `preprocessing_time_` | float seconds | both; L | M | S | EXPERIMENTAL | Timing observation |
 | `training_time_` | float seconds | both; L | M | S | EXPERIMENTAL | Training/profile aggregate, not inclusive fit |
 | `validation_time_` | float seconds | both; L | M | S | EXPERIMENTAL | Timing observation |
@@ -135,8 +139,9 @@ arrays for object-backed numeric classification labels in those workflows.
 Routing, schema format, clocks/probe keys, allocation heuristics and optional
 scientific paths remain experimental.
 
-Published RC1 exact-commit CI passed all seven jobs. The exact stable 1.0.0
-commit also passed the seven-job remote CI matrix before publication. Fresh
+Historical RC1 and 1.0.0 exact-commit CI passed their seven-job matrices.
+These are historical results, not evidence for the 2.1.0 revision.
+The 17-job CI matrix for 2.1.0 must pass on its exact release commit. Fresh
 local native Windows CPU execution succeeded without security workarounds.
 Independent human pilots remain an outstanding soft risk; physical CUDA remains
 optional/PENDING. See

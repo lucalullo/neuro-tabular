@@ -33,6 +33,7 @@ def test_public_defaults_are_release_defaults():
         "batch_size": "auto",
         "categorical_features": None,
         "class_weight": None,
+        "cv": None,
         "device": "auto",
         "dropout": 0.1,
         "eval_frequency": 1,
@@ -53,6 +54,12 @@ def test_public_defaults_are_release_defaults():
         "weight_decay": 0.00001,
         "use_category_frequency": True,
     }
+
+
+def test_regressor_stopping_defaults():
+    params = NeuroTabularRegressor().get_params()
+    assert (params["patience"], params["max_epochs"]) == (8, 30)
+    assert clone(NeuroTabularRegressor(patience=4)).get_params()["patience"] == 4
 
 
 def test_cross_val_score_with_roc_auc():

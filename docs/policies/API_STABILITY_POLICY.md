@@ -1,7 +1,8 @@
 # API maintenance policy
 
-Adopted for the 1.0.0 stable public scope. RC1's authorized target hardening
-is retained without constructor-default or valid-input numerical changes.
+Adopted for the 1.0.0 public scope. The historical target hardening is retained.
+For 2.1.0, the documented regression patience transition, numerical correctness
+fixes and optional validation additions have their own scoped qualifications.
 The exact stable/experimental/internal boundary is [API_BOUNDARY](../API_BOUNDARY.md).
 
 The public surface is NeuroTabularClassifier, NeuroTabularRegressor and package
@@ -37,4 +38,7 @@ research requires its own governance, protocol and formal admission. The
 [canonical vision](../NEUROTABULAR_VISION.md) defines its direction without changing
 this stable product contract or admitting experiments by itself.
 
-The 2.0 release line retains the tested 1.x API/default contracts. Earlier qualification counts above are historical. Exact 2.0 local/CI receipts and the release readiness matrix determine current executed coverage; do not infer untested platforms or independent certification from a major version.
+The 2.0 release line retained the tested 1.x API/default contracts. Historical
+qualification counts do not replace exact-release local and CI receipts for
+2.1.0. Do not infer untested platforms or independent certification from a
+version number.

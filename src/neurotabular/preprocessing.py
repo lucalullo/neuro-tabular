@@ -242,6 +242,7 @@ class TabularPreprocessor:
 
     @np.errstate(over="raise", invalid="raise")
     def _fit_numeric(self, X: pd.DataFrame) -> None:
+        self._numeric_extreme_ = {}
         if not self.numeric_features_:
             self.numeric_medians_ = np.empty(0, dtype=np.float64)
             self.numeric_centers_ = np.empty(0, dtype=np.float64)
@@ -251,6 +252,19 @@ class TabularPreprocessor:
             )
             return
         values = self._numeric_matrix(X)
+        try:
+            self._fit_numeric_values(values)
+        except FloatingPointError:
+            if self.numeric_strategy != "standard":
+                raise
+            # Bound sum of squares and allow for the span about the mean.
+            limit = np.sqrt(np.finfo(np.float64).max / len(values)) / 4.0
+            columns = np.flatnonzero(np.any(np.abs(values) > limit, axis=0))
+            if not len(columns):
+                raise
+            self._fit_extreme_numeric(values, columns)
+
+    def _fit_numeric_values(self, values: np.ndarray) -> None:
         with warnings.catch_warnings():
             warnings.simplefilter("ignore", RuntimeWarning)
             medians = np.nanmedian(values, axis=0)
@@ -280,13 +294,51 @@ class TabularPreprocessor:
         knots = np.quantile(scaled, quantiles, axis=0).T
         self.numeric_knots_ = self._stabilize_knots(knots)
 
+    def _fit_extreme_numeric(self, values: np.ndarray, columns: np.ndarray) -> None:
+        # Fit ordinary columns in the same layout and retain their native arithmetic.
+        ordinary = values.copy(order="K")
+        ordinary[:, columns] = 0.0
+        self._fit_numeric_values(ordinary)
+        quantiles = np.linspace(0.0, 1.0, self.n_numeric_bins + 1)
+        for column in columns.tolist():
+            raw = values[:, column]
+            observed = raw[~np.isnan(raw)]
+            exponent = int(np.frexp(np.max(np.abs(observed)))[1])
+            # Subtract the anchor before computing the mean. With a large common
+            # offset this retains differences even when the mean would round away.
+            anchor = float(np.ldexp(observed[0], -exponent))
+            offsets = np.ldexp(raw, -exponent) - anchor
+            median = float(np.nanmedian(offsets))
+            imputed = np.where(np.isnan(offsets), median, offsets)
+            center = float(np.mean(imputed))
+            spread = float(np.std(imputed))
+            if spread < np.ldexp(1e-12, -exponent):
+                spread = float(np.ldexp(1.0, -exponent))
+            self._numeric_extreme_[column] = (exponent, anchor, median, center, spread)
+            # The native arrays have neutral values for these columns. Their
+            # effective statistics are stored as an anchored coordinate tuple.
+            standardized = (imputed - center) / spread
+            knots = np.quantile(standardized, quantiles)[None, :]
+            self.numeric_knots_[column] = self._stabilize_knots(knots)[0]
+
     def _transform_numeric(self, X: pd.DataFrame) -> np.ndarray:
         if not self.numeric_features_:
             return np.empty((len(X), 0), dtype=np.float32)
         # _numeric_matrix returns a private copy, safe to reuse in place.
         values = self._numeric_matrix(X)
         missing = np.isnan(values)
-        np.copyto(values, self.numeric_medians_, where=missing)
+        extreme = getattr(self, "_numeric_extreme_", {})
+        for column, (exponent, anchor, median, center, spread) in extreme.items():
+            normalized = np.ldexp(values[:, column], -exponent) - anchor
+            np.copyto(normalized, median, where=missing[:, column])
+            with np.errstate(over="ignore"):
+                values[:, column] = (normalized - center) / spread
+        # Extreme columns have already been imputed and standardized.
+        native_missing = missing
+        if extreme:
+            native_missing = missing.copy()
+            native_missing[:, list(extreme)] = False
+        np.copyto(values, self.numeric_medians_, where=native_missing)
         with np.errstate(over="ignore", invalid="ignore"):
             np.subtract(values, self.numeric_centers_, out=values)
             np.divide(values, self.numeric_scales_, out=values)

@@ -1,0 +1,501 @@
+{
+  "schema": "NT_PUBLIC_BENCHMARK/1",
+  "version": "P6-0422-START-M1-PROSPECTIVE",
+  "status": "PREPARED_NOT_ADMITTED",
+  "datasets": [
+    {
+      "id": "bank_marketing",
+      "source_identity": "UCI:222:bank-full",
+      "task": "binary",
+      "format": "zip_csv",
+      "url": "https://archive.ics.uci.edu/static/public/222/bank+marketing.zip",
+      "members": [
+        "bank.zip",
+        "bank-full.csv"
+      ],
+      "separator": ";",
+      "expected_rows": 45211,
+      "expected_features": 13,
+      "expected_classes": 2,
+      "target": "y",
+      "exclude": [
+        "duration",
+        "day",
+        "month"
+      ],
+      "categorical": [
+        "job",
+        "marital",
+        "education",
+        "default",
+        "housing",
+        "loan",
+        "contact",
+        "poutcome"
+      ],
+      "split_policy": "ordered_contacts",
+      "statistical_unit": "chronologically ordered contact; client identifiers unavailable",
+      "uncertainty_unit": "100 consecutive contact records; not a new-client independence claim",
+      "license": "CC-BY-4.0",
+      "citation_url": "https://doi.org/10.24432/C5K306",
+      "source_version": "Fri Aug 18 2023",
+      "source_metadata_sha256": "4bc4da9f854ad7b5e5de7b6b8a23c175679467b6b5229f6c5c678fb97bd19284",
+      "history_scope": "No known predictive tuning exposure in reconciled corpus; legacy coverage is partial. Not a global NEVER_USED assertion.",
+      "independent_recipe_confirmation": false,
+      "max_source_bytes": 134217728,
+      "sha256": "e0bf5f5de5b846e2f18e9d90606637267d46dfa260e0f17bb12e605db5efbeb4"
+    },
+    {
+      "id": "climate_crashes",
+      "source_identity": "UCI:252:POP2-LHS",
+      "task": "binary",
+      "format": "zip_csv",
+      "url": "https://archive.ics.uci.edu/static/public/252/climate+model+simulation+crashes.zip",
+      "positional": true,
+      "members": [
+        "pop_failures.dat"
+      ],
+      "separator": "\\s+",
+      "expected_rows": 540,
+      "expected_features": 18,
+      "expected_classes": 2,
+      "target": "outcome",
+      "exclude": [
+        "study_id",
+        "run_id"
+      ],
+      "categorical": [],
+      "split_policy": "climate_studies",
+      "statistical_unit": "simulation design, nested in Latin-hypercube study",
+      "uncertainty_unit": "one held-out study; no independent-study confidence interval",
+      "license": "CC-BY-4.0",
+      "citation_url": "https://doi.org/10.24432/C5HG71",
+      "source_version": "Fri Nov 03 2023",
+      "source_metadata_sha256": "82665385289fe27006d85645b448b0eb0c564c2580d77d604e34fdb3c8a45676",
+      "history_scope": "No known predictive tuning exposure in reconciled corpus; legacy coverage is partial. Not a global NEVER_USED assertion.",
+      "independent_recipe_confirmation": false,
+      "max_source_bytes": 134217728,
+      "sha256": "fe8c0c2b79d1beedf31fbca2db8a97cec3c1b773ee29ed3357a2ff1dc8dd12d0"
+    },
+    {
+      "id": "anneal",
+      "source_identity": "UCI:3:OpenML:46906:v18",
+      "task": "multiclass",
+      "format": "arff",
+      "expected_rows": 898,
+      "expected_features": 38,
+      "expected_classes": 5,
+      "target": "classes",
+      "exclude": [],
+      "split_policy": "group_stratified",
+      "statistical_unit": "published steel product record; exact input-signature groups",
+      "uncertainty_unit": "exact-signature components; unreported batch structure remains a limitation",
+      "url": "https://api.openml.org/data/v1/download/22125217/anneal.arff",
+      "md5": "4283e8f3207343097da8a264038a8224",
+      "license": "CC BY 4.0",
+      "citation_url": "https://doi.org/10.24432/C5RW2F",
+      "source_version": "18",
+      "source_metadata_sha256": "869a024f4a4730880319c301efb17067734f5dc772a0000a9181fbde65e41804",
+      "official_splits_url": "https://www.openml.org/api_splits/get/363614/Task_363614_splits.arff",
+      "history_scope": "No known predictive tuning exposure in reconciled corpus; legacy coverage is partial. Not a global NEVER_USED assertion.",
+      "independent_recipe_confirmation": false,
+      "max_source_bytes": 134217728,
+      "sha256": "bc080e5b0de2b18a9e7cda6e1c0841a2ca1822b38ef06257028dcb3cf7cd6a47",
+      "official_splits_sha256": "5176410a6e19eb68d7901d31bb05b4111308f103f0d1b4dad592e49f290a4de3"
+    },
+    {
+      "id": "glass",
+      "source_identity": "UCI:42:glass",
+      "task": "multiclass",
+      "format": "csv",
+      "url": "https://archive.ics.uci.edu/static/public/42/data.csv",
+      "expected_rows": 214,
+      "expected_features": 9,
+      "expected_classes": 6,
+      "target": "Type_of_glass",
+      "exclude": [
+        "Id_number"
+      ],
+      "categorical": [],
+      "split_policy": "group_stratified",
+      "statistical_unit": "glass sample; ID excluded; exact-signature groups",
+      "uncertainty_unit": "sample/signature; production-batch IDs unavailable",
+      "license": "CC-BY-4.0",
+      "citation_url": "https://doi.org/10.24432/C5WW2P",
+      "source_version": "Thu Aug 10 2023",
+      "source_metadata_sha256": "67bcb40304226b900d8395160873e657c4e2972d864e500ee726bd5223688091",
+      "history_scope": "No known predictive tuning exposure in reconciled corpus; legacy coverage is partial. Not a global NEVER_USED assertion.",
+      "independent_recipe_confirmation": false,
+      "max_source_bytes": 134217728,
+      "sha256": "84e7e49a57bbd4cc46b2b9a5498a91ac8ea890e2adb988f3641e4a63ee079cb9"
+    },
+    {
+      "id": "gas_nox",
+      "source_identity": "UCI:551:2011-2015-NOX",
+      "task": "regression",
+      "format": "csv",
+      "url": "https://archive.ics.uci.edu/static/public/551/data.csv",
+      "expected_rows": 36733,
+      "expected_features": 9,
+      "expected_classes": 0,
+      "target": "NOX",
+      "exclude": [
+        "year",
+        "CO"
+      ],
+      "categorical": [],
+      "split_policy": "gas_years",
+      "statistical_unit": "chronological hourly aggregate from one plant",
+      "uncertainty_unit": "168 consecutive observed records within year; same-plant, not new-plant generalization",
+      "related_source": "UCI:294 same power plant; reviewed as a single lineage family, never another independent family",
+      "license": "CC-BY-4.0",
+      "citation_url": "https://doi.org/10.24432/C5WC95",
+      "source_version": "Fri Mar 29 2024",
+      "source_metadata_sha256": "55b057fa924c48ed3205ab74c43f94f6a4169a93b9a687d477d4af82baf11cdb",
+      "history_scope": "No known predictive tuning exposure in reconciled corpus; legacy coverage is partial. Not a global NEVER_USED assertion.",
+      "independent_recipe_confirmation": false,
+      "max_source_bytes": 134217728,
+      "sha256": "33cbb8c68e24e3782547ccf0ed60d9ec0cc10732c3f84b08ed08fea08bfdaa6a"
+    },
+    {
+      "id": "fiat500",
+      "source_identity": "Kaggle:paolocons:used-fiat500:OpenML46907v1",
+      "task": "regression",
+      "format": "arff",
+      "expected_rows": 1538,
+      "expected_features": 7,
+      "expected_classes": 0,
+      "target": "price",
+      "exclude": [],
+      "split_policy": "group_random",
+      "statistical_unit": "published vehicle listing; exact input signatures grouped",
+      "uncertainty_unit": "listing/signature; VIN/dealer/time lineage unavailable, no new-vehicle/dealer claim",
+      "url": "https://api.openml.org/data/v1/download/22125218/Another-Dataset-on-used-Fiat-500.arff",
+      "md5": "b183f5dc9f223aa90af338beed7d2e08",
+      "license": "CC0: Public Domain",
+      "citation_url": "https://www.kaggle.com/datasets/paolocons/another-fiat-500-dataset-1538-rows",
+      "source_version": "1",
+      "source_metadata_sha256": "79b880e49658adcac52debae13d5214fbeae37de1cab4e6cfe871b11daa9eb9f",
+      "official_splits_url": "https://www.openml.org//api_splits/get/363615/Task_363615_splits.arff",
+      "history_scope": "No known predictive tuning exposure in reconciled corpus; legacy coverage is partial. Not a global NEVER_USED assertion.",
+      "independent_recipe_confirmation": false,
+      "max_source_bytes": 134217728,
+      "sha256": "0302b2efcdb5cb359c2cdec34c4630264f26857599fbbe19082fe349b863783b",
+      "official_splits_sha256": "b32663476ec1c81af3acd74ca0a7da597d660ad28cbabb14a12dbaeeeed86539"
+    }
+  ],
+  "seeds": [
+    42,
+    2026,
+    1947
+  ],
+  "methods": [
+    "neurotabular200",
+    "neurotabular210",
+    "realmlp",
+    "xgboost",
+    "lightgbm",
+    "catboost",
+    "tabm",
+    "ft_transformer"
+  ],
+  "tracks": [
+    "default",
+    "hpo4"
+  ],
+  "hpo_candidates": {
+    "neurotabular200": [
+      {},
+      {
+        "batch_size": 256
+      },
+      {
+        "lr": 0.001
+      },
+      {
+        "hidden_dim": 128,
+        "n_blocks": 3
+      }
+    ],
+    "neurotabular210": [
+      {},
+      {
+        "batch_size": 256
+      },
+      {
+        "lr": 0.001
+      },
+      {
+        "hidden_dim": 128,
+        "n_blocks": 3
+      }
+    ],
+    "realmlp": [
+      {},
+      {
+        "hidden_sizes": [
+          128,
+          128,
+          128
+        ]
+      },
+      {
+        "lr": 0.01
+      },
+      {
+        "wd": 0.005
+      }
+    ],
+    "xgboost": [
+      {},
+      {
+        "max_depth": 3,
+        "n_estimators": 300
+      },
+      {
+        "max_depth": 6,
+        "learning_rate": 0.03,
+        "n_estimators": 500
+      },
+      {
+        "max_depth": 8,
+        "min_child_weight": 5,
+        "subsample": 0.8,
+        "n_estimators": 300
+      }
+    ],
+    "lightgbm": [
+      {},
+      {
+        "num_leaves": 15,
+        "n_estimators": 300
+      },
+      {
+        "num_leaves": 31,
+        "learning_rate": 0.03,
+        "n_estimators": 500
+      },
+      {
+        "num_leaves": 63,
+        "min_child_samples": 40,
+        "n_estimators": 300
+      }
+    ],
+    "catboost": [
+      {},
+      {
+        "depth": 4,
+        "iterations": 500
+      },
+      {
+        "depth": 6,
+        "learning_rate": 0.03,
+        "iterations": 1000
+      },
+      {
+        "depth": 8,
+        "l2_leaf_reg": 10,
+        "iterations": 500
+      }
+    ],
+    "tabm": [
+      {},
+      {
+        "d_block": 256
+      },
+      {
+        "lr": 0.001
+      },
+      {
+        "dropout": 0.2
+      }
+    ],
+    "ft_transformer": [
+      {},
+      {
+        "module_d_token": 128
+      },
+      {
+        "lr": 0.0003
+      },
+      {
+        "module_attention_dropout": 0.1,
+        "module_ffn_dropout": 0.2
+      }
+    ]
+  },
+  "hpo_selection_metric": {
+    "binary": "nll",
+    "multiclass": "nll",
+    "regression": "rmse"
+  },
+  "hpo_tie_break": "lowest candidate index",
+  "threshold_tuning": false,
+  "hidden_internal_refits": 0,
+  "runtime_profile": "Windows native CPython3.12 CPU single-thread; separate NT wheel import roots",
+  "logical_cpu": 2,
+  "monitor_logical_cpu": 4,
+  "rss_bytes": 4294967296,
+  "max_optimizer_steps_per_fit": 50000,
+  "fit_limits": {
+    "default_cpu_s": 300,
+    "trial_cpu_s": 225,
+    "hpo_final_cpu_s": 300,
+    "artificial_cpu_s": 60
+  },
+  "measurement_limits": {
+    "cpu_s": 60,
+    "wall_s": 240,
+    "rss_bytes": 4294967296,
+    "archive_bytes": 134217728
+  },
+  "replay_limits": {
+    "cpu_s": 20,
+    "wall_s": 40
+  },
+  "max_model_bytes": 67108864,
+  "bootstrap_replicates": 5000,
+  "bootstrap_seed": 417,
+  "AA_interval_band": [
+    0.9,
+    1.1
+  ],
+  "budget": {
+    "artificial_fits": 24,
+    "real_default_fits": 144,
+    "real_hpo_trials": 576,
+    "real_hpo_final_fits": 144,
+    "fit_attempts": 888,
+    "internal_refits": 0,
+    "measurement_workers": 576,
+    "cold_replays": 312,
+    "scoring_test": 288,
+    "scoring_validation": 576,
+    "scoring_artificial": 24,
+    "prediction_API_calls": 760752,
+    "optimizer_steps": 27750000,
+    "cpu_s": 273000,
+    "wall_s": 547000,
+    "archive_bytes": 34359738368,
+    "retries": 0,
+    "torch_root_forward_calls": 28295253596,
+    "model_load_operations": 888
+  },
+  "notes": [
+    "Six-family pilot replaces the unadmitted twelve-family proposal; selection is not based on release scores.",
+    "Glass is a declared small-data case below the older proposal minimum of500 rows.",
+    "Source/role checks and all model seals precede test scoring. Failures are retained; no redraw, replacement or retry."
+  ],
+  "package_versions": {
+    "aiohappyeyeballs": "2.7.1",
+    "aiohttp": "3.14.5",
+    "aiosignal": "1.4.0",
+    "attrs": "26.1.0",
+    "catboost": "1.2.10",
+    "colorama": "0.4.6",
+    "contourpy": "1.4.0",
+    "cycler": "0.12.1",
+    "dill": "0.4.1",
+    "filelock": "4.2.12",
+    "fonttools": "4.68.0",
+    "frozenlist": "1.8.0",
+    "fsspec": "2026.9.0",
+    "graphviz": "0.21",
+    "idna": "3.20",
+    "jinja2": "3.1.6",
+    "joblib": "1.5.2",
+    "kiwisolver": "1.5.1",
+    "lightgbm": "4.7.0",
+    "lightning-utilities": "0.15.3",
+    "markupsafe": "3.0.4",
+    "matplotlib": "3.11.2",
+    "mpmath": "1.3.0",
+    "msgpack": "1.2.4",
+    "multidict": "7.2.1",
+    "narwhals": "2.29.0",
+    "networkx": "3.7",
+    "numpy": "2.2.6",
+    "packaging": "26.3",
+    "pandas": "2.2.3",
+    "pillow": "13.0.0",
+    "plotly": "7.1.0",
+    "probmetrics": "1.3.0",
+    "propcache": "0.5.4",
+    "psutil": "7.2.2",
+    "pyparsing": "3.3.3",
+    "pytabkit": "1.8.0",
+    "python-dateutil": "4.0.0",
+    "pytorch-lightning": "2.6.6",
+    "pytorch-minimize": "0.1.0",
+    "pytz": "2026.6",
+    "pyyaml": "6.0.3",
+    "scikit-learn": "1.7.2",
+    "scipy": "1.15.3",
+    "setuptools": "84.2.1",
+    "six": "1.17.0",
+    "skorch": "1.4.0",
+    "sympy": "1.14.0",
+    "tabulate": "0.10.0",
+    "threadpoolctl": "3.8.0",
+    "torch": "2.7.1",
+    "torchmetrics": "1.9.0",
+    "tqdm": "4.70.1",
+    "typing-extensions": "4.16.0",
+    "tzdata": "2026.6",
+    "xgboost": "3.4.1",
+    "yarl": "1.25.1"
+  },
+  "study": "NT210-BENCHMARK0422-P6-D-H-START-M1",
+  "controller_cpu_s": 11200,
+  "controller_wall_s": 21590,
+  "controller_session_tail_reservation": {
+    "cpu_s": 2,
+    "wall_s": 6,
+    "inside_existing_controller_allowance": true
+  },
+  "process_ownership": {
+    "profile": "Windows10+ normal-token JobObject",
+    "creation": "SUSPENDED with creation-time JOB_LIST",
+    "resume": "after telemetry identity check",
+    "completion": "entire kernel-owned family ActiveProcesses0",
+    "security_configuration_change": false
+  },
+  "failed_exit_cpu_guard_s": 2,
+  "hard_exit_wall_guard_s": 6,
+  "forward_accounting": {
+    "scope": "per-method learned forward entry; nested selected roots counted once; trees NA",
+    "exact_compute_equivalence": false,
+    "all_functional_ops_or_FLOPs": false,
+    "prospective_guard_not_in_original0418": true,
+    "truncation_risk_declared": true,
+    "accounting_row_unit": 32,
+    "row_unit_basis": "already frozen middle inference workload32; not a theorem about training batch minima",
+    "phases_allowance": 4,
+    "phase_caps": {
+      "fit": 27981687160,
+      "replay": 127180,
+      "metrology": 313439256
+    },
+    "total_cap": 28295253596
+  },
+  "final_report_metric_delta": {
+    "binary_AP": "noninterpolated average precision; positive=max Unicode TRAIN class, explicitly logged",
+    "per_class": "native predict decisions, supports/precision/recall/confusion",
+    "changed_decisions": "against same sealed TEST NT210 native decisions",
+    "uncertainty": "AP/per-class/changed decisions point-only descriptive",
+    "HPO_metric_changed": false,
+    "trial_scoring_changed": false,
+    "bootstrap_changed": false,
+    "new_model_calls": 0,
+    "cost": "within existing19CPU per TEST endpoint and controller allowance",
+    "public_renderer": "NLL and balanced accuracy for classification; RMSE for regression; CPU, wall, fitRSS, inferenceRSS and valid warm latency",
+    "pareto": "local per-family/seed/track point frontier on NLL or RMSE versus each cost; never global rank",
+    "when_to_choose": "paired conditional primary intervals, explicit failures/inconclusive/incompleteHPO and point cost ratios",
+    "rendered_figure_maximum": 50,
+    "rendering_reserve_per_PNG_bytes": 8388608
+  },
+  "controller_bootstrap_metadata_reservation": {
+    "cpu_s": 80,
+    "wall_s": 30
+  }
+}

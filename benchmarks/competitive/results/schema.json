@@ -1,0 +1,83 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "NT_PUBLIC_RESULTS/1",
+  "type": "object",
+  "required": [
+    "schema",
+    "synthetic",
+    "protocol_sha256",
+    "records",
+    "metrology",
+    "all_failures_retained"
+  ],
+  "properties": {
+    "schema": {
+      "const": "NT_PUBLIC_RESULTS/1"
+    },
+    "synthetic": {
+      "type": "boolean"
+    },
+    "protocol_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "records": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "family",
+          "seed",
+          "task",
+          "track",
+          "method",
+          "status"
+        ],
+        "properties": {
+          "task": {
+            "enum": [
+              "binary",
+              "multiclass",
+              "regression"
+            ]
+          },
+          "track": {
+            "enum": [
+              "default",
+              "hpo4"
+            ]
+          },
+          "status": {
+            "enum": [
+              "MEASURED",
+              "FAILED",
+              "FAILED_COLD_REPLAY",
+              "FAILED_MEASUREMENT"
+            ]
+          },
+          "metrics": {
+            "type": "object"
+          },
+          "quality_uncertainty": {
+            "type": "object"
+          },
+          "fit_cpu_s": {
+            "type": "number",
+            "minimum": 0
+          },
+          "fit_peak_rss_bytes": {
+            "type": "integer",
+            "minimum": 0
+          }
+        }
+      }
+    },
+    "metrology": {
+      "type": "object"
+    },
+    "all_failures_retained": {
+      "const": true
+    }
+  },
+  "additionalProperties": true
+}

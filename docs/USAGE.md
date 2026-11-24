@@ -1,12 +1,11 @@
-# NeuroTabular 1.0.0 usage guide
+# NeuroTabular 2.1.0 usage guide
 
 ## Minimal binary classification
 
 ```python
 from neurotabular import NeuroTabularClassifier
 
-model = NeuroTabularClassifier(random_state=42)
-model.fit(X_train, y_train)
+model = NeuroTabularClassifier().fit(X_train, y_train)
 probability = model.predict_proba(X_test)[:, 1]
 prediction = model.predict(X_test)
 ```
@@ -57,7 +56,7 @@ from neurotabular import NeuroTabularRegressor
 
 X, y = load_diabetes(return_X_y=True, as_frame=True)
 X_train, X_test, y_train, y_test = train_test_split(X, y, random_state=42)
-reg = NeuroTabularRegressor(eval_metric="loss").fit(X_train, y_train)
+reg = NeuroTabularRegressor().fit(X_train, y_train)
 prediction = reg.predict(X_test)
 print(np.sqrt(mean_squared_error(y_test, prediction)))  # RMSE, original units
 print(mean_absolute_error(y_test, prediction))
@@ -73,6 +72,24 @@ are supported. Constant training targets return the exact constant. Regression
 validation is a random split without stratification; loss/RMSE/MAE are minimized,
 R² is maximized. Validation history uses standardized units, while predictions
 and the metrics above use original units.
+
+By default, regression uses `patience=8` with at most 30 epochs. Use
+`NeuroTabularRegressor(patience=4)` to apply the 2.0.0 stopping rule on new fits
+or refits.
+
+## Offline installation
+
+Place the NeuroTabular wheel and compatible wheels for its dependencies in a
+local wheelhouse. Install from that directory with the Python environment you
+intend to use.
+
+```bash
+python -m pip install --no-index --find-links ./wheelhouse neurotabular==2.1.0
+```
+
+Training and prediction can then run locally, without mandatory pretrained
+weights or remote inference services. Formal end-to-end no-network
+certification remains incomplete; see the [support scope](policies/SUPPORT_SCOPE.md).
 
 ## Persistence
 
@@ -131,7 +148,21 @@ model.fit(X_train, y_train, eval_set=(X_valid, y_valid))
 
 With external validation, preprocessing is fitted on positive-weight `X_train` rows and
 never on `X_valid`. Both target classes must be present in validation when
-`eval_metric="roc_auc"`.
+`eval_metric="roc_auc"`. To weight the external validation objective and checkpoint
+selection, supply `eval_sample_weight=valid_weights` with the explicit
+`eval_set` and `cv=None`.
+
+For optional internal K-fold diagnostics, instead use:
+
+```python
+model = NeuroTabularClassifier(cv=3).fit(X_train, y_train)
+print(model.cv_results_)
+```
+
+This runs four training passes (eight with `full_data_refit=True`) and retains
+one final network. It does not tune the recipe or guarantee better accuracy.
+Use `groups=...` for declared grouped internal CV; see the
+[internal CV guide](INTERNAL_CV.md).
 
 ## Missing numerical values
 
@@ -375,8 +406,9 @@ use the existing numeric-string conversion, but a non-numeric value fails with
 the offending column name. Clean the values; if the feature really represents
 categories, declare it in `categorical_features` and refit. Changing a prediction
 dtype does not train a new vocabulary. New categorical levels remain unknown.
-For unsafe numeric magnitudes, rescale input consistently and refit instead of
-discarding imaginary components, clipping overflow, or suppressing errors.
+Default standardization can recover from overflowing statistics on extreme
+finite feature columns. If a transformed value still exceeds the network's
+numeric range, rescale the input consistently and refit.
 
 For an upstream `ColumnTransformer`, use `.set_output(transform="pandas")`
 and ensure the transformed frame has stable unique column names. Default NumPy

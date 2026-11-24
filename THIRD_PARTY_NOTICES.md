@@ -10,6 +10,7 @@ the NeuroTabular wheel.
 | [pandas](https://github.com/pandas-dev/pandas/blob/main/LICENSE) | BSD-3-Clause, with distribution-specific bundled notices | DataFrame input and dtype handling |
 | [PyTorch](https://github.com/pytorch/pytorch/blob/main/LICENSE) | BSD-style primary license plus notices for bundled components | Neural network and optimization engine |
 | [scikit-learn](https://github.com/scikit-learn/scikit-learn/blob/main/COPYING) | BSD-3-Clause | Estimator conventions, splitting, and metrics |
+| [joblib](https://github.com/joblib/joblib/blob/main/LICENSE.txt) | BSD-3-Clause | Python-version-specific bounds for scikit-learn's persistence and parallel execution dependency |
 
 Development tools such as pytest, Ruff, build, Twine, and psutil are not runtime
 dependencies. Benchmark-only comparisons may use separately installed external

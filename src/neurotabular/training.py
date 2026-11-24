@@ -60,6 +60,34 @@ class _TensorTable:
         return self.numerical, self.categorical, self.target, self.weight
 
 
+def _loss_totals(
+    elementwise_loss: torch.Tensor, weight: torch.Tensor
+) -> tuple[torch.Tensor, torch.Tensor]:
+    return (elementwise_loss * weight).sum(), weight.sum()
+
+
+def _minibatch_loss(
+    elementwise_loss: torch.Tensor, weight: torch.Tensor
+) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+    numerator, mass = _loss_totals(elementwise_loss, weight)
+    # Return the usual loss dtype to the scaler after any wide reduction.
+    dtype = torch.promote_types(elementwise_loss.dtype, torch.float32)
+    return (numerator / mass).to(dtype), numerator.detach(), mass
+
+
+def _epoch_totals(
+    table: _TensorTable, device: torch.device
+) -> tuple[torch.Tensor, torch.Tensor]:
+    dtype = (
+        torch.float64
+        if table.weight.dtype == torch.float64
+        else torch.get_default_dtype()
+    )
+    return torch.zeros((), dtype=dtype, device=device), torch.zeros(
+        (), dtype=dtype, device=device
+    )
+
+
 def resolve_batch_size(
     requested: int | str,
     *,
@@ -192,8 +220,7 @@ def train_model(
     for epoch in range(1, max_epochs + 1):
         epoch_started = perf_counter()
         model.train()
-        loss_numerator = torch.zeros((), device=device)
-        weight_denominator = torch.zeros((), device=device)
+        loss_numerator, weight_denominator = _epoch_totals(train_tensors, device)
         for numerical, categorical, target, weight in _training_batches(
             train_tensors,
             batch_size,
@@ -211,8 +238,9 @@ def train_model(
                 target = target.to(device, non_blocking=True)
                 weight = weight.to(device, non_blocking=True)
                 elementwise_loss = criterion(logits, target)
-                batch_weight = weight.sum()
-                loss = (elementwise_loss * weight).sum() / batch_weight.clamp_min(1e-12)
+                loss, batch_numerator, batch_weight = _minibatch_loss(
+                    elementwise_loss, weight
+                )
             profile["forward_seconds"] = float(profile["forward_seconds"]) + (
                 perf_counter() - forward_started
             )
@@ -227,14 +255,14 @@ def train_model(
             profile["optimizer_step_seconds"] = float(
                 profile["optimizer_step_seconds"]
             ) + (perf_counter() - step_started)
-            loss_numerator += (elementwise_loss.detach() * weight).sum()
-            weight_denominator += batch_weight.detach()
+            loss_numerator += batch_numerator
+            weight_denominator += batch_weight
         scheduler_started = perf_counter()
         scheduler.step()
         profile["scheduler_seconds"] = float(profile["scheduler_seconds"]) + (
             perf_counter() - scheduler_started
         )
-        epoch_loss = loss_numerator / weight_denominator.clamp_min(1e-12)
+        epoch_loss = loss_numerator / weight_denominator
         train_loss = float(epoch_loss.detach().cpu())
         if not math.isfinite(train_loss):
             raise RuntimeError("Training produced a non-finite loss.")
@@ -391,8 +419,7 @@ def train_fixed_epochs(
     generator = torch.Generator(device="cpu").manual_seed(random_state)
     final_loss = math.inf
     for _ in range(epochs):
-        loss_numerator = torch.zeros((), device=device)
-        weight_denominator = torch.zeros((), device=device)
+        loss_numerator, weight_denominator = _epoch_totals(tensors, device)
         for numerical, categorical, batch_target, batch_weight in _training_batches(
             tensors,
             batch_size,
@@ -410,10 +437,9 @@ def train_fixed_epochs(
                 batch_target = batch_target.to(device, non_blocking=True)
                 batch_weight = batch_weight.to(device, non_blocking=True)
                 elementwise_loss = criterion(logits, batch_target)
-                batch_weight_sum = batch_weight.sum()
-                loss = (
-                    elementwise_loss * batch_weight
-                ).sum() / batch_weight_sum.clamp_min(1e-12)
+                loss, batch_numerator, batch_weight_sum = _minibatch_loss(
+                    elementwise_loss, batch_weight
+                )
             profile["forward_seconds"] = float(profile["forward_seconds"]) + (
                 perf_counter() - forward_started
             )
@@ -428,16 +454,14 @@ def train_fixed_epochs(
             profile["optimizer_step_seconds"] = float(
                 profile["optimizer_step_seconds"]
             ) + (perf_counter() - step_started)
-            loss_numerator += (elementwise_loss.detach() * batch_weight).sum()
-            weight_denominator += batch_weight_sum.detach()
+            loss_numerator += batch_numerator
+            weight_denominator += batch_weight_sum
         scheduler_started = perf_counter()
         scheduler.step()
         profile["scheduler_seconds"] = float(profile["scheduler_seconds"]) + (
             perf_counter() - scheduler_started
         )
-        final_loss = float(
-            (loss_numerator / weight_denominator.clamp_min(1e-12)).detach().cpu()
-        )
+        final_loss = float((loss_numerator / weight_denominator).detach().cpu())
         if not math.isfinite(final_loss):
             raise RuntimeError("Full-data refit produced a non-finite loss.")
     model.eval()
@@ -453,6 +477,21 @@ def _to_tensors(
     *,
     task: TaskSpec = BINARY_TASK,
 ) -> _TensorTable:
+    # The public estimator has removed zero-weight rows before splitting.
+    # Select arithmetic before transfer, with no device synchronization per batch.
+    with np.errstate(over="ignore", invalid="ignore"):
+        weight_array = np.array(weight, dtype=np.float32, copy=True)
+    if weight_array.shape != (target.shape[0],) or not weight_array.size:
+        raise ValueError("A row-aligned training weight array is required.")
+    smallest, largest = weight_array.min(), weight_array.max()
+    if not smallest > 0 or not np.isfinite(largest):
+        raise ValueError(
+            "Prepared sample weights must be finite and strictly positive."
+        )
+    if smallest < np.float32(1e-12) or float(largest) * weight_array.size > float(
+        np.finfo(np.float32).max
+    ):
+        weight_array = weight_array.astype(np.float64)
     return _TensorTable(
         numerical=torch.from_numpy(data.numerical),
         categorical=torch.from_numpy(data.categorical),
@@ -463,7 +502,7 @@ def _to_tensors(
                 copy=True,
             )
         ),
-        weight=torch.from_numpy(np.array(weight, dtype=np.float32, copy=True)),
+        weight=torch.from_numpy(weight_array),
     )
 
 
@@ -522,8 +561,7 @@ def _validate(
     task: TaskSpec = BINARY_TASK,
 ) -> tuple[float, float]:
     model.eval()
-    loss_numerator = torch.zeros((), device=device)
-    weight_denominator = torch.zeros((), device=device)
+    loss_numerator, weight_denominator = _epoch_totals(table, device)
     collect_metric_arrays = metric != "loss"
     probabilities: list[torch.Tensor] = []
     targets: list[torch.Tensor] = []
@@ -541,15 +579,14 @@ def _validate(
                 categorical.to(device, non_blocking=True),
             )
             losses = criterion(logits, target)
-            loss_numerator += (losses * weight).sum()
-            weight_denominator += weight.sum()
+            numerator, mass = _loss_totals(losses, weight)
+            loss_numerator += numerator
+            weight_denominator += mass
             if collect_metric_arrays:
                 probabilities.append(task.transform(logits))
                 targets.append(target)
-                weights.append(weight)
-    validation_loss = float(
-        (loss_numerator / weight_denominator.clamp_min(1e-12)).cpu()
-    )
+                weights.append(weight.float())
+    validation_loss = float((loss_numerator / weight_denominator).cpu())
     profile["validation_inference_seconds"] = float(
         profile["validation_inference_seconds"]
     ) + (perf_counter() - inference_started)

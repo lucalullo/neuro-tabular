@@ -46,7 +46,7 @@ class NeuroTabularRegressor(RegressorMixin, _BaseNeuroTabularEstimator):
         batch_size: int | str = "auto",
         max_epochs: int = 30,
         validation_fraction: float = 0.2,
-        patience: int = 4,
+        patience: int = 8,
         min_delta: float = 1e-4,
         eval_frequency: int = 1,
         eval_metric: str = "loss",
@@ -59,6 +59,8 @@ class NeuroTabularRegressor(RegressorMixin, _BaseNeuroTabularEstimator):
         device: str = "auto",
         random_state: int = 42,
         verbose: int = 0,
+        *,
+        cv: int | None = None,
     ) -> None:
         super().__init__(
             hidden_dim=hidden_dim,
@@ -82,6 +84,7 @@ class NeuroTabularRegressor(RegressorMixin, _BaseNeuroTabularEstimator):
             device=device,
             random_state=random_state,
             verbose=verbose,
+            cv=cv,
         )
 
     @staticmethod

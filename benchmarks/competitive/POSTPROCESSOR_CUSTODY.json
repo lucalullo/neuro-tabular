@@ -1,0 +1,142 @@
+{
+  "recorded_implementation": {
+    "adapters.py": "cd19cfde9823c66d4a0d3547bca5c6ca722f33c5264910e76f58dbf3388d295d",
+    "budget_contract.py": "6dfcb408ef91757171e013a382701d4c44713e958eb55a25e5351a41af98e56f",
+    "control.py": "802f1d16b7177b8ca30a1ef1556b46ff7e329d68c23aa352ad1e9e33fef5e6e1",
+    "data.py": "6123a77fd18fab18918acd0615ca35e1dc6b79a2723c6669e8aa8fc5f1cddd7f",
+    "environment.py": "e13fa38aca231837eb4d58024fb6a8710452c54d968d2937e1133c630081e8ba",
+    "metrics.py": "b99ca941b771f9a2b3f4759a86736a417639c4bc1b2133a5369290b718afb993",
+    "metrology.py": "e0c2a779aa2b14c53385e316e9e4c185429efddd64fa4434757019edc81c5d30",
+    "report.py": "0d61e260388345e6281644dee30d368bc36ab76a6b665d6bae04396126c0ee33",
+    "run.py": "9c39086d264c86ead4ff79fd1a68a7fd2913612a2f1651d78c49b37c82c18b86",
+    "supplementary_metrics.py": "afbdabe8f1d2382ef311d347414d30088ebefcc04915a909cf581ed913fe7d58",
+    "windows_job.py": "c3643a073302f403418acb5f19d21b84e8fa2b520aabe8c4fe3ffe1786bb929c",
+    "worker.py": "71b0d29b0fd6db2c73125f6a5d08511dcedff7bdd719db718ef0d09818b04247",
+    "work_counters.py": "fdcc7ebcb7fc358aa4ba2b7b96f93a00f721f1a57abd400dd9c451698197f97d",
+    "__init__.py": "99ca6939078c2b53a13647b932857d38e34727bf2fef10d84263bbd902f99f80"
+  },
+  "postprocessors": {
+    "evidence_tables.py": {
+      "prepared_sha256": "51b14c59ea174032b50133e989b1718f2255a7c1aa21f2c78f90f5064c30a5fc",
+      "delivered_sha256": "f70bfe1b8517ab03e22ff996e0e72cbb520e8ec57f1503067ec39af144a5f6bb",
+      "function_AST_unchanged": true
+    },
+    "claim_interpretation.py": {
+      "prepared_sha256": "615608a811d44d2cc85add0cc484bb39f3808ba768b0a06c8d1762d0e6e01ef1",
+      "delivered_sha256": "c8531919892370ca70c62d5bcfe4395680d01b17963a7edf3a6ffe28634d7a5b",
+      "function_AST_unchanged": true
+    },
+    "paired_figures.py": {
+      "prepared_sha256": "d7aa8001885f2fa0022f241157e623599afc2bcd632bdecc6413d12961352239",
+      "delivered_sha256": "d7aa8001885f2fa0022f241157e623599afc2bcd632bdecc6413d12961352239",
+      "function_AST_unchanged": true
+    },
+    "reproduce.py": {
+      "prepared_sha256": "b82081be67d2999223fa32dcf5f441faefae28960372e77c5ca4ae51defacf2f",
+      "delivered_sha256": "b82081be67d2999223fa32dcf5f441faefae28960372e77c5ca4ae51defacf2f",
+      "function_AST_unchanged": true
+    }
+  },
+  "CSV_and_PNG_reproduction_checks": [
+    {
+      "file": "tables/FAMILY_SUMMARY.csv",
+      "sha256": "40a0d53ae5e6620660299c323a66d900659069b7df7f82847c2b1333672d1e73"
+    },
+    {
+      "file": "tables/PAIRED_COMPARISONS.csv",
+      "sha256": "e7cb3e7927a35cfc64da459333106f8c56e24928bd6781610fbd4d00563e92de"
+    },
+    {
+      "file": "tables/PER_SEED.csv",
+      "sha256": "d24c516d8034cd4247b3f88dbccc339b1ad3cf82d522a8690281c424dc9e33f1"
+    },
+    {
+      "file": "tables/TIMING_CONTROLS.csv",
+      "sha256": "b8723425c384dd72c214bdf58dc79617806b06ed91bb9d31efc4c27f80662693"
+    },
+    {
+      "file": "intervals/default-binary-balanced_accuracy-paired-intervals.png",
+      "sha256": "97352b7fe213de072bf29fbd7f6469dffeb8fa5abe2f0835c962222201c64aa1"
+    },
+    {
+      "file": "intervals/default-binary-primary-paired-intervals.png",
+      "sha256": "9489a7a8a72803a32475b0ed7bdbeeabbd2a2cf478a04cb670d50ae441d3c2bc"
+    },
+    {
+      "file": "intervals/default-multiclass-balanced_accuracy-paired-intervals.png",
+      "sha256": "cb4ea4a7142dddbd4d74598eec50332ad36199ec066c49c3059ae040adbe1f65"
+    },
+    {
+      "file": "intervals/default-multiclass-primary-paired-intervals.png",
+      "sha256": "d04fc1a22e606ae2493657880cd3a3a94cc01d23d6a3f9a2bbe5245d9b6802eb"
+    },
+    {
+      "file": "intervals/default-regression-primary-paired-intervals.png",
+      "sha256": "767c6a2160b44fbb4cd5eb42d9d82e86cf40d62954030431f18ac492db85ddbb"
+    },
+    {
+      "file": "intervals/hpo4-binary-balanced_accuracy-paired-intervals.png",
+      "sha256": "b6e7d9c126bbe6f0bd34cb1d4c6d5c3fa719bcec0faa6a99f135cd80fbe0304f"
+    },
+    {
+      "file": "intervals/hpo4-binary-primary-paired-intervals.png",
+      "sha256": "f8f8123671f55f7a7021991319ae2ebda2b875e929b57a206f007d0bb9fc0c0c"
+    },
+    {
+      "file": "intervals/hpo4-multiclass-balanced_accuracy-paired-intervals.png",
+      "sha256": "e88406a9cdb4f50e985dd83b42595b6d6f4a8048384224bbd39261f12f5ea194"
+    },
+    {
+      "file": "intervals/hpo4-multiclass-primary-paired-intervals.png",
+      "sha256": "8298304fdaac3bf9f8817792a953143a6d33579229ffee3d7b4e4a558a3cb35c"
+    },
+    {
+      "file": "intervals/hpo4-regression-primary-paired-intervals.png",
+      "sha256": "4283a0796b4fda08a39b5aead20eb7756a20e1c35eb01a847e08a2f53a564dde"
+    }
+  ],
+  "exact_derived_outputs": true,
+  "model_or_scoring_calls_added": 0,
+  "archive_review": {
+    "scope": "Editorial cleanup of the supplied 2.1.0 repository; historical fields above remain unchanged. No model fits or rescoring.",
+    "postprocessors_as_supplied": {
+      "evidence_tables.py": {
+        "observed_sha256": "2f05fdd3452699aa9502d45d96d32740a5a7ec28f73d6873a3641b31c15594e3",
+        "matches_recorded_delivered_sha256": false
+      },
+      "claim_interpretation.py": {
+        "observed_sha256": "c8531919892370ca70c62d5bcfe4395680d01b17963a7edf3a6ffe28634d7a5b",
+        "matches_recorded_delivered_sha256": true
+      },
+      "paired_figures.py": {
+        "observed_sha256": "4eb7884e4d980f454ddd860ddc58060e0989b89f4675d27df224198ce4b9e144",
+        "matches_recorded_delivered_sha256": false
+      },
+      "reproduce.py": {
+        "observed_sha256": "b82081be67d2999223fa32dcf5f441faefae28960372e77c5ca4ae51defacf2f",
+        "matches_recorded_delivered_sha256": true
+      }
+    },
+    "historical_hash_discrepancy": "Two postprocessor source files differ from their recorded delivered hashes. Both were retained verbatim from the supplied ZIP; the historical AST comparison was not independently reconstructed.",
+    "csv_regeneration": {
+      "FAMILY_SUMMARY.csv": {
+        "byte_identical": true,
+        "sha256": "40a0d53ae5e6620660299c323a66d900659069b7df7f82847c2b1333672d1e73"
+      },
+      "PAIRED_COMPARISONS.csv": {
+        "byte_identical": true,
+        "sha256": "e7cb3e7927a35cfc64da459333106f8c56e24928bd6781610fbd4d00563e92de"
+      },
+      "PER_SEED.csv": {
+        "byte_identical": true,
+        "sha256": "d24c516d8034cd4247b3f88dbccc339b1ad3cf82d522a8690281c424dc9e33f1"
+      },
+      "TIMING_CONTROLS.csv": {
+        "byte_identical": true,
+        "sha256": "b8723425c384dd72c214bdf58dc79617806b06ed91bb9d31efc4c27f80662693"
+      }
+    },
+    "paired_figures_selftest": "PASS (4 pure controls); published PNG hashes match historical receipts; exact graphical regeneration was not asserted.",
+    "runtime_module_hashes": "All 12 match the frozen 2.1.0 pins."
+  }
+}

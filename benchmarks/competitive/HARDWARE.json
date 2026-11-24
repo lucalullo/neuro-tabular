@@ -1,0 +1,17 @@
+{
+  "system": "Windows x86-64",
+  "python": "CPython 3.12.10",
+  "processor": "AMD Ryzen 7 255 w/ Radeon 780M Graphics",
+  "physical_cores": 8,
+  "logical_processors": 16,
+  "installed_RAM_GiB": 32,
+  "OS_usable_RAM_GiB": 29.79788589477539,
+  "model_device": "CPU",
+  "threads_per_model": 1,
+  "worker_logical_CPU": 2,
+  "monitor_logical_CPU": 4,
+  "NVIDIA_CUDA_qualification": false,
+  "paired_measurements_date": "2026-11-24",
+  "training_resource_epochs": "327 fits before maintainer reboot, 273 after; no repeats",
+  "scope": "Observed single-host CPU benchmark; not peak multi-core or GPU performance"
+}

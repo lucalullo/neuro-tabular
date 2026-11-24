@@ -1,0 +1,9 @@
+{
+  "status": "MEASURED_WITH_AVAILABILITY_AND_TIMING_LIMITS",
+  "synthetic": false,
+  "planned_endpoints": 288,
+  "measured_endpoints": 181,
+  "raw_results": "results.json",
+  "default_and_tuning_separate": true,
+  "publication_performed": false
+}

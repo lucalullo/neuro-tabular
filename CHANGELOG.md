@@ -1,5 +1,34 @@
 # Changelog
 
+## [2.1.0]
+
+### Regression
+
+- Increase the default early stopping patience from 4 to 8 validation checks,
+  with the default limit of 30 epochs. New fits can run longer and select a
+  different checkpoint. Set `NeuroTabularRegressor(patience=4)` to use the 2.0.0
+  stopping rule.
+
+### Numerical reliability
+
+- Preserve the weighted mean for valid positive sample-weight sums below
+  the old denominator floor. Ordinary loss values and gradients are preserved.
+- Apply an overflow-safe calculation in the default numerical standardization
+  when extreme finite features overflow ordinary training statistics. This
+  covers very large offsets with small differences and preserves the existing
+  calculation for ordinary inputs.
+
+### Optional validation features
+
+- Add opt-in internal K-fold diagnostics through `cv=K`, with fold-local
+  preprocessing, optional groups and sample weights, and one final neural
+  network. `cv=None` preserves the default. K+1 training passes are required,
+  doubled with `full_data_refit=True`; scores do not automatically tune recipes
+  or demonstrate improved accuracy.
+- Accept `eval_sample_weight` for an explicit external validation set, with
+  zero-weight exclusion and safe weighted metric reduction. The option does
+  not add fits and is mutually exclusive with internal CV.
+
 ## [2.0.0] — release sources, publication controlled separately
 
 - Consolidate the stable neural library under the maintainer-designated 2.0

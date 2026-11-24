@@ -100,3 +100,34 @@ def test_weight_dynamic_range_must_be_float32_safe(fast_model_kwargs):
     weights[1] = np.finfo(np.float64).max
     with pytest.raises(ValueError, match="dynamic range|float32"):
         NeuroTabularClassifier(**fast_model_kwargs).fit(X, y, sample_weight=weights)
+
+
+def test_weighted_reduction_preserves_ordinary_loss_and_gradient():
+    import torch
+
+    from neurotabular.training import _minibatch_loss
+
+    left = torch.tensor([0.25, 2.0, 3.0], requires_grad=True)
+    right = left.detach().clone().requires_grad_()
+    weights = torch.tensor([1.0, 2.0, 1.0])
+    actual = _minibatch_loss(left, weights)[0]
+    expected = (right * weights).sum() / weights.sum().clamp_min(1e-12)
+    assert torch.equal(actual, expected)
+    actual.backward()
+    expected.backward()
+    assert torch.equal(left.grad, right.grad)
+
+
+@pytest.mark.parametrize("scale", [1e-20, 1e-30])
+def test_weighted_reduction_preserves_small_positive_mass(scale):
+    import torch
+
+    from neurotabular.training import _minibatch_loss
+
+    losses = torch.tensor([1.0, 2.0], requires_grad=True)
+    weights = torch.tensor([scale, 3 * scale], dtype=torch.float64)
+    actual, _, mass = _minibatch_loss(losses, weights)
+    assert mass > 0
+    assert actual.item() == pytest.approx(1.75)
+    actual.backward()
+    torch.testing.assert_close(losses.grad, torch.tensor([0.25, 0.75]))

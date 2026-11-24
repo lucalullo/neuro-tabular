@@ -1,4 +1,63 @@
-# NeuroTabular 2.0.0
+# NeuroTabular 2.1.0
+
+## Regression
+
+The default regressor waits for eight validation checks without sufficient
+improvement before stopping, up to 30 epochs. This can change training duration
+and the selected checkpoint on a new fit or refit. Use
+`NeuroTabularRegressor(patience=4)` to use the previous stopping rule.
+
+## Numerical reliability
+
+The default standardization now rescales extreme finite numerical values before
+computing statistics if the ordinary calculation overflows. An anchored
+calculation preserves small representable differences around a very large
+offset. Tests cover ordinary values, missing values, and values near the limits
+of float64. Invalid inputs and outputs that cannot safely reach the network are
+still rejected.
+
+Weighted loss reduction preserves the weighted mean when the total sample
+weight is very small and positive. Ordinary loss values and gradients retain
+their established calculation. This is a numerical correctness fix, not a
+claim of higher classification accuracy or general training speed.
+
+Classification uses its existing training defaults. The numerical reliability
+fix applies to both estimators. The supported usage and hardware scope are
+described in the [API reference](docs/API.md) and
+[support scope](docs/policies/SUPPORT_SCOPE.md). Physical NVIDIA CUDA validation
+for 2.1.0 remains open.
+
+## Optional validation features
+
+Use `cv=K` on either estimator for internal K-fold diagnostics. Each fold fits
+its own preprocessing and FIT/STOP procedure inside TRAIN, then a new final
+model is trained. The default is `cv=None`. K+1 training passes are required,
+or 2(K+1) with `full_data_refit=True`; inference retains one network. Groups
+and sample weights are supported. CV scores are diagnostic and are not a new
+classifier recipe, tuning procedure or claim of higher accuracy.
+
+An explicitly supplied `eval_set` can use `eval_sample_weight` for its metric
+and checkpoint selection. This introduces no extra training and cannot be
+combined with internal CV. See [the CV guide](docs/INTERNAL_CV.md) and
+[API reference](docs/API.md). Functional qualification is on CPU artificial
+fixtures in the tested environment, not independent predictive confirmation.
+
+## Competitive evidence and limits
+
+The [competitive benchmark](benchmarks/competitive/README.md) reports 181 valid
+TEST results across 288 planned endpoints in a six-family CPU pilot. Default
+and four-candidate tuning comparisons are separate. The
+[decision guide](benchmarks/competitive/WHEN_TO_CHOOSE.md) documents measured
+advantages, defeats and unavailable comparisons. Only two of 36 dedicated
+inference timing controls are valid, so no general acceleration is claimed.
+The supported categorical width remains 128; extended categorical support,
+formal offline certification and physical NVIDIA CUDA qualification are not
+part of the qualified scope.
+
+## Historical release notes for NeuroTabular 2.0.0
+
+The following sections preserve the previous release's historical scope and
+decisions. They are not current instructions or new qualification claims.
 
 ## Scope
 
@@ -67,7 +126,7 @@ commit CI, required release review/decision and the maintainer's separate
 publication actions remain mandatory. No preliminary public releases are planned.
 The published 1.0.3 artifacts and all earlier history remain immutable.
 
-After publication, 2.0 is the recommended current line. Ordinary later releases
+At the time of that release, 2.0 was the recommended current line. Ordinary later releases
 must bring concrete validated benefits; critical fixes are not delayed merely
 to reduce release frequency. Historical releases are preserved by default;
 deletion/yanking requires a separate justified maintainer decision.

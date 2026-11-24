@@ -8,20 +8,49 @@ from neurotabular._base import _BaseNeuroTabularEstimator
 from neurotabular.preprocessing import TabularPreprocessor
 
 
-@pytest.mark.parametrize("strategy", ["standard", "robust"])
 @pytest.mark.parametrize("policy", ["warn", "raise"])
 @pytest.mark.parametrize(
     "values", [[1e308, 1e308], [np.finfo(float).max, -np.finfo(float).max]]
 )
-def test_training_statistics_overflow_is_controlled(strategy, policy, values):
+def test_robust_training_statistics_overflow_is_controlled(policy, values):
     before = np.geterr().copy()
     with np.errstate(over=policy, invalid=policy):
         expected = np.geterr().copy()
         with pytest.raises(ValueError, match="safe range for training statistics"):
-            TabularPreprocessor(numeric_strategy=strategy).fit(
+            TabularPreprocessor(numeric_strategy="robust").fit(
                 pd.DataFrame({"x": values})
             )
         assert np.geterr() == expected
+    assert np.geterr() == before
+
+
+@pytest.mark.parametrize("policy", ["warn", "raise"])
+@pytest.mark.parametrize(
+    ("values", "expected"),
+    [
+        ([1e308, 1e308, np.nan], [0.0, 0.0, 0.0]),
+        (
+            [np.finfo(float).max, -np.finfo(float).max, np.nan],
+            [np.sqrt(1.5), -np.sqrt(1.5), 0.0],
+        ),
+        (
+            [1e308, np.nextafter(1e308, np.inf), np.nan],
+            [-np.sqrt(1.5), np.sqrt(1.5), 0.0],
+        ),
+    ],
+)
+def test_standard_training_statistics_handle_finite_extremes(policy, values, expected):
+    frame = pd.DataFrame({"x": values})
+    before = np.geterr().copy()
+    with np.errstate(over=policy, invalid=policy):
+        inside = np.geterr().copy()
+        prep = TabularPreprocessor().fit(frame)
+        transformed = prep.transform(frame).numerical
+        np.testing.assert_array_equal(
+            transformed[:, 0], np.asarray(expected, np.float32)
+        )
+        np.testing.assert_array_equal(transformed[:, 1], [0.0, 0.0, 1.0])
+        assert np.geterr() == inside
     assert np.geterr() == before
 
 

@@ -1,0 +1,29 @@
+{
+  "2.0.0": {
+    "neurotabular/__init__.py": "527e680ad989497b8c43a337418c69c348358b6f3f382bec06be22e36930fa73",
+    "neurotabular/_base.py": "6310ed41ac7e6838972270c25efcad3ed4a7058c9ca07743d3bedbd5682db186",
+    "neurotabular/_version.py": "1bff07c8247fef02ad775be11103e7792e683d99a34d23ad55510db07b5d6235",
+    "neurotabular/_warnings.py": "e4abcf80753f362a0336ecd97752c24d06c2c69375c2eb9cc4186beefe8a420e",
+    "neurotabular/classifier.py": "8b36cf9a6b17cc90fc8fe8f288df9f52d9084c06de256e6b7059610ff601dc5d",
+    "neurotabular/device.py": "9475137c79844aee0c3180eb3a39ed6e0ddaf1b71c62297ca33ba0acefb969a3",
+    "neurotabular/network.py": "3846d5595ad1f92657b76135c0a79a283355c8596130811173c052d1dddc0c75",
+    "neurotabular/preprocessing.py": "0447c7a175b6ff8ce588746ca31869652f6698c59beaf5fe84ac46c53d84492a",
+    "neurotabular/regressor.py": "555d56abeed66d679bf42fb4cfdb6e2ced04d7703ecdc07930265b5b51cb7833",
+    "neurotabular/tasks.py": "47f3d25440625453ad04f616e6235dde4aa2e65930095735ebbf39e36290a8dd",
+    "neurotabular/training.py": "b2ec59f741a5ad75c3e1c0c4ebb860065ce42a027ba8396695d94e8eb3b68470"
+  },
+  "2.1.0": {
+    "neurotabular/__init__.py": "527e680ad989497b8c43a337418c69c348358b6f3f382bec06be22e36930fa73",
+    "neurotabular/_base.py": "6f5472f437456b03b35df05bb551c457774b18194264616dc19a713e8e9a1b84",
+    "neurotabular/_cross_validation.py": "c53ef41ee59d4485e12698d90dfe77caf22231f595c0323f72de01212fbdf8da",
+    "neurotabular/_version.py": "8f87be7ec0330cc8b943f977ff49ca3189016e1a16431d7a41cb35a61fe57563",
+    "neurotabular/_warnings.py": "e4abcf80753f362a0336ecd97752c24d06c2c69375c2eb9cc4186beefe8a420e",
+    "neurotabular/classifier.py": "8b36cf9a6b17cc90fc8fe8f288df9f52d9084c06de256e6b7059610ff601dc5d",
+    "neurotabular/device.py": "9475137c79844aee0c3180eb3a39ed6e0ddaf1b71c62297ca33ba0acefb969a3",
+    "neurotabular/network.py": "3846d5595ad1f92657b76135c0a79a283355c8596130811173c052d1dddc0c75",
+    "neurotabular/preprocessing.py": "e077b91ed6166c9e430a6b67e2ebf3f8fe088672c50432bbc9b47371e1b4dd18",
+    "neurotabular/regressor.py": "d29157b1ec4ec9983e1fcc92565ee527397add201217cc5776e73a14e8364633",
+    "neurotabular/tasks.py": "47f3d25440625453ad04f616e6235dde4aa2e65930095735ebbf39e36290a8dd",
+    "neurotabular/training.py": "ea5a2864ebdb3d5f93fcf599847298faf50c9e2bc36c1a7e21cdb609b6d0d8af"
+  }
+}
