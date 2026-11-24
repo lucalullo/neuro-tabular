@@ -141,9 +141,17 @@ class AdapterTests(unittest.TestCase):
         future = pd.DataFrame({"n": [np.nan, 999.0], "cat": ["new", "known"]})
         numeric = FeatureAdapter("realmlp", ["cat"]).fit(X).transform(future)
         self.assertEqual(numeric.loc[0, "n"], 2)
-        categorical = FeatureAdapter("xgboost", ["cat"]).fit(X).transform(future)
-        self.assertTrue(pd.isna(categorical.loc[0, "cat"]))
-        self.assertEqual(len(categorical["cat"].cat.categories), 1)
+        for method in ("xgboost", "lightgbm"):
+            with self.subTest(method=method):
+                adapter = FeatureAdapter(method, ["cat"]).fit(X)
+                categorical = adapter.transform(future)
+                self.assertTrue(pd.isna(categorical.loc[0, "cat"]))
+                self.assertEqual(categorical.loc[1, "cat"], "str:known")
+                self.assertEqual(list(categorical["cat"].cat.categories), ["str:known"])
+                np.testing.assert_array_equal(categorical["cat"].cat.codes, [-1, 0])
+                fitted = adapter.transform(X)
+                np.testing.assert_array_equal(fitted["cat"].cat.codes, [0, -1, 0])
+                self.assertEqual(adapter.vocabulary_["cat"], ["str:known"])
         self.assertNotEqual(category_token(1), category_token("1"))
         self.assertNotEqual(category_token(np.nan), category_token("missing:"))
         native = FeatureAdapter("neurotabular210", ["cat"]).fit(X)
@@ -254,7 +262,9 @@ class ControllerTests(unittest.TestCase):
                 with self.assertRaises(RuntimeError):
                     archive_bytes(root)
 
-    @unittest.skipUnless(os.name == "nt", "Recorded worker custody uses Windows Job Objects")
+    @unittest.skipUnless(
+        os.name == "nt", "Recorded worker custody uses Windows Job Objects"
+    )
     def test_failed_worker_is_retained_and_cannot_be_retried(self):
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
@@ -309,7 +319,9 @@ class ControllerTests(unittest.TestCase):
             with self.assertRaises(RuntimeError):
                 budget.reserve(1, 1, fit_attempts=1)
 
-    @unittest.skipUnless(os.name == "nt", "Recorded worker custody uses Windows Job Objects")
+    @unittest.skipUnless(
+        os.name == "nt", "Recorded worker custody uses Windows Job Objects"
+    )
     def test_valid_receipt_from_observed_venv_worker_tree(self):
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
@@ -342,7 +354,9 @@ class ControllerTests(unittest.TestCase):
             self.assertIsNone(result["reason"])
             self.assertEqual(result["exit_code"], 0)
 
-    @unittest.skipUnless(os.name == "nt", "Recorded worker custody uses Windows Job Objects")
+    @unittest.skipUnless(
+        os.name == "nt", "Recorded worker custody uses Windows Job Objects"
+    )
     def test_actual_dedicated_pair_has_equal_load_and_normal_exits(self):
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)

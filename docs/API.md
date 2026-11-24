@@ -452,8 +452,9 @@ they do not train preprocessing on validation rows or add another neural fit.
 Omitting them preserves the ordinary validation path.
 
 ```python
-model.fit(X_train, y_train, eval_set=(X_valid, y_valid),
-          eval_sample_weight=validation_weights)
+model.fit(
+    X_train, y_train, eval_set=(X_valid, y_valid), eval_sample_weight=validation_weights
+)
 ```
 
 ## Optional internal cross-validation

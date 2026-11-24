@@ -136,8 +136,12 @@ class FeatureAdapter:
                         )
                     )
                 )
+                # Preserve the TRAIN-only vocabulary: unknown tokens are missing.
+                # Explicit masking avoids the newer pandas deprecation warning.
+                vocabulary = self.vocabulary_[column]
+                tokens = result[column]
                 result[column] = pd.Categorical(
-                    result[column], categories=self.vocabulary_[column]
+                    tokens.where(tokens.isin(vocabulary)), categories=vocabulary
                 )
             else:
                 result[column] = result[column].astype(object).map(category_token)

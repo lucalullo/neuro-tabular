@@ -138,5 +138,12 @@
     },
     "paired_figures_selftest": "PASS (4 pure controls); published PNG hashes match historical receipts; exact graphical regeneration was not asserted.",
     "runtime_module_hashes": "All 12 match the frozen 2.1.0 pins."
+  },
+  "ci_compatibility_patch": {
+    "scope": "Post-benchmark pandas compatibility correction; no training, rescoring or changes to recorded results.",
+    "file": "adapters.py",
+    "recorded_sha256": "cd19cfde9823c66d4a0d3547bca5c6ca722f33c5264910e76f58dbf3388d295d",
+    "current_sha256": "a3067ef82b9ca68ea67629453c895056705d62936cc9379052161f5ea759e6bd",
+    "semantics": "Unknown and missing categorical tokens are explicitly masked to missing before pd.Categorical construction for XGBoost and LightGBM. The TRAIN-only vocabulary and legacy category-code semantics are preserved. The published measurements were made with the recorded implementation, not the patched one."
   }
 }

@@ -51,7 +51,7 @@ def chart(rows, filename, title, subtitle, ratio_key):
                 f'<rect x="18" y="{y}" width="884" height="{row_height}" fill="#f3f6f9"/>'
             )
         label = (
-            f'{row["dataset"]} / {row["metric"]}'
+            f"{row['dataset']} / {row['metric']}"
             if ratio_key == "quality_ratio"
             else row["dataset"]
         )
@@ -104,7 +104,7 @@ def summarize(rows, project, scope, cost_label):
     ]
     for r in rows:
         lines.append(
-            f'| {r["dataset"]} | {r["metric"]} ({"higher" if r["higher"] else "lower"} is better) | {number(r["value"])} | {r["comparator"]} | {number(r["baseline"])} | {number(r["quality_ratio"])} |'
+            f"| {r['dataset']} | {r['metric']} ({'higher' if r['higher'] else 'lower'} is better) | {number(r['value'])} | {r['comparator']} | {number(r['baseline'])} | {number(r['quality_ratio'])} |"
         )
     lines += [
         "",
@@ -117,7 +117,7 @@ def summarize(rows, project, scope, cost_label):
     ]
     for r in rows:
         lines.append(
-            f'| {r["dataset"]} | {r["comparator"]} | {number(r["cost"])} / {number(r["baseline_cost"])} | {number(r["rss"])} / {number(r["baseline_rss"])} | {number(r["bytes"] / 1024)} / {number(r["baseline_bytes"] / 1024)} |'
+            f"| {r['dataset']} | {r['comparator']} | {number(r['cost'])} / {number(r['baseline_cost'])} | {number(r['rss'])} / {number(r['baseline_rss'])} | {number(r['bytes'] / 1024)} / {number(r['baseline_bytes'] / 1024)} |"
         )
     lines += [
         "",
@@ -183,7 +183,12 @@ def main():
             }
             return [
                 median(float(r[k]) for r in entries)
-                for k in (key, "training_total_cpu_s", "fit_peak_rss_bytes", "model_bytes")
+                for k in (
+                    key,
+                    "training_total_cpu_s",
+                    "fit_peak_rss_bytes",
+                    "model_bytes",
+                )
             ]
 
         observed = {m: aggregate(m) for m in labels}
