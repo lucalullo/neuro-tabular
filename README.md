@@ -101,7 +101,7 @@ Consider alternatives for multi-output learning, other neural architectures or a
 
 ## License
 
-NeuroTabular is created by Luca Lullo and released under the [MIT License](https://github.com/lucalullo/neuro-tabular/blob/main/LICENSE). See [dependency notices](https://github.com/lucalullo/neuro-tabular/blob/main/THIRD_PARTY_NOTICES.md) and the [legal/naming note](https://github.com/lucalullo/neuro-tabular/blob/main/LEGAL.md).
+NeuroTabular is created by Luca Lullo. Its original components are released under the [MIT License](https://github.com/lucalullo/neuro-tabular/blob/main/LICENSE), Copyright (c) 2026 Luca Lullo. Third-party components retain their licenses; see the [third-party notices](https://github.com/lucalullo/neuro-tabular/blob/main/THIRD_PARTY_NOTICES.md).
 
 ## Author
 
