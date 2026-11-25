@@ -4,12 +4,20 @@ import copy
 import hashlib
 import io
 import json
+import sys
 
 import pytest
 
 from tools import release_artifacts as release
 
 SHA = "a" * 40
+
+
+def test_project_metadata_without_stdlib_tomllib(monkeypatch):
+    expected = release.project_metadata()
+    monkeypatch.setitem(sys.modules, "tomllib", None)
+    assert release.project_metadata() == expected
+    assert release.version() == expected["version"]
 
 
 def test_exact_tag_and_commit():

@@ -32,12 +32,17 @@ def digest(data):
     return hashlib.sha256(data).hexdigest()
 
 
-def version():
-    import tomllib
+def project_metadata(root=ROOT):
+    try:
+        import tomllib
+    except ModuleNotFoundError:
+        import tomli as tomllib
 
-    return tomllib.loads((ROOT / "pyproject.toml").read_text("utf8"))["project"][
-        "version"
-    ]
+    return tomllib.loads((root / "pyproject.toml").read_text("utf8"))["project"]
+
+
+def version():
+    return project_metadata()["version"]
 
 
 def manifest(root=ROOT):
@@ -204,9 +209,7 @@ def normalized_requirement(value):
 
 
 def validate_metadata(data, v, root):
-    import tomllib
-
-    project = tomllib.loads((root / "pyproject.toml").read_text("utf8"))["project"]
+    project = project_metadata(root)
     meta = email.parser.BytesParser().parsebytes(data)
     require(
         meta["Name"] == project["name"] == "neurotabular"
