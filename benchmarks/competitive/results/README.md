@@ -1,19 +1,30 @@
-# Results are in preparation
+# Measured benchmark results
 
-No genuine competitive fit, TEST prediction or ranking has been produced by
-this preparation. [status.json](status.json) records this explicitly.
+This directory contains the frozen, measured six-family CPU pilot, not a
+synthetic example. [status.json](status.json) records 181 measured final TEST
+endpoints out of 288 planned (107 unavailable). Five methods have complete
+coverage; RealMLP and TabM have none and FT-Transformer has one. The unavailable
+endpoints are 96 backend qualification exclusions, six cold replay stops and
+five measurement-pair stops. See the [coverage table](../../README.md#why-107-endpoints-are-unavailable).
 
-The executable runner and reporter will produce:
+NeuroTabular 2.0.0 is a version reference, not an external comparator in the
+summary overview. Default and four-candidate tuning remain separate.
 
-- `results.json`: per-family/seed/track/method metrics, uncertainty, costs,
-  model/prediction/split hashes, A/A validity and failures.
-- `results.csv`: flat measured records and failure states.
-- `summary.json`: descriptive, family-weighted paired summaries with coverage.
-- `REPORT.md`: comparative table with costs and limitations.
-- PNG figures: quality versus complete training CPU, peak RSS and warm
-  prediction latency, with separate task/track/dataset panels.
+- [Full results JSON](results.json) and [CSV](results.csv): metrics, uncertainty,
+  costs, status, hashes and retained failures.
+- [Summary](summary.json): descriptive family-weighted summaries and coverage.
+- [Frozen report](REPORT.md): original measured tables and interpretation.
+- [All per-seed results](tables/PER_SEED.csv), [family summaries](tables/FAMILY_SUMMARY.csv),
+  [paired comparisons](tables/PAIRED_COMPARISONS.csv) and [timing controls](tables/TIMING_CONTROLS.csv).
+- [Detailed figures](../../FIGURES.md) and [selection guide](../WHEN_TO_CHOOSE.md).
+- [Decision support](decision_support.json): local descriptive Pareto frontiers.
 
-The schema is [schema.json](schema.json). The reporting implementation is
-[report.py](../report.py). Test fixtures are explicitly synthetic and are not
-published as benchmark evidence. Real results will be added only after the
-scientific admission, execution, artifact checks and maintainer review.
+Only two of 36 inference A/A controls passed; see the [timing audit](../MEASUREMENT_SCOPE.md#inference-timing-control-audit).
+These results support dataset- and metric-specific observations, not universal
+superiority or a general speed claim. Incomplete methods are not ranked on
+surviving subsets.
+
+The schema is [schema.json](schema.json). See the [reproduction guide](../README.md),
+[protocol](../PROTOCOL.md) and [custody record](../POSTPROCESSOR_CUSTODY.json).
+The original reports and data are retained; editorial coverage and timing
+analysis do not introduce new fits, inference, scoring or measurements.

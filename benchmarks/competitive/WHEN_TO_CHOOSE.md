@@ -8,7 +8,9 @@ The evidence below comes from a frozen six-family CPU comparison, with three
 model seeds and separate default and four-candidate tuning regimes. Five methods
 have complete natural-data coverage. RealMLP and TabM did not pass the declared
 preliminary cold-load limit; FT-Transformer has only one fully admitted natural
-result. Their missing comparisons are not predictive losses.
+result. Their missing comparisons are not predictive losses. See the
+[coverage breakdown](../README.md#why-107-endpoints-are-unavailable) and
+[qualification roadmap](../README.md#qualification-roadmap).
 
 ## Where the default provides a useful option
 
@@ -26,6 +28,7 @@ accuracy is 0.776678, compared with 0.705250 for LightGBM and 0.607143 for CatBo
 However, CatBoost has lower median NLL (0.137218 versus 0.157654). Only one study
 is held out, so these are observed results without an independent-study interval.
 Choose the metric that matches your use case; this is not a general binary win.
+See the [default balanced accuracy figure](results/default-binary-balanced_accuracy-training_total_cpu_s.png).
 
 **A small final model artifact.** Default NeuroTabular model files are about
 152–212 KiB on these families. On Anneal, the median is 211.78 KiB, versus
@@ -108,6 +111,8 @@ automatically improve accuracy or select a recipe.
   [methods](METHODS.md), [protocol](PROTOCOL.md) and [reproduction](README.md).
 
 The 34 inconclusive A/A controls prohibit broad warm-latency conclusions.
+The [timing audit](MEASUREMENT_SCOPE.md#inference-timing-control-audit) documents
+the clock/interval limitations and the required follow-up qualification.
 Quality uncertainty is conditional on frozen models and declared TEST units;
 it is not independent-family uncertainty and is not multiplicity-adjusted.
 The panel has two families per task, not 18 independent datasets. It is not an

@@ -46,32 +46,43 @@ The classifier also supports multiclass targets. For regression, use `NeuroTabul
 - Optional internal K-fold diagnostics (`cv=K`), with K+1 training passes (doubled for `full_data_refit=True`) and one final network.
 - Sample weights, optional balanced class weights and explicit validation weights (`cv=None`).
 - CPU, optional CUDA selection and pickle/joblib persistence.
+- Categorical inputs: at most 128 categorical columns (not 128 total columns); extended support is not included until its performance qualification succeeds. See [limitations](#limitations) and the [qualification roadmap](https://github.com/lucalullo/neuro-tabular/blob/main/benchmarks/README.md#qualification-roadmap).
 
 ## Benchmarks
 
 | Scope | Evidence |
 |---|---|
-| Competitive evidence | 2.1.0 vs 2.0.0 and six external methods; six families, three seeds, default and four-candidate tuning. |
-| Coverage | 181 of 288 final TEST endpoints measured; 107 unavailable. |
-| Technical evidence | Only 2 of 36 dedicated inference timing controls valid. |
+| Competitive evidence | Six-family CPU pilot, three seeds; default and four-candidate tuning kept separate. NeuroTabular 2.0.0 is a version reference only, not part of the external-method overview. |
+| Coverage | 181/288 final TEST endpoints measured (62.8%); 107 unavailable: 96 qualification exclusions, 6 cold replay stops and 5 measurement stops, all for RealMLP, TabM or FT-Transformer. |
+| RealMLP / TabM / FT-Transformer | 0/36, 0/36 and 1/36 measured, respectively. No predictive ranking for incomplete methods. |
+| Technical evidence | Only 2/36 dedicated inference A/A controls valid. [Measurement audit and follow-up](https://github.com/lucalullo/neuro-tabular/blob/main/benchmarks/competitive/MEASUREMENT_SCOPE.md#inference-timing-control-audit). |
 | Reproduction | Frozen executable protocol; exact environment, source and wheel prerequisites apply. |
 
 The [benchmark overview](https://github.com/lucalullo/neuro-tabular/blob/main/benchmarks/README.md) links predictive quality, computational costs, complete figures, methodology, failures and numerical data. Default and tuned results, historical results and technical timing controls must be interpreted separately.
 
+**Selected measured advantages (default settings, median of three seeds)**
+
+| Dataset / metric | NeuroTabular | XGBoost | LightGBM | CatBoost | Evidence |
+|---|---:|---:|---:|---:|---|
+| Bank Marketing / NLL (lower is better) | **0.666704** | 0.784755 | 0.719467 | 0.717406 | [Paired NLL figure](https://github.com/lucalullo/neuro-tabular/blob/main/benchmarks/competitive/results/intervals/default-binary-primary-paired-intervals.png) |
+| Climate / balanced accuracy (higher is better) | **77.67%** | 66.65% | 70.53% | 60.71% | [Balanced accuracy figure](https://github.com/lucalullo/neuro-tabular/blob/main/benchmarks/competitive/results/default-binary-balanced_accuracy-training_total_cpu_s.png) |
+
+Bank Marketing's paired NLL intervals favor NeuroTabular against these three trees in all three default seeds (conditional, unadjusted intervals). Climate is a single held-out study: its balanced accuracy advantage is descriptive, without an independent-study interval; CatBoost has lower NLL there. Neither observation establishes general classification superiority or an improvement over the previous release. See [coverage and follow-up](https://github.com/lucalullo/neuro-tabular/blob/main/benchmarks/README.md#scope-and-coverage) and [when to choose NeuroTabular](https://github.com/lucalullo/neuro-tabular/blob/main/benchmarks/competitive/WHEN_TO_CHOOSE.md).
+
 ## When to use it
 
-Use it for neural learning on mixed pandas data with a familiar estimator interface. Bank Marketing has lower default median NLL than the three fully measured tree comparators; Climate has higher default median balanced accuracy than those trees. These are dataset- and metric-specific observations.
+Use it for neural learning on mixed pandas data with a familiar estimator interface, or where the measured metric-specific advantages above match your needs. The [selection guide](https://github.com/lucalullo/neuro-tabular/blob/main/benchmarks/competitive/WHEN_TO_CHOOSE.md) explains the evidence, computational trade-offs and when another model is preferable.
 
 ## When to consider alternatives
 
-Consider alternatives for multi-output learning, other neural architectures or advanced AutoML. The measured trees perform substantially better on Anneal and Glass. RealMLP and TabM comparisons are unavailable and FT-Transformer coverage is partial.
+Consider alternatives for multi-output learning, other neural architectures or advanced AutoML. The measured trees perform substantially better on Anneal and Glass. RealMLP and TabM have no admitted real-data results and FT-Transformer coverage is partial. Their absence is a coverage limitation, not a predictive loss; see the [benchmark follow-up](https://github.com/lucalullo/neuro-tabular/blob/main/benchmarks/README.md#qualification-roadmap).
 
 ## Limitations
 
 - Requires a pandas DataFrame; multilabel and multi-output learning are unsupported.
 - No universal accuracy, latency, throughput or RAM advantage is established.
 - Physical NVIDIA GPU validation and formal end-to-end no-network certification are incomplete.
-- At most 128 categorical columns; high cardinality may substantially increase memory.
+- At most 128 categorical columns; high cardinality may substantially increase memory. Extended support is not yet performance-qualified and is excluded from 2.1.0. See the [qualification roadmap](https://github.com/lucalullo/neuro-tabular/blob/main/benchmarks/README.md#qualification-roadmap).
 - Concurrent `fit()` calls in one process are not guaranteed thread-safe.
 
 ## Documentation
@@ -82,6 +93,7 @@ Consider alternatives for multi-output learning, other neural architectures or a
 - [API stability and maintenance policies](https://github.com/lucalullo/neuro-tabular/blob/main/docs/policies/README.md)
 - [Internal K-fold diagnostics](https://github.com/lucalullo/neuro-tabular/blob/main/docs/INTERNAL_CV.md)
 - [Benchmarks](https://github.com/lucalullo/neuro-tabular/blob/main/benchmarks/README.md)
+- [When to choose NeuroTabular](https://github.com/lucalullo/neuro-tabular/blob/main/benchmarks/competitive/WHEN_TO_CHOOSE.md)
 - [Historical evidence](https://github.com/lucalullo/neuro-tabular/blob/main/docs/BENCHMARK_0_3.md)
 - [Performance](https://github.com/lucalullo/neuro-tabular/blob/main/docs/PERFORMANCE_0_3_1.md)
 - [Release notes](https://github.com/lucalullo/neuro-tabular/blob/main/RELEASE_NOTES.md)

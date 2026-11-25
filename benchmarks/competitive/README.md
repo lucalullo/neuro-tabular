@@ -5,9 +5,11 @@
 See [When to choose NeuroTabular](WHEN_TO_CHOOSE.md), the [scorecard](SCORECARD.md),
 [measured results](results/REPORT.md) and [measurement limits](MEASUREMENT_SCOPE.md).
 
-This bounded six-family CPU pilot compares NeuroTabular 2.0.0 and 2.1.0,
-RealMLP, XGBoost, LightGBM, CatBoost, TabM and FT-Transformer. It is a comparison
-of frozen releases, not a search for changes to NeuroTabular. There are two
+This bounded six-family CPU pilot evaluates NeuroTabular 2.1.0 against the
+external methods RealMLP, XGBoost, LightGBM, CatBoost, TabM and FT-Transformer.
+NeuroTabular 2.0.0 is a version reference only, retained in the full scorecard
+but excluded from the external-method descriptive overview. This is a
+comparison of frozen releases, not a search for changes to NeuroTabular. There are two
 families per task and three seeds: 42, 2026 and 1947. This scope cannot support
 a claim of universal superiority.
 
@@ -85,7 +87,16 @@ visible. Use the [limitations](DATASETS.md) when interpreting any future score.
 
 ## Coverage and source fidelity
 
-Five methods complete all six families, three seeds and both regimes: NeuroTabular 2.0.0/2.1.0, XGBoost, LightGBM and CatBoost. RealMLP/TabM were excluded by CPU-limited qualification replays. FT-Transformer has one valid natural result; five Anneal measurement pairs and six Glass cold replays stop at their limits. No timeout counts as a predictive win.
+Five methods complete all six families, three seeds and both regimes:
+NeuroTabular 2.0.0/2.1.0, XGBoost, LightGBM and CatBoost. Of 288 planned final
+endpoints, 181 are measured and 107 unavailable. The 96 qualification exclusions
+are 36 RealMLP, 36 TabM and 24 FT-Transformer; the remaining 11 are six Glass
+cold replay stops and five Anneal measurement-pair stops for FT-Transformer.
+No timeout counts as a predictive win. See the [complete coverage table](../README.md#why-107-endpoints-are-unavailable).
+
+RealMLP is a priority for a future complete comparison, after its preliminary
+replay and resource contract are qualified and execution is separately approved.
+No date or result is promised. See the [qualification roadmap](../README.md#qualification-roadmap).
 
 The recorded model, data, scoring and process-custody implementation is retained verbatim. The public adapter includes the pandas compatibility patch documented below. The portable `reproduce` CLI is separate from the original private admission wrapper; it never reuses that grant. Narrow style/unused-name lint exemptions preserve recorded instrumentation bytes; runtime-library rules remain unchanged. Windows process-custody tests are explicitly Windows-only.
 
