@@ -1,0 +1,70 @@
+name: PyPI preparation - no upload
+
+on:
+  workflow_dispatch:
+    inputs:
+      source_run_id:
+        description: TestPyPI preparation run ID (only needed if several successful runs exist on this SHA)
+        required: false
+        type: string
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: pypi-preparation-${{ github.sha }}
+  cancel-in-progress: false
+
+jobs:
+  verify:
+    name: Prepare identical TestPyPI distributions for PyPI
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+      - name: Require all 17 CI jobs on the exact main commit
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python -m tools.prepare_release guard
+      - name: Verify source manifest
+        run: python tools/release_artifacts.py source
+      - name: Find successful TestPyPI preparation on the same commit
+        id: source
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PREPARATION_SOURCE_RUN_ID: ${{ inputs.source_run_id }}
+        run: python -m tools.prepare_release source
+      - name: Download original locked distributions
+        uses: actions/download-artifact@v7
+        with:
+          artifact-ids: ${{ steps.source.outputs.artifact_id }}
+          run-id: ${{ steps.source.outputs.run_id }}
+          github-token: ${{ github.token }}
+          path: release-bundle/
+      - name: Verify actual TestPyPI files and original hashes
+        env:
+          SOURCE_RUN_ID: ${{ steps.source.outputs.run_id }}
+          EXPECTED_SOURCE_ATTEMPT: ${{ steps.source.outputs.source_attempt }}
+        run: python tools/release_artifacts.py testpypi
+      - name: Validate distribution hygiene and metadata
+        run: |
+          python -m pip install twine
+          python tools/check_distribution.py release-bundle/dist/*.whl release-bundle/dist/*.tar.gz
+          python -m twine check --strict release-bundle/dist/*
+      - name: Retain original distributions for manual PyPI upload
+        uses: actions/upload-artifact@v7
+        with:
+          name: pypi-distributions-${{ github.run_id }}-${{ github.run_attempt }}
+          path: release-bundle/
+          if-no-files-found: error
+          retention-days: 30
+      - name: Preparation summary (no upload)
+        run: |
+          echo '## PyPI preparation complete' >> "$GITHUB_STEP_SUMMARY"
+          echo 'The bundle contains the exact files verified on TestPyPI. Download it and manually upload only the two files in dist/ to PyPI. No registry upload was performed.' >> "$GITHUB_STEP_SUMMARY"

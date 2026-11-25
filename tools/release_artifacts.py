@@ -104,15 +104,16 @@ def expected_jobs():
     }
 
 
-def successful_ci(repo, sha, v, api=github):
+def successful_ci(repo, sha, v, api=github, *, branch=None):
+    branch = "release/" + v if branch is None else branch
     query = urllib.parse.urlencode(
-        {"head_sha": sha, "event": "push", "branch": "release/" + v, "per_page": 100}
+        {"head_sha": sha, "event": "push", "branch": branch, "per_page": 100}
     )
     runs = api(f"repos/{repo}/actions/workflows/tests.yml/runs?{query}")
     for run in runs["workflow_runs"]:
         if (
             run["head_sha"] == sha
-            and run["head_branch"] == "release/" + v
+            and run["head_branch"] == branch
             and run["event"] == "push"
             and run["path"] == ".github/workflows/tests.yml"
             and run["status"] == "completed"

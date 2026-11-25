@@ -37,6 +37,11 @@ Public estimator constructors must remain side-effect-free and cloneable.
 Training data must never influence validation preprocessing state. New runtime
 dependencies require a necessity, maintenance, license, and size review.
 
+## Release preparation
+
+Maintainers can use the manual no-upload workflows on `main`. See
+[Release preparation](docs/PUBLICATION.md) for the verified TestPyPI-to-PyPI sequence.
+
 ## Original work
 
 Contributions must be original work or material the contributor is authorized
