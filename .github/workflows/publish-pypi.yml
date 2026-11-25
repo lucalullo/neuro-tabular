@@ -32,17 +32,20 @@ jobs:
         run: python -m tools.prepare_release guard
       - name: Verify source manifest
         run: python tools/release_artifacts.py source
-      - name: Resolve successful TestPyPI publication and original build attempt
-        id: source
+      - name: Recover the exact published TestPyPI distributions
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           python - <<'PY'
+          import email.parser
           import json
           import os
           import re
           import subprocess
+          import tarfile
           import urllib.parse
+          import urllib.request
+          import zipfile
           from pathlib import Path
 
           from tools import prepare_release as prep
@@ -50,11 +53,13 @@ jobs:
 
           repo = os.environ["GITHUB_REPOSITORY"]
           head = os.environ["GITHUB_SHA"]
+          v = release.version()
           release.require(
               bool(re.fullmatch(r"[0-9a-f]{40}", head))
               and subprocess.check_output(["git", "rev-parse", "HEAD"], text=True).strip() == head,
               "Exact checkout required",
           )
+
 
           def find_run(sha):
               query = urllib.parse.urlencode({
@@ -67,91 +72,150 @@ jobs:
               release.require(len(runs) <= 1, "Ambiguous successful TestPyPI publications")
               return runs[0] if runs else None
 
-          # Normal path: the exact current commit. Recovery path: its immediate
-          # parent, ONLY when this publication workflow is the sole changed file.
+
+          # Permit a bounded sequence of publication-workflow-only corrections.
+          # All other tree changes require a new TestPyPI publication.
           source_sha = head
-          run = find_run(source_sha)
-          if run is None:
-              parent = subprocess.check_output(["git", "rev-parse", "HEAD^"], text=True).strip()
+          run = None
+          for _ in range(20):
+              run = find_run(source_sha)
+              if run is not None:
+                  break
+              parent = subprocess.check_output(["git", "rev-parse", source_sha + "^"], text=True).strip()
               release.require(bool(re.fullmatch(r"[0-9a-f]{40}", parent)), "Invalid parent commit")
               changed = set(subprocess.check_output([
-                  "git", "diff", "--name-only", "-z", "--no-renames", parent, head, "--"
+                  "git", "diff", "--name-only", "-z", "--no-renames", parent, source_sha, "--"
               ]).split(b"\0")) - {b""}
               release.require(
                   changed == {b".github/workflows/publish-pypi.yml"},
-                  "Recovery permits only a change to publish-pypi.yml; no package or manifest changes",
+                  "Recovery permits only publish-pypi.yml corrections; package changes require a new release",
               )
               source_sha = parent
-              run = find_run(source_sha)
           release.require(run is not None, "No successful TestPyPI publication for verified source")
-          source_ci = release.successful_ci(repo, source_sha, release.version(), branch="main")
+          changed = set(subprocess.check_output([
+              "git", "diff", "--name-only", "-z", "--no-renames", source_sha, head, "--"
+          ]).split(b"\0")) - {b""}
+          release.require(changed <= {b".github/workflows/publish-pypi.yml"}, "Source tree changed")
+          source_ci = release.successful_ci(repo, source_sha, v, branch="main")
           run_id = str(run["id"])
           release.require(bool(re.fullmatch(r"[1-9][0-9]*", run_id)), "Invalid source run ID")
           base = f"repos/{repo}/actions/runs/{run_id}"
           run = release.github(base)
           release.require(str(run["id"]) == run_id and prep.matching_run(run, source_sha), "Unverified source run")
           attempt = run["run_attempt"]
-          release.require(type(attempt) is int and 1 <= attempt <= 100, "Invalid source run attempt")
-
-          def jobs_for(number):
-              data = release.github(base + f"/attempts/{number}/jobs?per_page=100")
-              release.require(data["total_count"] == len(data["jobs"]), "Incomplete job list")
-              return data["jobs"]
-
-          jobs = jobs_for(attempt)
+          release.require(type(attempt) is int and attempt >= 1, "Invalid publication attempt")
+          data = release.github(base + f"/attempts/{attempt}/jobs?per_page=100")
+          jobs = data["jobs"]
           release.require(
-              len(jobs) == 2 and {j["name"] for j in jobs} == {prep.JOB, prep.PUBLISH_JOB}
+              data["total_count"] == len(jobs) == 2
+              and {j["name"] for j in jobs} == {prep.JOB, prep.PUBLISH_JOB}
               and all(j["status"] == "completed" and j["conclusion"] == "success" for j in jobs),
               "Preparation and TestPyPI publication must both succeed",
           )
-          prepared = next(j for j in jobs if j["name"] == prep.JOB)
-          prep_id = prepared["id"]
-          # A publish-only rerun retains the successful preparation job and its
-          # artifact. Find the first attempt containing that exact job ID.
-          build_attempt = None
-          for number in range(1, attempt + 1):
-              previous = jobs if number == attempt else jobs_for(number)
-              found = [j for j in previous if j["id"] == prep_id]
-              release.require(len(found) <= 1, "Duplicate preparation job")
-              if found:
-                  job = found[0]
-                  release.require(
-                      job["name"] == prep.JOB and job["status"] == "completed"
-                      and job["conclusion"] == "success", "Unverified preparation job",
-                  )
-                  build_attempt = number
-                  break
-          release.require(build_attempt is not None, "Original successful build attempt missing")
-          data = release.github(base + "/artifacts?per_page=100")
-          release.require(data["total_count"] == len(data["artifacts"]), "Incomplete artifact list")
-          expected = f"testpypi-distributions-{run_id}-{build_attempt}"
-          matches = [a for a in data["artifacts"] if a["name"] == expected]
+
+          # TestPyPI is the authoritative source of the actual uploaded bytes. Do not
+          # reconstruct packages, depend on transient Actions artifacts, or fabricate
+          # the missing original build receipt. Validate the complete source archive,
+          # runtime files, metadata and registry hashes before promotion.
+          MAX_BYTES = 128 * 1024 * 1024
+
+
+          def checked_url(url, hosts):
+              parsed = urllib.parse.urlsplit(url)
+              release.require(
+                  parsed.scheme == "https" and parsed.hostname in hosts
+                  and parsed.port in {None, 443} and parsed.username is None and parsed.password is None,
+                  "Unexpected registry URL",
+              )
+
+
+          class RestrictedRedirect(urllib.request.HTTPRedirectHandler):
+              def __init__(self, hosts):
+                  self.hosts = hosts
+
+              def redirect_request(self, req, fp, code, msg, headers, newurl):
+                  checked_url(newurl, self.hosts)
+                  return super().redirect_request(req, fp, code, msg, headers, newurl)
+
+
+          def download(url, hosts, limit):
+              checked_url(url, hosts)
+              opener = urllib.request.build_opener(RestrictedRedirect(hosts))
+              request = urllib.request.Request(url, headers={"User-Agent": "NeuroTabular verified promotion"})
+              with opener.open(request, timeout=60) as response:
+                  checked_url(response.geturl(), hosts)
+                  payload = response.read(limit + 1)
+              release.require(len(payload) <= limit, "Registry response exceeds size limit")
+              return payload
+
+
+          registry = json.loads(download(
+              f"https://test.pypi.org/pypi/neurotabular/{v}/json", {"test.pypi.org"}, 8 * 1024 * 1024,
+          ))
+          expected = set(release.names(v))
           release.require(
-              len(matches) == 1 and not matches[0]["expired"]
-              and matches[0]["workflow_run"]["head_sha"] == source_sha,
-              "Original TestPyPI preparation artifact missing, expired or unrelated",
+              registry["info"]["name"].lower() == "neurotabular"
+              and registry["info"]["version"] == v
+              and len(registry["urls"]) == 2
+              and {item["filename"] for item in registry["urls"]} == expected,
+              "Unexpected TestPyPI release identity or file list",
           )
-          artifact_id = matches[0]["id"]
-          release.require(type(artifact_id) is int and artifact_id > 0, "Invalid artifact ID")
-          with Path(os.environ["GITHUB_OUTPUT"]).open("a", encoding="utf8") as f:
-              f.write(f"run_id={run_id}\nsource_attempt={build_attempt}\nartifact_id={artifact_id}\nsource_sha={source_sha}\n")
-          print(json.dumps({"source_commit": source_sha, "source_ci": source_ci,
-                            "source_run_id": run_id, "publication_attempt": attempt,
-                            "build_attempt": build_attempt, "artifact_id": artifact_id}))
+          bundle = Path("release-bundle")
+          directory = bundle / "dist"
+          directory.mkdir(parents=True, exist_ok=False)
+          hashes = {}
+          for item in registry["urls"]:
+              name = item["filename"]
+              sha = item["digests"]["sha256"]
+              release.require(
+                  not item.get("yanked") and isinstance(sha, str)
+                  and bool(re.fullmatch(r"[0-9a-f]{64}", sha))
+                  and item["packagetype"] == ("bdist_wheel" if name.endswith(".whl") else "sdist")
+                  and type(item["size"]) is int and 0 < item["size"] <= MAX_BYTES,
+                  "Invalid TestPyPI distribution metadata",
+              )
+              # Independent release-specific evidence from the completed Kaggle notebook.
+              if v == "2.1.0" and name.endswith(".whl"):
+                  release.require(
+                      sha == "9b9829a091f0d6c5e20a81d9de4f7dd598ae953d1df37eded88dadaa3a877d99",
+                      "TestPyPI wheel differs from the wheel verified on Kaggle",
+                  )
+              payload = download(item["url"], {"test-files.pythonhosted.org", "files.pythonhosted.org"}, MAX_BYTES)
+              release.require(len(payload) == item["size"] and release.digest(payload) == sha, "TestPyPI file hash or size mismatch")
+              with (directory / name).open("xb") as f:
+                  f.write(payload)
+              hashes[name] = sha
+          release.require(release.hashes(directory, v) == hashes, "Promoted file hashes mismatch")
+          release.validate_archives(directory, v)
+
+          # Explicitly preserve the README and license in the wheel and sdist metadata.
+          readme = Path("README.md").read_text(encoding="utf8")
+          license_bytes = Path("LICENSE").read_bytes()
+          wheel_name, sdist_name = release.names(v)
+          prefix = f"neurotabular-{v}.dist-info/"
+          with zipfile.ZipFile(directory / wheel_name) as archive:
+              meta = email.parser.BytesParser().parsebytes(archive.read(prefix + "METADATA"))
+              release.require(meta.get_payload() == readme, "Wheel README mismatch")
+              release.require(archive.read(prefix + "licenses/LICENSE") == license_bytes, "Wheel license mismatch")
+          with tarfile.open(directory / sdist_name) as archive:
+              prefix = f"neurotabular-{v}/"
+              meta = email.parser.BytesParser().parsebytes(archive.extractfile(prefix + "PKG-INFO").read())
+              release.require(meta.get_payload() == readme, "Sdist README mismatch")
+              release.require(archive.extractfile(prefix + "LICENSE").read() == license_bytes, "Sdist license mismatch")
+
+          receipt = {
+              "project": "neurotabular", "version": v, "repository": repo,
+              "promotion_commit": head, "source_commit": source_sha,
+              "source_ci": source_ci, "source_run_id": run_id,
+              "publication_attempt": attempt,
+              "source_manifest_sha256": release.digest(Path("SOURCE_MANIFEST.sha256").read_bytes()),
+              "file_origin": "TestPyPI registry", "files": hashes,
+              "kaggle_wheel_hash_verified": v == "2.1.0",
+              "original_build_artifact_used": False,
+          }
+          (bundle / "promotion-receipt.json").write_text(json.dumps(receipt, indent=2) + "\n", encoding="utf8")
+          print(json.dumps(receipt, indent=2))
           PY
-      - name: Download original locked distributions
-        uses: actions/download-artifact@v7
-        with:
-          artifact-ids: ${{ steps.source.outputs.artifact_id }}
-          run-id: ${{ steps.source.outputs.run_id }}
-          github-token: ${{ github.token }}
-          path: release-bundle/
-      - name: Verify actual TestPyPI files and original hashes
-        env:
-          SOURCE_RUN_ID: ${{ steps.source.outputs.run_id }}
-          EXPECTED_SOURCE_ATTEMPT: ${{ steps.source.outputs.source_attempt }}
-          VERIFIED_SOURCE_SHA: ${{ steps.source.outputs.source_sha }}
-        run: GITHUB_SHA="$VERIFIED_SOURCE_SHA" python tools/release_artifacts.py testpypi
       - name: Validate distribution hygiene and metadata
         run: |
           python -m pip install twine
