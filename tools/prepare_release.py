@@ -1,4 +1,4 @@
-"""Prepare distributions on main; never upload to a package index."""
+"""Validate main CI and resolve the exact successful TestPyPI publication."""
 
 from __future__ import annotations
 
@@ -14,6 +14,7 @@ from tools import release_artifacts as release
 
 WORKFLOW = ".github/workflows/publish-testpypi.yml"
 JOB = "Prepare TestPyPI distributions"
+PUBLISH_JOB = "Publish to TestPyPI"
 
 
 def guard(repo, sha, ref_type, ref_name, checkout, api=release.github):
@@ -60,7 +61,7 @@ def preparation_source(repo, sha, run_id="", api=release.github):
         runs = [r for r in data["workflow_runs"] if matching_run(r, sha)]
         release.require(
             len(runs) == 1,
-            "Need one successful TestPyPI preparation on this SHA; "
+            "Need one successful TestPyPI publication on this SHA; "
             "if multiple exist, supply its source_run_id",
         )
         run_id = str(runs[0]["id"])
@@ -68,17 +69,19 @@ def preparation_source(repo, sha, run_id="", api=release.github):
     run = api(base)
     release.require(
         str(run["id"]) == str(run_id) and matching_run(run, sha),
-        "Source preparation is not successful on this SHA",
+        "Source publication is not successful on this SHA",
     )
     attempt = run["run_attempt"]
     data = api(base + f"/attempts/{attempt}/jobs?per_page=100")
     jobs = data["jobs"]
     release.require(
-        data["total_count"] == len(jobs) == 1
-        and jobs[0]["name"] == JOB
-        and jobs[0]["status"] == "completed"
-        and jobs[0]["conclusion"] == "success",
-        "Source preparation job did not succeed",
+        data["total_count"] == len(jobs) == 2
+        and {job["name"] for job in jobs} == {JOB, PUBLISH_JOB}
+        and all(
+            job["status"] == "completed" and job["conclusion"] == "success"
+            for job in jobs
+        ),
+        "Source preparation and TestPyPI publication must both succeed",
     )
     data = api(base + "/artifacts?per_page=100")
     release.require(

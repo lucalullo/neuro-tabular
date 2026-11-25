@@ -1,4 +1,4 @@
-name: TestPyPI preparation - no upload
+name: Publish to TestPyPI
 
 on:
   workflow_dispatch:
@@ -8,7 +8,7 @@ permissions:
   actions: read
 
 concurrency:
-  group: testpypi-preparation-${{ github.sha }}
+  group: neurotabular-publication
   cancel-in-progress: false
 
 jobs:
@@ -16,6 +16,8 @@ jobs:
     name: Prepare TestPyPI distributions
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    outputs:
+      artifact_id: ${{ steps.bundle.outputs.artifact-id }}
     env:
       PYTHONDONTWRITEBYTECODE: '1'
       OMP_NUM_THREADS: '1'
@@ -59,14 +61,33 @@ jobs:
           python -I -c 'import neurotabular; print(neurotabular.__version__)'
       - name: Test installed package
         run: python -m pytest -W error
-      - name: Retain verified distributions for manual TestPyPI upload
+      - name: Retain verified distributions
+        id: bundle
         uses: actions/upload-artifact@v7
         with:
           name: testpypi-distributions-${{ github.run_id }}-${{ github.run_attempt }}
           path: release-bundle/
           if-no-files-found: error
           retention-days: 30
-      - name: Preparation summary (no upload)
-        run: |
-          echo '## TestPyPI preparation complete' >> "$GITHUB_STEP_SUMMARY"
-          echo 'Download the artifact, extract it, and manually upload only the two files in dist/ to TestPyPI. No registry upload was performed.' >> "$GITHUB_STEP_SUMMARY"
+
+  publish:
+    name: Publish to TestPyPI
+    needs: verify
+    runs-on: ubuntu-latest
+    environment:
+      name: testpypi
+      url: https://test.pypi.org/project/neurotabular/
+    permissions:
+      id-token: write
+      actions: read
+    steps:
+      - name: Retrieve verified distributions
+        uses: actions/download-artifact@v7
+        with:
+          artifact-ids: ${{ needs.verify.outputs.artifact_id }}
+          path: release-bundle/
+      - name: Publish verified distributions to TestPyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          packages-dir: release-bundle/dist/
+          repository-url: https://test.pypi.org/legacy/

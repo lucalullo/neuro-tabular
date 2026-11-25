@@ -1,19 +1,14 @@
-name: PyPI preparation - no upload
+name: Publish to PyPI
 
 on:
   workflow_dispatch:
-    inputs:
-      source_run_id:
-        description: TestPyPI preparation run ID (only needed if several successful runs exist on this SHA)
-        required: false
-        type: string
 
 permissions:
   contents: read
   actions: read
 
 concurrency:
-  group: pypi-preparation-${{ github.sha }}
+  group: neurotabular-publication
   cancel-in-progress: false
 
 jobs:
@@ -21,6 +16,8 @@ jobs:
     name: Prepare identical TestPyPI distributions for PyPI
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    outputs:
+      artifact_id: ${{ steps.bundle.outputs.artifact-id }}
     steps:
       - uses: actions/checkout@v7
         with:
@@ -34,11 +31,10 @@ jobs:
         run: python -m tools.prepare_release guard
       - name: Verify source manifest
         run: python tools/release_artifacts.py source
-      - name: Find successful TestPyPI preparation on the same commit
+      - name: Find successful TestPyPI publication on the same commit
         id: source
         env:
           GH_TOKEN: ${{ github.token }}
-          PREPARATION_SOURCE_RUN_ID: ${{ inputs.source_run_id }}
         run: python -m tools.prepare_release source
       - name: Download original locked distributions
         uses: actions/download-artifact@v7
@@ -57,14 +53,32 @@ jobs:
           python -m pip install twine
           python tools/check_distribution.py release-bundle/dist/*.whl release-bundle/dist/*.tar.gz
           python -m twine check --strict release-bundle/dist/*
-      - name: Retain original distributions for manual PyPI upload
+      - name: Retain original verified distributions
+        id: bundle
         uses: actions/upload-artifact@v7
         with:
           name: pypi-distributions-${{ github.run_id }}-${{ github.run_attempt }}
           path: release-bundle/
           if-no-files-found: error
           retention-days: 30
-      - name: Preparation summary (no upload)
-        run: |
-          echo '## PyPI preparation complete' >> "$GITHUB_STEP_SUMMARY"
-          echo 'The bundle contains the exact files verified on TestPyPI. Download it and manually upload only the two files in dist/ to PyPI. No registry upload was performed.' >> "$GITHUB_STEP_SUMMARY"
+
+  publish:
+    name: Publish to PyPI
+    needs: verify
+    runs-on: ubuntu-latest
+    environment:
+      name: pypi
+      url: https://pypi.org/project/neurotabular/
+    permissions:
+      id-token: write
+      actions: read
+    steps:
+      - name: Retrieve the identical TestPyPI distributions
+        uses: actions/download-artifact@v7
+        with:
+          artifact-ids: ${{ needs.verify.outputs.artifact_id }}
+          path: release-bundle/
+      - name: Publish verified distributions to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          packages-dir: release-bundle/dist/

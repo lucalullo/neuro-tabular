@@ -39,8 +39,8 @@ dependencies require a necessity, maintenance, license, and size review.
 
 ## Release preparation
 
-Maintainers can use the manual no-upload workflows on `main`. See
-[Release preparation](docs/PUBLICATION.md) for the verified TestPyPI-to-PyPI sequence.
+Maintainers can use the manual Trusted Publishing workflows on `main`. See
+[Release publication](docs/PUBLICATION.md) for the verified TestPyPI-to-PyPI sequence.
 
 ## Original work
 

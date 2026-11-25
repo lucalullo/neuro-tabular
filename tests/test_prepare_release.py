@@ -1,4 +1,4 @@
-"""The no-upload preparation path retains exact-commit and artifact guards."""
+"""The publication path retains exact-commit and artifact guards."""
 
 import pytest
 
@@ -56,7 +56,10 @@ def preparation_fixture():
         conclusion="success",
         run_attempt=1,
     )
-    jobs = [dict(name=prep.JOB, status="completed", conclusion="success")]
+    jobs = [
+        dict(name=name, status="completed", conclusion="success")
+        for name in (prep.JOB, prep.PUBLISH_JOB)
+    ]
     artifacts = [
         dict(
             id=99,
@@ -119,3 +122,18 @@ def test_multiple_runs_require_explicit_choice():
     api = preparation_api(run, jobs, artifacts, [run, another])
     with pytest.raises(ValueError, match="source_run_id"):
         prep.preparation_source("owner/repo", SHA, api=api)
+
+
+@pytest.mark.parametrize("change", ["missing", "failed", "skipped", "duplicate"])
+def test_reject_source_without_successful_testpypi_publication(change):
+    run, jobs, artifacts = preparation_fixture()
+    if change == "missing":
+        jobs.pop()
+    elif change == "duplicate":
+        jobs[1]["name"] = prep.JOB
+    else:
+        jobs[1]["conclusion"] = "failure" if change == "failed" else "skipped"
+    with pytest.raises(ValueError, match="publication must both succeed"):
+        prep.preparation_source(
+            "owner/repo", SHA, api=preparation_api(run, jobs, artifacts)
+        )
